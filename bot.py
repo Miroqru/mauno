@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 import logging
 from datetime import datetime
 
@@ -93,7 +74,7 @@ logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 @user_locale
 def notify_me(update: Update, context: CallbackContext):
-    """Handler for /notify_me command, pm people for next game"""
+    """Handle for /notify_me command, pm people for next game."""
     chat_id = update.message.chat_id
     if update.message.chat.type == 'private':
         send_async(bot,
@@ -109,7 +90,7 @@ def notify_me(update: Update, context: CallbackContext):
 
 @user_locale
 def new_game(update: Update, context: CallbackContext):
-    """Handler for the /new command"""
+    """Handle for the /new command."""
     chat_id = update.message.chat_id
 
     if update.message.chat.type == 'private':
@@ -137,7 +118,7 @@ def new_game(update: Update, context: CallbackContext):
 
 @user_locale
 def kill_game(update: Update, context: CallbackContext):
-    """Handler for the /kill command"""
+    """Handle for the /kill command."""
     chat = update.message.chat
     user = update.message.from_user
     games = gm.chatid_games.get(chat.id)
@@ -173,7 +154,7 @@ def kill_game(update: Update, context: CallbackContext):
 
 @user_locale
 def join_game(update: Update, context: CallbackContext):
-    """Handler for the /join command"""
+    """Handle for the /join command."""
     chat = update.message.chat
 
     if update.message.chat.type == 'private':
@@ -212,7 +193,7 @@ def join_game(update: Update, context: CallbackContext):
 
 @user_locale
 def leave_game(update: Update, context: CallbackContext):
-    """Handler for the /leave command"""
+    """Handle for the /leave command."""
     chat = update.message.chat
     user = update.message.from_user
 
@@ -256,8 +237,7 @@ def leave_game(update: Update, context: CallbackContext):
 
 @user_locale
 def kick_player(update: Update, context: CallbackContext):
-    """Handler for the /kick command"""
-
+    """Handle for the /kick command."""
     if update.message.chat.type == 'private':
         help_handler(update, context)
         return
@@ -325,8 +305,7 @@ def kick_player(update: Update, context: CallbackContext):
 
 
 def select_game(update: Update, context: CallbackContext):
-    """Handler for callback queries to select the current game"""
-
+    """Handle for callback queries to select the current game."""
     chat_id = int(update.callback_query.data)
     user_id = update.callback_query.from_user.id
     players = gm.userid_players[user_id]
@@ -363,7 +342,7 @@ def select_game(update: Update, context: CallbackContext):
 
 @game_locales
 def status_update(update: Update, context: CallbackContext):
-    """Remove player from game if user leaves the group"""
+    """Remove player from game if user leaves the group."""
     chat = update.message.chat
 
     if update.message.left_chat_member:
@@ -388,8 +367,7 @@ def status_update(update: Update, context: CallbackContext):
 @game_locales
 @user_locale
 def start_game(update: Update, context: CallbackContext):
-    """Handler for the /start command"""
-
+    """Handle for the /start command."""
     if update.message.chat.type != 'private':
         chat = update.message.chat
 
@@ -463,7 +441,7 @@ def start_game(update: Update, context: CallbackContext):
 
 @user_locale
 def close_game(update: Update, context: CallbackContext):
-    """Handler for the /close command"""
+    """Handle for the /close command."""
     chat = update.message.chat
     user = update.message.from_user
     games = gm.chatid_games.get(chat.id)
@@ -491,7 +469,7 @@ def close_game(update: Update, context: CallbackContext):
 
 @user_locale
 def open_game(update: Update, context: CallbackContext):
-    """Handler for the /open command"""
+    """Handle for the /open command."""
     chat = update.message.chat
     user = update.message.from_user
     games = gm.chatid_games.get(chat.id)
@@ -518,7 +496,7 @@ def open_game(update: Update, context: CallbackContext):
 
 @user_locale
 def enable_translations(update: Update, context: CallbackContext):
-    """Handler for the /enable_translations command"""
+    """Handle for the /enable_translations command."""
     chat = update.message.chat
     user = update.message.from_user
     games = gm.chatid_games.get(chat.id)
@@ -546,7 +524,7 @@ def enable_translations(update: Update, context: CallbackContext):
 
 @user_locale
 def disable_translations(update: Update, context: CallbackContext):
-    """Handler for the /disable_translations command"""
+    """Handle for the /disable_translations command."""
     chat = update.message.chat
     user = update.message.from_user
     games = gm.chatid_games.get(chat.id)
@@ -576,7 +554,7 @@ def disable_translations(update: Update, context: CallbackContext):
 @game_locales
 @user_locale
 def skip_player(update: Update, context: CallbackContext):
-    """Handler for the /skip command"""
+    """Handle for the /skip command."""
     chat = update.message.chat
     user = update.message.from_user
 
@@ -610,11 +588,11 @@ def skip_player(update: Update, context: CallbackContext):
 @game_locales
 @user_locale
 def reply_to_query(update: Update, context: CallbackContext):
-    """
-    Handler for inline queries.
+    """Handle for inline queries.
+
     Builds the result list for inline queries and answers to the client.
     """
-    results = list()
+    results = []
     switch = None
 
     try:
@@ -684,8 +662,8 @@ def reply_to_query(update: Update, context: CallbackContext):
 @game_locales
 @user_locale
 def process_result(update: Update, context: CallbackContext):
-    """
-    Handler for chosen inline results.
+    """Handle for chosen inline results.
+
     Checks the players actions and acts accordingly.
     """
     try:
@@ -698,7 +676,6 @@ def process_result(update: Update, context: CallbackContext):
         return
 
     logger.debug("Selected result: " + result_id)
-
     result_id, anti_cheat = result_id.split(':')
     last_anti_cheat = player.anti_cheat
     player.anti_cheat += 1
@@ -745,7 +722,7 @@ def process_result(update: Update, context: CallbackContext):
 
 
 def reset_waiting_time(bot, player):
-    """Resets waiting time for a player and sends a notice to the group"""
+    """Reset waiting time for a player and sends a notice to the group."""
     chat = player.game.chat
 
     if player.waiting_time < WAITING_TIME:
