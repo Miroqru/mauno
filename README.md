@@ -1,8 +1,10 @@
 # UNO Bot
 
+![](./logo.png)
+
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 
-This repository is a fork for: [Mau Mau bot](https://github.com/jh0ker/mau_mau_bot).
+This repository is a **fork** for: [Mau Mau bot](https://github.com/jh0ker/mau_mau_bot).
 
 Telegram Bot that allows you to play the popular card game UNO via inline queries.
 The bot currently runs as [@unobot](https://t.me/mili_maubot).
@@ -26,4 +28,4 @@ Then run the bot with `python bot.py`.
 ## Changes
 What has been changed compared to the original:
 
-- Remove Cubernetes, Docker, Renovate, Github workflow.
+- Remove Cuber, Docker, Renovate, Github workflow.
