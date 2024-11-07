@@ -1,24 +1,19 @@
-import random
-
 import logging
 
-import card as c
-from datetime import datetime
-
-from telegram import Message, Chat
-from telegram.ext import CallbackContext
 from apscheduler.jobstores.base import JobLookupError
+from telegram.ext import CallbackContext
 
-from config import TIME_REMOVAL_AFTER_SKIP, MIN_FAST_TURN_TIME
+import card as c
+from config import MIN_FAST_TURN_TIME, TIME_REMOVAL_AFTER_SKIP
 from errors import DeckEmptyError, NotEnoughPlayersError
-from internationalization import __, _
+from internationalization import __
 from shared_vars import gm
 from user_setting import UserSetting
-from utils import send_async, display_name, game_is_running
+from utils import display_name, game_is_running, send_async
 
 logger = logging.getLogger(__name__)
 
-class Countdown(object):
+class Countdown:
     player = None
     job_queue = None
 
@@ -27,7 +22,8 @@ class Countdown(object):
         self.job_queue = job_queue
 
 
-# TODO do_skip() could get executed in another thread (it can be a job), so it looks like it can't use game.translate?
+# TODO: do_skip() could get executed in another thread (it can be a job),
+# so it looks like it can't use game.translate?
 def do_skip(bot, player, job_queue=None):
     game = player.game
     chat = game.chat
@@ -37,8 +33,7 @@ def do_skip(bot, player, job_queue=None):
     if skipped_player.waiting_time > 0:
         skipped_player.anti_cheat += 1
         skipped_player.waiting_time -= TIME_REMOVAL_AFTER_SKIP
-        if (skipped_player.waiting_time < 0):
-            skipped_player.waiting_time = 0
+        skipped_player.waiting_time = max(skipped_player.waiting_time, 0)
 
         try:
             skipped_player.draw()
@@ -85,7 +80,7 @@ def do_skip(bot, player, job_queue=None):
 
 
 def do_play_card(bot, player, result_id):
-    """Plays the selected card and sends an update to the group if needed"""
+    """Plays the selected card and sends an update to the group if needed."""
     card = c.from_str(result_id)
     player.play(card)
     game = player.game
@@ -100,7 +95,9 @@ def do_play_card(bot, player, result_id):
         us.cards_played += 1
 
     if game.choosing_color:
-        send_async(bot, chat.id, text=__("Please choose a color", multi=game.translate))
+        send_async(
+            bot, chat.id, text=__("Please choose a color", multi=game.translate)
+        )
 
     if len(player.cards) == 1:
         send_async(bot, chat.id, text="UNO!")
@@ -132,7 +129,7 @@ def do_play_card(bot, player, result_id):
 
 
 def do_draw(bot, player):
-    """Does the drawing"""
+    """Does the drawing."""
     game = player.game
     draw_counter_before = game.draw_counter
 
@@ -150,7 +147,7 @@ def do_draw(bot, player):
 
 
 def do_call_bluff(bot, player):
-    """Handles the bluff calling"""
+    """Handles the bluff calling."""
     game = player.game
     chat = game.chat
 
@@ -188,9 +185,7 @@ def start_player_countdown(bot, game, job_queue):
     player = game.current_player
     time = player.waiting_time
 
-    if time < MIN_FAST_TURN_TIME:
-        time = MIN_FAST_TURN_TIME
-
+    time = max(time, MIN_FAST_TURN_TIME)
     if game.mode == 'fast':
         if game.job:
             try:

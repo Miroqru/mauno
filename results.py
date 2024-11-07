@@ -1,37 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
-"""Defines helper functions to build the inline result list"""
+"""Defines helper functions to build the inline result list."""
 
 from uuid import uuid4
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent, \
-    InlineQueryResultCachedSticker as Sticker
+from telegram import InlineQueryResultArticle, InputTextMessageContent
+from telegram import InlineQueryResultCachedSticker as Sticker
 
 import card as c
-from utils import display_color, display_color_group, display_name
 from internationalization import _, __
+from utils import display_color, display_color_group, display_name
 
 
 def add_choose_color(results, game):
-    """Add choose color options"""
+    """Add choose color options."""
     for color in c.COLORS:
         results.append(
             InlineQueryResultArticle(
@@ -43,10 +23,8 @@ def add_choose_color(results, game):
             )
         )
 
-
 def add_other_cards(player, results, game):
-    """Add hand cards when choosing colors"""
-
+    """Add hand cards when choosing colors."""
     results.append(
         InlineQueryResultArticle(
             "hand",
@@ -60,7 +38,7 @@ def add_other_cards(player, results, game):
 
 
 def player_list(game):
-    """Generate list of player strings"""
+    """Generate list of player strings."""
     return [_("{name} ({number} card)",
               "{name} ({number} cards)",
               len(player.cards))
@@ -69,7 +47,7 @@ def player_list(game):
 
 
 def add_no_game(results):
-    """Add text result if user is not playing"""
+    """Add text result if user is not playing."""
     results.append(
         InlineQueryResultArticle(
             "nogame",
@@ -81,9 +59,8 @@ def add_no_game(results):
         )
     )
 
-
 def add_not_started(results):
-    """Add text result if the game has not yet started"""
+    """Add text result if the game has not yet started."""
     results.append(
         InlineQueryResultArticle(
             "nogame",
@@ -95,7 +72,7 @@ def add_not_started(results):
 
 
 def add_mode_classic(results):
-    """Change mode to classic"""
+    """Change mode to classic."""
     results.append(
         InlineQueryResultArticle(
             "mode_classic",
@@ -105,9 +82,8 @@ def add_mode_classic(results):
         )
     )
 
-
 def add_mode_fast(results):
-    """Change mode to classic"""
+    """Change mode to fast."""
     results.append(
         InlineQueryResultArticle(
             "mode_fast",
@@ -117,9 +93,8 @@ def add_mode_fast(results):
         )
     )
 
-
 def add_mode_wild(results):
-    """Change mode to classic"""
+    """Change mode to classic."""
     results.append(
         InlineQueryResultArticle(
             "mode_wild",
@@ -129,9 +104,8 @@ def add_mode_wild(results):
         )
     )
 
-
 def add_mode_text(results):
-    """Change mode to text"""
+    """Change mode to text."""
     results.append(
         InlineQueryResultArticle(
             "mode_text",
@@ -140,12 +114,11 @@ def add_mode_text(results):
             InputTextMessageContent(_('Text ✍️'))
         )
     )
-    
-    
-def add_draw(player, results):
-    """Add option to draw"""
-    n = player.game.draw_counter or 1
 
+
+def add_draw(player, results):
+    """Add option to draw."""
+    n = player.game.draw_counter or 1
     results.append(
         Sticker(
             "draw", sticker_file_id=c.STICKERS['option_draw'],
@@ -157,10 +130,8 @@ def add_draw(player, results):
         )
     )
 
-
 def add_gameinfo(game, results):
-    """Add option to show game info"""
-
+    """Add option to show game info."""
     results.append(
         Sticker(
             "gameinfo",
@@ -169,9 +140,8 @@ def add_gameinfo(game, results):
         )
     )
 
-
 def add_pass(results, game):
-    """Add option to pass"""
+    """Add option to pass."""
     results.append(
         Sticker(
             "pass", sticker_file_id=c.STICKERS['option_pass'],
@@ -181,9 +151,8 @@ def add_pass(results, game):
         )
     )
 
-
 def add_call_bluff(results, game):
-    """Add option to call a bluff"""
+    """Add option to call a bluff."""
     results.append(
         Sticker(
             "call_bluff",
@@ -194,10 +163,8 @@ def add_call_bluff(results, game):
         )
     )
 
-
 def add_card(game, card, results, can_play):
-    """Add an option that represents a card"""
-
+    """Add an option that represents a card."""
     if can_play:
         if game.mode != "text":
             results.append(
@@ -212,7 +179,6 @@ def add_card(game, card, results, can_play):
             Sticker(str(uuid4()), sticker_file_id=c.STICKERS_GREY[str(card)],
                     input_message_content=game_info(game))
         )
-
 
 def game_info(game):
     players = player_list(game)

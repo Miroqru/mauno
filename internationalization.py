@@ -1,37 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 import gettext
 from functools import wraps
 
-from locales import available_locales
 from pony.orm import db_session
-from user_setting import UserSetting
+
+from locales import available_locales
 from shared_vars import gm
+from user_setting import UserSetting
 
 GETTEXT_DOMAIN = 'unobot'
 GETTEXT_DIR = 'locales'
 
 
 class _Underscore(object):
-    """Class to emulate flufl.i18n behaviour, but with plural support"""
+    """Class to emulate flufl.i18n behaviour, but with plural support."""
+
     def __init__(self):
         self.translators = {
             locale: gettext.GNUTranslations(
@@ -82,8 +64,8 @@ _ = _Underscore()
 
 
 def __(singular, plural=None, n=1, multi=False):
-    """Translates text into all locales on the stack"""
-    translations = list()
+    """Translate text into all locales on the stack."""
+    translations = []
 
     if not multi and len(set(_.locale_stack)) >= 1:
         translations.append(_(singular, plural, n, 'en_US'))
