@@ -1,41 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 import logging
 from datetime import datetime
 
 import card as c
-from errors import DeckEmptyError
 from config import WAITING_TIME
+from errors import DeckEmptyError
 
 
 class Player(object):
-    """
-    This class represents a player.
+    """Represents a player.
+
     It is basically a doubly-linked ring list with the option to reverse the
     direction. On initialization, it will connect itself to a game and its
     other players by placing itself behind the current player.
     """
 
     def __init__(self, game, user):
-        self.cards = list()
+        self.cards = []
         self.game = game
         self.user = user
         self.logger = logging.getLogger(__name__)
@@ -68,7 +48,7 @@ class Player(object):
             raise
 
     def leave(self):
-        """Removes player from the game and closes the gap in the list"""
+        """Remove player from the game and closes the gap in the list."""
         if self.next == self:
             return
 
@@ -111,7 +91,7 @@ class Player(object):
             self._next = player
 
     def draw(self):
-        """Draws 1+ cards from the deck, depending on the draw counter"""
+        """Draws 1+ cards from the deck, depending on the draw counter."""
         _amount = self.game.draw_counter or 1
 
         try:
@@ -126,14 +106,13 @@ class Player(object):
             self.drew = True
 
     def play(self, card):
-        """Plays a card and removes it from hand"""
+        """Plays a card and removes it from hand."""
         self.cards.remove(card)
         self.game.play_card(card)
 
     def playable_cards(self):
-        """Returns a list of the cards this player can play right now"""
-
-        playable = list()
+        """Return a list of the cards this player can play right now."""
+        playable = []
         last = self.game.last_card
 
         self.logger.debug("Last card was " + str(last))
@@ -158,8 +137,7 @@ class Player(object):
         return playable
 
     def _card_playable(self, card):
-        """Check a single card if it can be played"""
-
+        """Check a single card if it can be played."""
         is_playable = True
         last = self.game.last_card
         self.logger.debug("Checking card " + str(card))
@@ -175,8 +153,10 @@ class Player(object):
         elif last.special == c.DRAW_FOUR and self.game.draw_counter:
             self.logger.debug("Player has to draw and can't counter")
             is_playable = False
-        elif (last.special == c.CHOOSE or last.special == c.DRAW_FOUR) and \
-                (card.special == c.CHOOSE or card.special == c.DRAW_FOUR):
+        elif (
+            last.special in (c.CHOOSE, c.DRAW_FOUR)
+            and card.special in (c.CHOOSE, c.DRAW_FOUR)
+        ):
             self.logger.debug("Can't play colorchooser on another one")
             is_playable = False
         elif not last.color:

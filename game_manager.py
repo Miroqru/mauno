@@ -1,65 +1,47 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 import logging
 
+from errors import (
+    AlreadyJoinedError,
+    LobbyClosedError,
+    NoGameInChatError,
+    NotEnoughPlayersError,
+)
 from game import Game
 from player import Player
-from errors import (AlreadyJoinedError, LobbyClosedError, NoGameInChatError,
-                    NotEnoughPlayersError)
 from promotions import send_promotion_async
 
+MIN_GAME_PLAYERS = 3
+
 class GameManager(object):
-    """ Manages all running games by using a confusing amount of dicts """
+    """Manages all running games by using a confusing amount of dicts."""
 
     def __init__(self):
-        self.chatid_games = dict()
-        self.userid_players = dict()
-        self.userid_current = dict()
-        self.remind_dict = dict()
+        self.chatid_games = {}
+        self.userid_players = {}
+        self.userid_current = {}
+        self.remind_dict = {}
 
         self.logger = logging.getLogger(__name__)
 
     def new_game(self, chat):
-        """
-        Create a new game in this chat
-        """
-        chat_id = chat.id
-
-        self.logger.debug("Creating new game in chat " + str(chat_id))
+        """Create a new game in this chat."""
+        self.logger.debug("Creating new game in chat " + str(chat.id))
         game = Game(chat)
 
-        if chat_id not in self.chatid_games:
-            self.chatid_games[chat_id] = list()
+        if chat.id not in self.chatid_games:
+            self.chatid_games[chat.id] = list()
 
         # remove old games
-        for g in list(self.chatid_games[chat_id]):
+        for g in list(self.chatid_games[chat.id]):
             if not g.players:
-                self.chatid_games[chat_id].remove(g)
+                self.chatid_games[chat.id].remove(g)
 
-        self.chatid_games[chat_id].append(game)
+        self.chatid_games[chat.id].append(game)
         return game
 
     def join_game(self, user, chat):
-        """ Create a player from the Telegram user and add it to the game """
-        self.logger.info("Joining game with id " + str(chat.id))
+        """Create a player from the Telegram user and add it to the game."""
+        self.logger.info("Joining game with id %s", chat.id)
 
         try:
             game = self.chatid_games[chat.id][-1]
@@ -100,10 +82,9 @@ class GameManager(object):
         self.userid_current[user.id] = player
 
     def leave_game(self, user, chat):
-        """ Remove a player from its current game """
-
+        """Remove a player from its current game."""
         player = self.player_for_user_in_chat(user, chat)
-        players = self.userid_players.get(user.id, list())
+        players = self.userid_players.get(user.id, [])
 
         if not player:
             games = self.chatid_games[chat.id]
@@ -120,7 +101,7 @@ class GameManager(object):
 
         game = player.game
 
-        if len(game.players) < 3:
+        if len(game.players) < MIN_GAME_PLAYERS:
             raise NotEnoughPlayersError()
 
         if player is game.current_player:
@@ -138,11 +119,8 @@ class GameManager(object):
                 del self.userid_players[user.id]
 
     def end_game(self, chat, user):
-        """
-        End a game
-        """
-
-        self.logger.info("Game in chat " + str(chat.id) + " ended")
+        """End a game."""
+        self.logger.info("Game in chat %s ended", chat.id)
         send_promotion_async(chat, chance=0.15)
 
         # Find the correct game instance to end
@@ -154,28 +132,29 @@ class GameManager(object):
         game = player.game
 
         # Clear game
-        for player_in_game in game.players:
-            this_users_players = \
-                self.userid_players.get(player_in_game.user.id, list())
+        for game_player in game.players:
+            user_players = self.userid_players.get(
+                game_player.user.id, []
+            )
 
             try:
-                this_users_players.remove(player_in_game)
+                user_players.remove(game_player)
             except ValueError:
                 pass
 
-            if this_users_players:
+            if user_players:
                 try:
-                    self.userid_current[player_in_game.user.id] = this_users_players[0]
+                    self.userid_current[game_player.user.id] = user_players[0]
                 except KeyError:
                     pass
             else:
                 try:
-                    del self.userid_players[player_in_game.user.id]
+                    self.userid_players.pop(game_player.user.id)
                 except KeyError:
                     pass
 
                 try:
-                    del self.userid_current[player_in_game.user.id]
+                    self.userid_current.pop(game_player.user.id)
                 except KeyError:
                     pass
 

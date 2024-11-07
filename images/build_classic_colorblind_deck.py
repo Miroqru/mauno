@@ -23,7 +23,7 @@ def overlay_image(color, number):
     base = CLASSIC_DIR / "png" / f"{color}_{number}.png"
     overlay = COLORBLIND_OVERLAY_DIR / f"{color}.png"
     out = COLORBLIND_DIR / "png" / f"{color}_{number}.png"
-    run(["magick", "convert", str(base), str(overlay), "-composite", str(out)])
+    run(["magick", "convert", str(base), str(overlay), "-composite", str(out)], check=False)
 
 
 def create_not_playable(card):
@@ -43,7 +43,7 @@ def create_not_playable(card):
             str(overlay),
             "-composite",
             str(out),
-        ]
+        ], check=False
     )
 
 
@@ -53,12 +53,12 @@ def convert_png_to_webp(suffix):
             card = f"{color}_{number}"
             png = COLORBLIND_DIR / f"png{suffix}" / f"{card}.png"
             webp = COLORBLIND_DIR / f"webp{suffix}" / f"{card}.webp"
-            run(["magick", "convert", str(png), "-define", "webp:lossless=true", str(webp)])
+            run(["magick", "convert", str(png), "-define", "webp:lossless=true", str(webp)], check=False)
 
     for special in SPECIALS:
         png = COLORBLIND_DIR / f"png{suffix}" / f"{special}.png"
         webp = COLORBLIND_DIR / f"webp{suffix}" / f"{special}.webp"
-        run(["magick", "convert", str(png), "-define", "webp:lossless=true", str(webp)])
+        run(["magick", "convert", str(png), "-define", "webp:lossless=true", str(webp)], check=False)
 
 
 def main():

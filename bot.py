@@ -20,29 +20,69 @@
 import logging
 from datetime import datetime
 
-from telegram import ParseMode, InlineKeyboardMarkup, \
-    InlineKeyboardButton, Update
-from telegram.ext import InlineQueryHandler, ChosenInlineResultHandler, \
-    CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from telegram.ext.dispatcher import run_async
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ParseMode,
+    Update,
+)
+from telegram.ext import (
+    CallbackContext,
+    CallbackQueryHandler,
+    ChosenInlineResultHandler,
+    CommandHandler,
+    Filters,
+    InlineQueryHandler,
+    MessageHandler,
+)
 
 import card as c
 import settings
 import simple_commands
-from actions import do_skip, do_play_card, do_draw, do_call_bluff, start_player_countdown
-from config import WAITING_TIME, DEFAULT_GAMEMODE, MIN_PLAYERS
-from errors import (NoGameInChatError, LobbyClosedError, AlreadyJoinedError,
-                    NotEnoughPlayersError, DeckEmptyError)
-from internationalization import _, __, user_locale, game_locales
-from results import (add_call_bluff, add_choose_color, add_draw, add_gameinfo,
-                     add_no_game, add_not_started, add_other_cards, add_pass,
-                     add_card, add_mode_classic, add_mode_fast, add_mode_wild, add_mode_text)
-from shared_vars import gm, updater, dispatcher
+from actions import (
+    do_call_bluff,
+    do_draw,
+    do_play_card,
+    do_skip,
+    start_player_countdown,
+)
+from config import DEFAULT_GAMEMODE, MIN_PLAYERS, WAITING_TIME
+from errors import (
+    AlreadyJoinedError,
+    DeckEmptyError,
+    LobbyClosedError,
+    NoGameInChatError,
+    NotEnoughPlayersError,
+)
+from internationalization import _, __, game_locales, user_locale
+from results import (
+    add_call_bluff,
+    add_card,
+    add_choose_color,
+    add_draw,
+    add_gameinfo,
+    add_mode_classic,
+    add_mode_fast,
+    add_mode_text,
+    add_mode_wild,
+    add_no_game,
+    add_not_started,
+    add_other_cards,
+    add_pass,
+)
+from shared_vars import dispatcher, gm, updater
 from simple_commands import help_handler
 from start_bot import start_bot
-from utils import display_name
-from utils import send_async, answer_async, error, TIMEOUT, user_is_creator_or_admin, user_is_creator, game_is_running
-
+from utils import (
+    TIMEOUT,
+    answer_async,
+    display_name,
+    error,
+    game_is_running,
+    send_async,
+    user_is_creator,
+    user_is_creator_or_admin,
+)
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

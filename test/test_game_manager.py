@@ -20,11 +20,15 @@
 
 import unittest
 
-from telegram import User, Chat
+from telegram import Chat, User
 
+from errors import (
+    AlreadyJoinedError,
+    LobbyClosedError,
+    NoGameInChatError,
+    NotEnoughPlayersError,
+)
 from game_manager import GameManager
-from errors import AlreadyJoinedError, LobbyClosedError, NoGameInChatError, \
-    NotEnoughPlayersError
 
 
 class Test(unittest.TestCase):

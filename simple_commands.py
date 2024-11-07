@@ -1,34 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 from telegram import ParseMode, Update
-from telegram.ext import CommandHandler, CallbackContext
+from telegram.ext import CallbackContext, CommandHandler
 
-from user_setting import UserSetting
-from utils import send_async
-from shared_vars import dispatcher
 from internationalization import _, user_locale
 from promotions import send_promotion
+from shared_vars import dispatcher
+from user_setting import UserSetting
+from utils import send_async
+
 
 @user_locale
 def help_handler(update: Update, context: CallbackContext):
-    """Handler for the /help command"""
+    """Handle for the /help command."""
     help_text = _("Follow these steps:\n\n"
       "1. Add this bot to a group\n"
       "2. In the group, start a new game with /new or join an already"
@@ -77,7 +59,7 @@ def help_handler(update: Update, context: CallbackContext):
 
 @user_locale
 def modes(update: Update, context: CallbackContext):
-    """Handler for the /help command"""
+    """Handle for the /help command."""
     modes_explanation = _("This UNO bot has four game modes: Classic, Sanic, Wild and Text.\n\n"
       " 🎻 The Classic mode uses the conventional UNO deck and there is no auto skip.\n"
       " 🚀 The Sanic mode uses the conventional UNO deck and the bot automatically skips a player if he/she takes too long to play its turn\n"
@@ -90,7 +72,7 @@ def modes(update: Update, context: CallbackContext):
 
 @user_locale
 def source(update: Update, context: CallbackContext):
-    """Handler for the /help command"""
+    """Handle for the /help command."""
     source_text = _("This bot is Free Software and licensed under the AGPL. "
       "The code is available here: \n"
       "https://github.com/jh0ker/mau_mau_bot")
@@ -109,7 +91,7 @@ def source(update: Update, context: CallbackContext):
 
 @user_locale
 def news(update: Update, context: CallbackContext):
-    """Handler for the /news command"""
+    """Handle for the /news command."""
     send_async(context.bot, update.message.chat_id,
                text=_("All news here: https://telegram.me/unobotnews"),
                disable_web_page_preview=True)

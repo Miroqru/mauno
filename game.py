@@ -19,26 +19,15 @@
 
 
 import logging
-from config import ADMIN_LIST, OPEN_LOBBY, DEFAULT_GAMEMODE, ENABLE_TRANSLATIONS
 from datetime import datetime
 
-from deck import Deck
 import card as c
+from config import ADMIN_LIST, DEFAULT_GAMEMODE, ENABLE_TRANSLATIONS, OPEN_LOBBY
+from deck import Deck
+
 
 class Game(object):
-    """ This class represents a game of UNO """
-    current_player = None
-    reversed = False
-    choosing_color = False
-    started = False
-    draw_counter = 0
-    players_won = 0
-    starter = None
-    mode = DEFAULT_GAMEMODE
-    job = None
-    owner = ADMIN_LIST
-    open = OPEN_LOBBY
-    translate = ENABLE_TRANSLATIONS
+    """Represents a game of UNO."""
 
     def __init__(self, chat):
         self.chat = chat
@@ -46,12 +35,26 @@ class Game(object):
 
         self.deck = Deck()
 
+        # Game params
+        self.current_player = None
+        self.reversed = False
+        self.choosing_color = False
+        self.started = False
+        self.draw_counter = 0
+        self.players_won = 0
+        self.starter = None
+        self.mode = DEFAULT_GAMEMODE
+        self.job = None
+        self.owner = ADMIN_LIST
+        self.open = OPEN_LOBBY
+        self.translate = ENABLE_TRANSLATIONS
+
         self.logger = logging.getLogger(__name__)
 
     @property
     def players(self):
-        """Returns a list of all players in this game"""
-        players = list()
+        """Returns a list of all players in this game."""
+        players = []
         if not self.current_player:
             return players
 
@@ -64,7 +67,7 @@ class Game(object):
         return players
 
     def start(self):
-        if self.mode == None or self.mode != "wild":
+        if self.mode is None or self.mode != "wild":
             self.deck._fill_classic_()
         else:
             self.deck._fill_wild_()
@@ -76,11 +79,11 @@ class Game(object):
         self.mode = mode
 
     def reverse(self):
-        """Reverses the direction of game"""
+        """Reverses the direction of game."""
         self.reversed = not self.reversed
 
     def turn(self):
-        """Marks the turn as over and change the current player"""
+        """Marks the turn as over and change the current player."""
         self.logger.debug("Next Player")
         self.current_player = self.current_player.next
         self.current_player.drew = False
@@ -102,10 +105,10 @@ class Game(object):
         self.play_card(self.last_card)
 
     def play_card(self, card):
-        """
-        Plays a card and triggers its effects.
+        """Plays a card and triggers its effects.
+
         Should be called only from Player.play or on game start to play the
-        first card
+        first card.
         """
         self.deck.dismiss(self.last_card)
         self.last_card = card
@@ -134,6 +137,6 @@ class Game(object):
             self.choosing_color = True
 
     def choose_color(self, color):
-        """Carries out the color choosing and turns the game"""
+        """Carries out the color choosing and turns the game."""
         self.last_card.color = color
         self.turn()

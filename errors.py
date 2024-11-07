@@ -1,38 +1,27 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Telegram bot to play UNO in group chats
-# Copyright (c) 2016 Jannes Höke <uno@jhoeke.de>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 class NoGameInChatError(Exception):
-    pass
+    """If there is no active game created in the chat.
 
+    For example, when a user tries to join a game that does not exist.
+    """
+
+    pass
 
 class AlreadyJoinedError(Exception):
-    pass
+    """When the user tries to reconnect to the game."""
 
+    pass
 
 class LobbyClosedError(Exception):
-    pass
+    """When a user tries to join a closed lobby."""
 
+    pass
 
 class NotEnoughPlayersError(Exception):
+    """When there are not enough players to start the game."""
+
     pass
 
-
 class DeckEmptyError(Exception):
+    """When the deck runs out of cards."""
+
     pass

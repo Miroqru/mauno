@@ -20,9 +20,9 @@
 
 import unittest
 
+import card as c
 from game import Game
 from player import Player
-import card as c
 
 
 class Test(unittest.TestCase):
