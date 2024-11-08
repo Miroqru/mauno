@@ -5,10 +5,10 @@ from telegram.ext import CallbackContext
 
 import card as c
 from config import MIN_FAST_TURN_TIME, TIME_REMOVAL_AFTER_SKIP
+from database import UserSetting
 from errors import DeckEmptyError, NotEnoughPlayersError
 from internationalization import __
 from shared_vars import gm
-from user_setting import UserSetting
 from utils import display_name, game_is_running, send_async
 
 logger = logging.getLogger(__name__)
