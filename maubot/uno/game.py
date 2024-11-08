@@ -2,14 +2,14 @@ from datetime import datetime
 
 from loguru import logger
 
-import maubot.card as c
+import maubot.uno.card as c
 from maubot.config import (
     ADMIN_LIST,
     DEFAULT_GAMEMODE,
     ENABLE_TRANSLATIONS,
     OPEN_LOBBY,
 )
-from maubot.deck import Deck
+from maubot.uno.deck import Deck
 
 
 class Game(object):

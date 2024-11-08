@@ -18,9 +18,9 @@ from telegram.ext import (
     MessageHandler,
 )
 
-import maubot.card as c
+import maubot.uno.card as c
 from maubot import settings, simple_commands
-from maubot.actions import (
+from maubot.uno.actions import (
     do_call_bluff,
     do_draw,
     do_play_card,
@@ -28,7 +28,7 @@ from maubot.actions import (
     start_player_countdown,
 )
 from maubot.config import DEFAULT_GAMEMODE, MIN_PLAYERS, WAITING_TIME
-from maubot.errors import (
+from maubot.uno.errors import (
     AlreadyJoinedError,
     DeckEmptyError,
     LobbyClosedError,
