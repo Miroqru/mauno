@@ -12,7 +12,9 @@ from maubot.internationalization import _, user_locale
 from maubot.shared_vars import dispatcher
 from maubot.utils import send_async
 
+# TODO: Использовать aiogram router
 
+# FIXME: Использовать aiogram обработчик
 @user_locale
 def show_settings(update: Update, context: CallbackContext):
     chat = update.message.chat
@@ -37,7 +39,7 @@ def show_settings(update: Update, context: CallbackContext):
                reply_markup=ReplyKeyboardMarkup(keyboard=kb,
                                                 one_time_keyboard=True))
 
-
+# FIXME: Использовать aiogram обработчик
 @user_locale
 def kb_select(update: Update, context: CallbackContext):
     chat = update.message.chat
@@ -65,7 +67,7 @@ def kb_select(update: Update, context: CallbackContext):
         us.cards_played = 0
         send_async(context.bot, chat.id, text=_("Deleted and disabled statistics!"))
 
-
+# FIXME: Использовать aiogram обработчик
 @user_locale
 def locale_select(update: Update, context: CallbackContext):
     chat = update.message.chat
@@ -79,6 +81,7 @@ def locale_select(update: Update, context: CallbackContext):
         send_async(context.bot, chat.id, text=_("Set locale!"))
         _.pop()
 
+# FIXME: Использовать aiogram обработчик
 def register():
     dispatcher.add_handler(CommandHandler('settings', show_settings))
     dispatcher.add_handler(MessageHandler(Filters.regex('^([' + '📊' +

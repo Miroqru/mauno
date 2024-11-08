@@ -7,7 +7,10 @@ from maubot.promotions import send_promotion
 from maubot.shared_vars import dispatcher
 from maubot.utils import send_async
 
+# TODO: Отделить сообщения от команд..
+# TODO: Использовать aiogram роутер для команд
 
+# FIXME: Use Aiogram handlers
 @user_locale
 def help_handler(update: Update, context: CallbackContext):
     """Handle for the /help command."""
@@ -57,6 +60,7 @@ def help_handler(update: Update, context: CallbackContext):
 
     context.dispatcher.run_async(_send)
 
+# FIXME: Use Aiogram handlrs
 @user_locale
 def modes(update: Update, context: CallbackContext):
     """Handle for the /help command."""
@@ -70,6 +74,7 @@ def modes(update: Update, context: CallbackContext):
     send_async(context.bot, update.message.chat_id, text=modes_explanation,
                parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
+# FIXME: Use Aiogram handlers
 @user_locale
 def source(update: Update, context: CallbackContext):
     """Handle for the /help command."""
@@ -89,6 +94,7 @@ def source(update: Update, context: CallbackContext):
                parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
 
+# FIXME: Use Aiogram handlers
 @user_locale
 def news(update: Update, context: CallbackContext):
     """Handle for the /news command."""
@@ -97,6 +103,7 @@ def news(update: Update, context: CallbackContext):
                disable_web_page_preview=True)
 
 
+# FIXME: Use Aiogram handlers
 @user_locale
 def stats(update: Update, context: CallbackContext):
     user = update.message.from_user
@@ -133,7 +140,7 @@ def stats(update: Update, context: CallbackContext):
         send_async(context.bot, update.message.chat_id,
                    text='\n'.join(stats_text))
 
-
+# FIXME: Use Aiogram handlers
 def register():
     dispatcher.add_handler(CommandHandler('help', help_handler))
     dispatcher.add_handler(CommandHandler('source', source))
