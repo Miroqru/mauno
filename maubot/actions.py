@@ -1,6 +1,5 @@
-import logging
-
 from apscheduler.jobstores.base import JobLookupError
+from loguru import logger
 from telegram.ext import CallbackContext
 
 import maubot.card as c
@@ -11,20 +10,18 @@ from maubot.internationalization import __
 from maubot.shared_vars import gm
 from maubot.utils import display_name, game_is_running, send_async
 
-logger = logging.getLogger(__name__)
 
 class Countdown:
-    player = None
-    job_queue = None
-
     def __init__(self, player, job_queue):
-        self.player = player
-        self.job_queue = job_queue
+        self.player = player or None
+        self.job_queue = job_queue or None
 
 
 # TODO: do_skip() could get executed in another thread (it can be a job),
 # so it looks like it can't use game.translate?
 def do_skip(bot, player, job_queue=None):
+    logger.info("Skip action: {} q={}", player, job_queue)
+
     game = player.game
     chat = game.chat
     skipped_player = game.current_player
@@ -78,9 +75,10 @@ def do_skip(bot, player, job_queue=None):
             gm.end_game(chat, skipped_player.user)
 
 
-
 def do_play_card(bot, player, result_id):
     """Plays the selected card and sends an update to the group if needed."""
+    logger.info("Push card from {} with {}", player, result_id)
+
     card = c.from_str(result_id)
     player.play(card)
     game = player.game
@@ -127,9 +125,8 @@ def do_play_card(bot, player, result_id):
 
             gm.end_game(chat, user)
 
-
 def do_draw(bot, player):
-    """Does the drawing."""
+    logger.info("{} draw cards", player)
     game = player.game
     draw_counter_before = game.draw_counter
 
@@ -147,7 +144,7 @@ def do_draw(bot, player):
 
 
 def do_call_bluff(bot, player):
-    """Handles the bluff calling."""
+    logger.info("{} call bluff", player)
     game = player.game
     chat = game.chat
 

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from loguru import logger
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -65,9 +66,8 @@ from maubot.utils import (
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG
+    level=logging.INFO
 )
-logger = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 @user_locale
@@ -672,7 +672,7 @@ def process_result(update: Update, context: CallbackContext):
     except (KeyError, AttributeError):
         return
 
-    logger.debug("Selected result: " + result_id)
+    logger.debug("Selected result: {}", result_id)
     result_id, anti_cheat = result_id.split(':')
     last_anti_cheat = player.anti_cheat
     player.anti_cheat += 1
@@ -683,8 +683,8 @@ def process_result(update: Update, context: CallbackContext):
         # First 5 characters are 'mode_', the rest is the gamemode.
         mode = result_id[5:]
         game.set_mode(mode)
-        logger.info("Gamemode changed to {mode}".format(mode = mode))
-        send_async(context.bot, chat.id, text=__("Gamemode changed to {mode}".format(mode = mode)))
+        logger.info("Gamemode changed to {}", mode)
+        send_async(context.bot, chat.id, text=__(f"Gamemode changed to {mode}"))
         return
     elif len(result_id) == 36:  # UUID result
         return

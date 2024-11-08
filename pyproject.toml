@@ -17,6 +17,7 @@ urllib3 = "^1"
 
 # Development dependencies ---------------------------------------------
 telethon = "^1.37.0"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.2"

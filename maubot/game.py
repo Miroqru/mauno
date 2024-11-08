@@ -1,5 +1,6 @@
-import logging
 from datetime import datetime
+
+from loguru import logger
 
 import maubot.card as c
 from maubot.config import (
@@ -34,8 +35,6 @@ class Game(object):
         self.open = OPEN_LOBBY
         self.translate = ENABLE_TRANSLATIONS
 
-        self.logger = logging.getLogger(__name__)
-
     @property
     def players(self):
         """Returns a list of all players in this game."""
@@ -52,6 +51,7 @@ class Game(object):
         return players
 
     def start(self):
+        logger.info("Start new game in chat")
         if self.mode is None or self.mode != "wild":
             self.deck._fill_classic_()
         else:
@@ -68,8 +68,8 @@ class Game(object):
         self.reversed = not self.reversed
 
     def turn(self):
-        """Marks the turn as over and change the current player."""
-        self.logger.debug("Next Player")
+        """Mark the turn as over and change the current player."""
+        logger.info("Next Player")
         self.current_player = self.current_player.next
         self.current_player.drew = False
         self.current_player.turn_started = datetime.now()
@@ -98,15 +98,15 @@ class Game(object):
         self.deck.dismiss(self.last_card)
         self.last_card = card
 
-        self.logger.info("Playing card " + repr(card))
+        logger.info("Playing card {}", card)
         if card.value == c.SKIP:
             self.turn()
         elif card.special == c.DRAW_FOUR:
             self.draw_counter += 4
-            self.logger.debug("Draw counter increased by 4")
+            logger.debug("Draw counter increased by 4")
         elif card.value == c.DRAW_TWO:
             self.draw_counter += 2
-            self.logger.debug("Draw counter increased by 2")
+            logger.debug("Draw counter increased by 2")
         elif card.value == c.REVERSE:
             # Special rule for two players
             if self.current_player == self.current_player.next.next:
@@ -118,7 +118,7 @@ class Game(object):
         if card.special not in (c.CHOOSE, c.DRAW_FOUR):
             self.turn()
         else:
-            self.logger.debug("Choosing Color...")
+            logger.debug("Choosing Color...")
             self.choosing_color = True
 
     def choose_color(self, color):

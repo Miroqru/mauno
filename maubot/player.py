@@ -1,5 +1,6 @@
-import logging
 from datetime import datetime
+
+from loguru import logger
 
 import maubot.card as c
 from maubot.config import WAITING_TIME
@@ -18,7 +19,6 @@ class Player(object):
         self.cards = []
         self.game = game
         self.user = user
-        self.logger = logging.getLogger(__name__)
 
         # Check if this player is the first player in this game.
         if game.current_player:
@@ -38,6 +38,7 @@ class Player(object):
         self.waiting_time = WAITING_TIME
 
     def draw_first_hand(self):
+        logger.debug("{} Draw first hand for player", self.user)
         try:
             for _ in range(7):
                 self.cards.append(self.game.deck.draw())
@@ -49,6 +50,7 @@ class Player(object):
 
     def leave(self):
         """Remove player from the game and closes the gap in the list."""
+        logger.debug("{} Leave from game", self.user)        
         if self.next == self:
             return
 
@@ -91,11 +93,12 @@ class Player(object):
             self._next = player
 
     def draw(self):
-        """Draws 1+ cards from the deck, depending on the draw counter."""
-        _amount = self.game.draw_counter or 1
+        """Draws 1+ cards from the deck, depending on the draw counter."""    
+        amount = self.game.draw_counter or 1
+        logger.debug("{} Draw {} cards", self.user, amount)
 
         try:
-            for _ in range(_amount):
+            for _ in range(amount):
                 self.cards.append(self.game.deck.draw())
 
         except DeckEmptyError:
@@ -115,7 +118,7 @@ class Player(object):
         playable = []
         last = self.game.last_card
 
-        self.logger.debug("Last card was " + str(last))
+        logger.debug("Last card was {}", last)
 
         cards = self.cards
         if self.drew:
@@ -125,7 +128,7 @@ class Player(object):
         self.bluffing = False
         for card in cards:
             if self._card_playable(card):
-                self.logger.debug("Matching!")
+                logger.debug("Matching!")
                 playable.append(card)
 
                 self.bluffing = (self.bluffing or card.color == last.color)
@@ -140,27 +143,27 @@ class Player(object):
         """Check a single card if it can be played."""
         is_playable = True
         last = self.game.last_card
-        self.logger.debug("Checking card " + str(card))
+        logger.debug("Checking card {}", card)
 
         if (card.color != last.color and card.value != last.value and
                 not card.special):
-            self.logger.debug("Card's color or value doesn't match")
+            logger.debug("Card's color or value doesn't match")
             is_playable = False
         elif last.value == c.DRAW_TWO and not \
                 card.value == c.DRAW_TWO and self.game.draw_counter:
-            self.logger.debug("Player has to draw and can't counter")
+            logger.debug("Player has to draw and can't counter")
             is_playable = False
         elif last.special == c.DRAW_FOUR and self.game.draw_counter:
-            self.logger.debug("Player has to draw and can't counter")
+            logger.debug("Player has to draw and can't counter")
             is_playable = False
         elif (
             last.special in (c.CHOOSE, c.DRAW_FOUR)
             and card.special in (c.CHOOSE, c.DRAW_FOUR)
         ):
-            self.logger.debug("Can't play colorchooser on another one")
+            logger.debug("Can't play colorchooser on another one")
             is_playable = False
         elif not last.color:
-            self.logger.debug("Last card has no color")
+            logger.debug("Last card has no color")
             is_playable = False
 
         return is_playable
