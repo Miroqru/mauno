@@ -2,9 +2,9 @@ from random import shuffle
 
 from loguru import logger
 
-import maubot.card as c
-from maubot.card import Card
-from maubot.errors import DeckEmptyError
+import maubot.uno.card as c
+from maubot.uno.card import Card
+from maubot.uno.errors import DeckEmptyError
 
 
 class Deck(object):

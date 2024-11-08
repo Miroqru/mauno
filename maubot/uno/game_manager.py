@@ -1,13 +1,13 @@
 from loguru import logger
 
-from maubot.errors import (
+from maubot.uno.errors import (
     AlreadyJoinedError,
     LobbyClosedError,
     NoGameInChatError,
     NotEnoughPlayersError,
 )
-from maubot.game import Game
-from maubot.player import Player
+from maubot.uno.game import Game
+from maubot.uno.player import Player
 from maubot.promotions import send_promotion_async
 
 MIN_GAME_PLAYERS = 3

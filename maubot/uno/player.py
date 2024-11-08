@@ -2,9 +2,9 @@ from datetime import datetime
 
 from loguru import logger
 
-import maubot.card as c
+import maubot.uno.card as c
 from maubot.config import WAITING_TIME
-from maubot.errors import DeckEmptyError
+from maubot.uno.errors import DeckEmptyError
 
 
 class Player(object):

@@ -2,14 +2,15 @@ from apscheduler.jobstores.base import JobLookupError
 from loguru import logger
 from telegram.ext import CallbackContext
 
-import maubot.card as c
+import maubot.uno.card as c
 from maubot.config import MIN_FAST_TURN_TIME, TIME_REMOVAL_AFTER_SKIP
 from maubot.database import UserSetting
-from maubot.errors import DeckEmptyError, NotEnoughPlayersError
+from maubot.uno.errors import DeckEmptyError, NotEnoughPlayersError
 from maubot.internationalization import __
 from maubot.shared_vars import gm
 from maubot.utils import display_name, game_is_running, send_async
 
+# TODO: Перенести функции в соответствующие классы
 
 class Countdown:
     def __init__(self, player, job_queue):

@@ -1,7 +1,7 @@
 from telegram.ext import Updater
 
 from maubot.config import TOKEN, WORKERS
-from maubot.game_manager import GameManager
+from maubot.uno.game_manager import GameManager
 
 # FIXME: Use Aiogram dispather
 # TODO: Mode to con fig file
