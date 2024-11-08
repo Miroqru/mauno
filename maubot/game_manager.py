@@ -1,4 +1,4 @@
-import logging
+from loguru import logger
 
 from maubot.errors import (
     AlreadyJoinedError,
@@ -21,11 +21,9 @@ class GameManager(object):
         self.userid_current = {}
         self.remind_dict = {}
 
-        self.logger = logging.getLogger(__name__)
-
     def new_game(self, chat):
         """Create a new game in this chat."""
-        self.logger.debug("Creating new game in chat " + str(chat.id))
+        logger.debug("Creating new game in chat {}", chat.id)
         game = Game(chat)
 
         if chat.id not in self.chatid_games:
@@ -41,7 +39,7 @@ class GameManager(object):
 
     def join_game(self, user, chat):
         """Create a player from the Telegram user and add it to the game."""
-        self.logger.info("Joining game with id %s", chat.id)
+        logger.info("Joining {} game with id {}", user, chat.id)
 
         try:
             game = self.chatid_games[chat.id][-1]
@@ -83,6 +81,8 @@ class GameManager(object):
 
     def leave_game(self, user, chat):
         """Remove a player from its current game."""
+        logger.info("Leaving {} game with id {}", user, chat.id)
+        
         player = self.player_for_user_in_chat(user, chat)
         players = self.userid_players.get(user.id, [])
 
@@ -120,7 +120,7 @@ class GameManager(object):
 
     def end_game(self, chat, user):
         """End a game."""
-        self.logger.info("Game in chat %s ended", chat.id)
+        logger.info("Game in chat {} ended", chat.id)
         send_promotion_async(chat, chance=0.15)
 
         # Find the correct game instance to end

@@ -1,3 +1,10 @@
+"""Запускает бота.
+
+```
+py -m maubot
+```
+"""
+
 from maubot.bot import start_bot
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
-import logging
 from random import shuffle
+
+from loguru import logger
 
 import maubot.card as c
 from maubot.card import Card
@@ -13,19 +14,18 @@ class Deck(object):
         self.cards = []
         self.graveyard = []
 
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug(self.cards)
+        logger.debug(self.cards)
 
     def shuffle(self):
         """Shuffles the deck."""
-        self.logger.debug("Shuffling Deck")
+        logger.debug("Shuffling Deck")
         shuffle(self.cards)
 
     def draw(self):
         """Draws a card from this deck."""
         try:
             card = self.cards.pop()
-            self.logger.debug("Drawing card " + str(card))
+            logger.debug("Drawing card {}", card)
             return card
         except IndexError:
             if len(self.graveyard):
