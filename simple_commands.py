@@ -1,10 +1,10 @@
 from telegram import ParseMode, Update
 from telegram.ext import CallbackContext, CommandHandler
 
+from database import UserSetting
 from internationalization import _, user_locale
 from promotions import send_promotion
 from shared_vars import dispatcher
-from user_setting import UserSetting
 from utils import send_async
 
 

@@ -6,10 +6,10 @@ from telegram.ext import (
     MessageHandler,
 )
 
+from database import UserSetting
 from internationalization import _, user_locale
 from locales import available_locales
 from shared_vars import dispatcher
-from user_setting import UserSetting
 from utils import send_async
 
 

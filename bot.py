@@ -53,7 +53,6 @@ from results import (
 )
 from shared_vars import dispatcher, gm, updater
 from simple_commands import help_handler
-from start_bot import start_bot
 from utils import (
     TIMEOUT,
     answer_async,
@@ -67,7 +66,7 @@ from utils import (
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    level=logging.DEBUG
 )
 logger = logging.getLogger(__name__)
 logging.getLogger('apscheduler').setLevel(logging.WARNING)
@@ -756,5 +755,4 @@ settings.register()
 dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
 dispatcher.add_error_handler(error)
 
-start_bot(updater)
-updater.idle()
+updater.start_polling()
