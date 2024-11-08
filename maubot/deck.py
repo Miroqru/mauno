@@ -1,9 +1,9 @@
 import logging
 from random import shuffle
 
-import card as c
-from card import Card
-from errors import DeckEmptyError
+import maubot.card as c
+from maubot.card import Card
+from maubot.errors import DeckEmptyError
 
 
 class Deck(object):

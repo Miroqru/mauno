@@ -17,26 +17,25 @@ from telegram.ext import (
     MessageHandler,
 )
 
-import card as c
-import settings
-import simple_commands
-from actions import (
+import maubot.card as c
+from maubot import settings, simple_commands
+from maubot.actions import (
     do_call_bluff,
     do_draw,
     do_play_card,
     do_skip,
     start_player_countdown,
 )
-from config import DEFAULT_GAMEMODE, MIN_PLAYERS, WAITING_TIME
-from errors import (
+from maubot.config import DEFAULT_GAMEMODE, MIN_PLAYERS, WAITING_TIME
+from maubot.errors import (
     AlreadyJoinedError,
     DeckEmptyError,
     LobbyClosedError,
     NoGameInChatError,
     NotEnoughPlayersError,
 )
-from internationalization import _, __, game_locales, user_locale
-from results import (
+from maubot.internationalization import _, __, game_locales, user_locale
+from maubot.results import (
     add_call_bluff,
     add_card,
     add_choose_color,
@@ -51,9 +50,9 @@ from results import (
     add_other_cards,
     add_pass,
 )
-from shared_vars import dispatcher, gm, updater
-from simple_commands import help_handler
-from utils import (
+from maubot.shared_vars import dispatcher, gm, updater
+from maubot.simple_commands import help_handler
+from maubot.utils import (
     TIMEOUT,
     answer_async,
     display_name,
@@ -402,7 +401,6 @@ def start_game(update: Update, context: CallbackContext):
 
             def send_first():
                 """Send the first card and player"""
-
                 context.bot.sendSticker(chat.id,
                                 sticker=c.STICKERS[str(game.last_card)],
                                 timeout=TIMEOUT)
@@ -732,27 +730,33 @@ def reset_waiting_time(bot, player):
                    .format(name=display_name(player.user), time=WAITING_TIME))
 
 
-# Add all handlers to the dispatcher and run the bot
-dispatcher.add_handler(InlineQueryHandler(reply_to_query))
-dispatcher.add_handler(ChosenInlineResultHandler(process_result, pass_job_queue=True))
-dispatcher.add_handler(CallbackQueryHandler(select_game))
-dispatcher.add_handler(CommandHandler('start', start_game, pass_args=True, pass_job_queue=True))
-dispatcher.add_handler(CommandHandler('new', new_game))
-dispatcher.add_handler(CommandHandler('kill', kill_game))
-dispatcher.add_handler(CommandHandler('join', join_game))
-dispatcher.add_handler(CommandHandler('leave', leave_game))
-dispatcher.add_handler(CommandHandler('kick', kick_player))
-dispatcher.add_handler(CommandHandler('open', open_game))
-dispatcher.add_handler(CommandHandler('close', close_game))
-dispatcher.add_handler(CommandHandler('enable_translations',
-                                      enable_translations))
-dispatcher.add_handler(CommandHandler('disable_translations',
-                                      disable_translations))
-dispatcher.add_handler(CommandHandler('skip', skip_player))
-dispatcher.add_handler(CommandHandler('notify_me', notify_me))
-simple_commands.register()
-settings.register()
-dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
-dispatcher.add_error_handler(error)
+def start_bot():
+    """Prepare and launch bot."""
+    # Add all handlers to the dispatcher and run the bot
+    dispatcher.add_handler(InlineQueryHandler(reply_to_query))
+    dispatcher.add_handler(ChosenInlineResultHandler(
+        process_result, pass_job_queue=True
+    ))
+    dispatcher.add_handler(CallbackQueryHandler(select_game))
+    dispatcher.add_handler(CommandHandler(
+        'start', start_game, pass_args=True, pass_job_queue=True
+    ))
+    dispatcher.add_handler(CommandHandler('new', new_game))
+    dispatcher.add_handler(CommandHandler('kill', kill_game))
+    dispatcher.add_handler(CommandHandler('join', join_game))
+    dispatcher.add_handler(CommandHandler('leave', leave_game))
+    dispatcher.add_handler(CommandHandler('kick', kick_player))
+    dispatcher.add_handler(CommandHandler('open', open_game))
+    dispatcher.add_handler(CommandHandler('close', close_game))
+    dispatcher.add_handler(CommandHandler('enable_translations',
+                                        enable_translations))
+    dispatcher.add_handler(CommandHandler('disable_translations',
+                                        disable_translations))
+    dispatcher.add_handler(CommandHandler('skip', skip_player))
+    dispatcher.add_handler(CommandHandler('notify_me', notify_me))
+    simple_commands.register()
+    settings.register()
+    dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
+    dispatcher.add_error_handler(error)
 
-updater.start_polling()
+    updater.start_polling()
