@@ -3,13 +3,13 @@ import logging
 from apscheduler.jobstores.base import JobLookupError
 from telegram.ext import CallbackContext
 
-import card as c
-from config import MIN_FAST_TURN_TIME, TIME_REMOVAL_AFTER_SKIP
-from database import UserSetting
-from errors import DeckEmptyError, NotEnoughPlayersError
-from internationalization import __
-from shared_vars import gm
-from utils import display_name, game_is_running, send_async
+import maubot.card as c
+from maubot.config import MIN_FAST_TURN_TIME, TIME_REMOVAL_AFTER_SKIP
+from maubot.database import UserSetting
+from maubot.errors import DeckEmptyError, NotEnoughPlayersError
+from maubot.internationalization import __
+from maubot.shared_vars import gm
+from maubot.utils import display_name, game_is_running, send_async
 
 logger = logging.getLogger(__name__)
 

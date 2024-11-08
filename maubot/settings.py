@@ -6,11 +6,11 @@ from telegram.ext import (
     MessageHandler,
 )
 
-from database import UserSetting
-from internationalization import _, user_locale
 from locales import available_locales
-from shared_vars import dispatcher
-from utils import send_async
+from maubot.database import UserSetting
+from maubot.internationalization import _, user_locale
+from maubot.shared_vars import dispatcher
+from maubot.utils import send_async
 
 
 @user_locale

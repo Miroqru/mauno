@@ -3,9 +3,9 @@ from functools import wraps
 
 from pony.orm import db_session
 
-from database import UserSetting
 from locales import available_locales
-from shared_vars import gm
+from maubot.database import UserSetting
+from maubot.shared_vars import gm
 
 GETTEXT_DOMAIN = 'unobot'
 GETTEXT_DIR = 'locales'

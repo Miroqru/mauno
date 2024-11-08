@@ -3,9 +3,9 @@ import logging
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from internationalization import _, __
-from mwt import MWT
-from shared_vars import dispatcher, gm
+from maubot.internationalization import _, __
+from maubot.mwt import MWT
+from maubot.shared_vars import dispatcher, gm
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ TIMEOUT = 2.5
 
 
 def list_subtract(list1, list2):
-    """Helper function to subtract two lists and return the sorted result."""
+    """Subtract two lists and return the sorted result."""
     list1 = list1.copy()
 
     for x in list2:
@@ -59,7 +59,7 @@ def display_color_group(color, game):
 
 
 def error(update: Update, context: CallbackContext):
-    """Simple error handler."""
+    """Handle errors from bot."""
     logger.exception(context.error)
 
 

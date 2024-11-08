@@ -5,9 +5,9 @@ from uuid import uuid4
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram import InlineQueryResultCachedSticker as Sticker
 
-import card as c
-from internationalization import _, __
-from utils import display_color, display_color_group, display_name
+import maubot.card as c
+from maubot.internationalization import _, __
+from maubot.utils import display_color, display_color_group, display_name
 
 
 def add_choose_color(results, game):
