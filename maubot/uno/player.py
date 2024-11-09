@@ -50,7 +50,7 @@ class Player(object):
 
     def leave(self):
         """Remove player from the game and closes the gap in the list."""
-        logger.debug("{} Leave from game", self.user)        
+        logger.debug("{} Leave from game", self.user)
         if self.next == self:
             return
 
@@ -93,7 +93,7 @@ class Player(object):
             self._next = player
 
     def draw(self):
-        """Draws 1+ cards from the deck, depending on the draw counter."""    
+        """Draws 1+ cards from the deck, depending on the draw counter."""
         amount = self.game.draw_counter or 1
         logger.debug("{} Draw {} cards", self.user, amount)
 

@@ -1,25 +1,11 @@
-import logging
-
+from loguru import logger
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from maubot.internationalization import _, __
 from maubot.mwt import MWT
 from maubot.shared_vars import dispatcher, gm
 
-logger = logging.getLogger(__name__)
-
 TIMEOUT = 2.5
-
-# TODO: Remove in future
-def list_subtract(list1, list2):
-    """Subtract two lists and return the sorted result."""
-    list1 = list1.copy()
-
-    for x in list2:
-        list1.remove(x)
-
-    return list(sorted(list1))
 
 # TODO: Use aiogram user mention html
 # TODO: Set default parsemode to html
@@ -34,29 +20,25 @@ def display_name(user):
 def display_color(color):
     """Convert a color code to actual color name."""
     if color == "r":
-        return _("{emoji} Red").format(emoji='❤️')
+        return "❤️ Red"
     if color == "b":
-        return _("{emoji} Blue").format(emoji='💙')
+        return "💙 Blue"
     if color == "g":
-        return _("{emoji} Green").format(emoji='💚')
+        return "💚 Green"
     if color == "y":
-        return _("{emoji} Yellow").format(emoji='💛')
+        return "💛 Yellow"
 
-# TODO: Move to card classs
+# TODO: Полностью удалить
 def display_color_group(color, game):
     """Convert a color code to actual color name."""
     if color == "r":
-        return __("{emoji} Red", game.translate).format(
-            emoji='❤️')
+        return "❤️ Red"
     if color == "b":
-        return __("{emoji} Blue", game.translate).format(
-            emoji='💙')
+        return "💙 Blue"
     if color == "g":
-        return __("{emoji} Green", game.translate).format(
-            emoji='💚')
+        return "💚 Green"
     if color == "y":
-        return __("{emoji} Yellow", game.translate).format(
-            emoji='💛')
+        return "💛 Yellow"
 
 # FIXME: Use aiogram types, mode to main bot file
 def error(update: Update, context: CallbackContext):
