@@ -10,7 +10,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-python-telegram-bot = "^13.15"
+python-telegram-bot = "^13"
 pony = "^0.7.19"
 urllib3 = "^1"
 
@@ -18,6 +18,8 @@ urllib3 = "^1"
 # Development dependencies ---------------------------------------------
 telethon = "^1.37.0"
 loguru = "^0.7.2"
+aiogram = "^3.14.0"
+tortoise-orm = "^0.21.7"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.2"

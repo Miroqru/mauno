@@ -1,215 +1,290 @@
-# Colors
-RED = 'r'
-BLUE = 'b'
-GREEN = 'g'
-YELLOW = 'y'
-BLACK = 'x'
+"""Описывает все карточки Uno и как они используются.
 
-COLORS = (RED, BLUE, GREEN, YELLOW)
+Существует несколько типов карт:
+- Числа.
+- Пропуск хода.
+- Переворот.
+- Добавить карты.
+- Выбор цвета.
+- Дать 4 карты.
+"""
 
-COLOR_ICONS = {
-    RED: '❤️',
-    BLUE: '💙',
-    GREEN: '💚',
-    YELLOW: '💛',
-    BLACK: '⬛️'
-}
+from enum import IntEnum
+from typing import Any, Iterable, Iterator, Self
 
-# Values
-ZERO = '0'
-ONE = '1'
-TWO = '2'
-THREE = '3'
-FOUR = '4'
-FIVE = '5'
-SIX = '6'
-SEVEN = '7'
-EIGHT = '8'
-NINE = '9'
-DRAW_TWO = 'draw'
-REVERSE = 'reverse'
-SKIP = 'skip'
+from loguru import logger
 
-VALUES = (ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, DRAW_TWO,
-          REVERSE, SKIP)
-WILD_VALUES = (ONE, TWO, THREE, FOUR, FIVE, DRAW_TWO, REVERSE, SKIP)
+# Дополнительные перечисления
+# ===========================
 
-# Special cards
-CHOOSE = 'colorchooser'
-DRAW_FOUR = 'draw_four'
+# Emoji для представления цвета карты
+COLOR_EMOJI = ["❤️", "💛", "💚", "💙", "🖤"]
 
-SPECIALS = (CHOOSE, DRAW_FOUR)
+class CardColor(IntEnum):
+    """Все доступные цвета карт UNO."""
 
-CARDS_CLASSIC = {
-    "normal": {
-        "colorchooser": "CAADAgADLV0AAoa8aEnWTgiOOj_X-AI",
-        "draw_four": "CAADAgADL2QAAkppaEkmy1ZFZDL6agI",
-        "r_0": "CAADAgADBmMAArRBaElwMzXDyh5TRQI",
-        "r_1": "CAADAgAD3mMAApwxaUmeEycLntbJ9AI",
-        "r_2": "CAADAgADfVgAAoSUaEnPtdohyJdp-QI",
-        "r_3": "CAADAgADm2EAAmdjaUlL_dbd1w1MsAI",
-        "r_4": "CAADAgADM2IAAn7CaUmYxLJTmXb4zgI",
-        "r_5": "CAADAgADaVwAAiZ0aEmfhVMrmSa1ugI",
-        "r_6": "CAADAgADqGsAAqpxaUnM9xRYVjgHUgI",
-        "r_7": "CAADAgADiVkAAlpzaUkdrBhsrb8uxgI",
-        "r_8": "CAADAgAD8F8AAikBaUnf9qXSHCvPvgI",
-        "r_9": "CAADAgADumgAAhvMaEkjiV1DXeqEuwI",
-        "r_draw": "CAADAgADiFoAAkiMaEns7jTQDVI5DgI",
-        "r_reverse": "CAADAgADAWMAAikOYEmDR_QQ7AABdHkC",
-        "r_skip": "CAADAgADk10AAhY8aElof7bmbvcnPAI",
-        "g_0": "CAADAgADKWMAAssRaEkStDq0EUlljgI",
-        "g_1": "CAADAgAD63YAAtz3aUlJ7q0VYF5MzAI",
-        "g_2": "CAADAgADpnAAAvDEaEnAHngF_LaW2wI",
-        "g_3": "CAADAgADX2UAAiD1aUlw-cO0LtErwQI",
-        "g_4": "CAADAgADmlkAAi4QaUla8U8nwQl7MgI",
-        "g_5": "CAADAgADbFwAAtXaaUkH2I86VzQKwQI",
-        "g_6": "CAADAgADHFkAAm_7aUm0I7-pxWbzMAI",
-        "g_7": "CAADAgADa2IAAsJCaUlCMbsCEMHgvQI",
-        "g_8": "CAADAgADKF8AAid4aElAuvnFv4RZngI",
-        "g_9": "CAADAgADy1gAAvYmaEnAaDCWq37o5gI",
-        "g_draw": "CAADAgADxmMAAhj2aUkapOvXS7aFRQI",
-        "g_reverse": "CAADAgADO1gAAjCKaElVdF90GpJkLAI",
-        "g_skip": "CAADAgAD1FsAAkIaaUncotvBqx1aXAI",
-        "b_0": "CAADAgADZ1gAAoRqaUnRixlEAywPnwI",
-        "b_1": "CAADAgADnWMAAn5kaElP2J_f3OK-DwI",
-        "b_2": "CAADAgADi1wAAg5NaEnQ2uNUSYVpewI",
-        "b_3": "CAADAgADp2AAAmXcaUlB3bqTCHhmQwI",
-        "b_4": "CAADAgAD9GIAAjJJaEmPvdLKTQAB8usC",
-        "b_5": "CAADAgADBmYAApx4aUm0asm6l8KO-AI",
-        "b_6": "CAADAgADk2MAAuPlaElUotP5J8-lDQI",
-        "b_7": "CAADAgADtGQAAjzGaUlTWW33svpz7AI",
-        "b_8": "CAADAgADgFwAAl-RaUlBXu5Y8XpRjgI",
-        "b_9": "CAADAgADIGIAAlH0aUlnbTrlxr4bogI",
-        "b_draw": "CAADAgADQWAAAl3paUkx0IL1fHvLnwI",
-        "b_reverse": "CAADAgADDFwAAt26aEkodi50VNrdEAI",
-        "b_skip": "CAADAgADx24AAqo1aEm-993LRWNXUwI",
-        "y_0": "CAADAgAD3GAAAi3baElq2AZUE-T-AgI",
-        "y_1": "CAADAgADZGUAAj7HaEkAAVV0FEu49qgC",
-        "y_2": "CAADAgADx2IAAu-OaUnhkUO_-Y6DIgI",
-        "y_3": "CAADAgADGV4AAue5aEmMgL0o2SN3DQI",
-        "y_4": "CAADAgAD8l0AAhBNaUnA9vfUFKBeQQI",
-        "y_5": "CAADAgADIWMAAvN8aUmTvGioQAoXPgI",
-        "y_6": "CAADAgAD4GcAAnLpaUnJfMtYnNbcDAI",
-        "y_7": "CAADAgAEXAACdeJoSX-JOi-1ZWnMAg",
-        "y_8": "CAADAgAD1WkAAnooaUmlvNaBzYhAgQI",
-        "y_9": "CAADAgADCVMAAgNbaEnfZBZ5dy8B8QI",
-        "y_draw": "CAADAgADtmYAAksKaUkej4If1HjqsQI",
-        "y_reverse": "CAADAgADx1wAAuFaaEkyJjcJ2V2i-wI",
-        "y_skip": "CAADAgADIGMAAmd3aEnD6omtxRkSIwI"
-    },
-    "not_playable": {
-        "colorchooser": "CAADAgAD22IAAlBmaUmR6oS5M0fwDwI",
-        "draw_four": "CAADAgADe2MAAuVKaEniBMzksrl8CAI",
-        "r_0": "CAADAgAD9l8AAqG-aEm1N0MDmDKmuQI",
-        "r_1": "CAADAgADCl8AAkmuaUluF1n2I8-47wI",
-        "r_2": "CAADAgADrmAAAqmLaUn_xH_m5MZCGAI",
-        "r_3": "CAADAgADLGUAAl8MaEln0qeSdyHJvAI",
-        "r_4": "CAADAgADJFwAArrlaUnNgARazALoSwI",
-        "r_5": "CAADAgADXmUAAqT9aUniTrgZNO6VQwI",
-        "r_6": "CAADAgAD_18AAsbNaUmQtV8W1Rnl1AI",
-        "r_7": "CAADAgAD8GQAAlsEaUmuWtwLO1Lk6QI",
-        "r_8": "CAADAgAD714AAvn6aUmMH4kb0r2N5gI",
-        "r_9": "CAADAgADQGAAAgKPaEmoacqaEnp8tAI",
-        "r_draw": "CAADAgAD9mQAAtnnYUlEpboCdX8qrAI",
-        "r_reverse": "CAADAgADWloAAjjNaUlWXvrnmEy3xwI",
-        "r_skip": "CAADAgADCWgAAvsHaUl7v6RBUl8PlAI",
-        "g_0": "CAADAgADLWcAArqXaEm4wBY2S8eqpAI",
-        "g_1": "CAADAgAD9GAAAsSBaUkUM8BL6ccUKAI",
-        "g_2": "CAADAgADzmUAAp--aEn9498Mhr_kSAI",
-        "g_3": "CAADAgADFl4AAitIaUnjPMUFFd7KTAI",
-        "g_4": "CAADAgADQFkAAl2AaUkyanMOPXbRLwI",
-        "g_5": "CAADAgADnm0AAr-0aUkZn781zzosUAI",
-        "g_6": "CAADAgADA1kAAsJoaUnzTX_u2fW5FwI",
-        "g_7": "CAADAgADqF4AAkXsaUmJOP0m7XXC9wI",
-        "g_8": "CAADAgADEGIAAnoHaEmM2XXh-W9ZqgI",
-        "g_9": "CAADAgADFloAAjd3aUmdabV4t7JBpAI",
-        "g_draw": "CAADAgADFGIAAtADaEn_WWFq49idHQI",
-        "g_reverse": "CAADAgADkVsAAl4baEnQmC8B7PLk7gI",
-        "g_skip": "CAADAgADu14AAn3fYUmgC__ZYoW3wwI",
-        "b_0": "CAADAgADPWcAAv_LaUmTh1_yMkS96gI",
-        "b_1": "CAADAgADVlsAAjEnYElGUTtPoAGXCgI",
-        "b_2": "CAADAgADLWEAArjYaUmSjSAi3PRIUgI",
-        "b_3": "CAADAgADeF4AAt0YaEn8A4f2u3o-AwI",
-        "b_4": "CAADAgADaF0AAvxVaEnuW8vbG1ldRQI",
-        "b_5": "CAADAgADP1oAAjOtaUneHfpcA9NPtgI",
-        "b_6": "CAADAgADCl4AArAUaEmPRoVJZ1ERnAI",
-        "b_7": "CAADAgADhl4AAjFDaEkhBGKU4DFu1gI",
-        "b_8": "CAADAgADrGYAAup_aEmJr4vqhx3GmgI",
-        "b_9": "CAADAgADNmMAAoqYaUnvt34qaMi7qAI",
-        "b_draw": "CAADAgADX1wAAslNaEkF16twdqHJCQI",
-        "b_reverse": "CAADAgADmmAAApQ4aEm-DEug76oHAQI",
-        "b_skip": "CAADAgADdV4AAjL0aEl--q81vXlCMwI",
-        "y_0": "CAADAgADp2UAAk2SaEmoCVHGcgdTtQI",
-        "y_1": "CAADAgADoF4AAou7aElRVaTkOU18WwI",
-        "y_2": "CAADAgADF1QAAgOxaEnb8upzNW4xgAI",
-        "y_3": "CAADAgADgFkAAqh_aUngp6xP4JXcPQI",
-        "y_4": "CAADAgADzVcAAsLmaUm-PHHdJDTxEQI",
-        "y_5": "CAADAgADYWMAArRoaElOqOjVhm_kvgI",
-        "y_6": "CAADAgADM2IAApHRaUnqGYs6DsRCwgI",
-        "y_7": "CAADAgADTVoAAuGzaEmUrXjZTeRAiQI",
-        "y_8": "CAADAgADL2QAAnLiaEnovkFJevgaFwI",
-        "y_9": "CAADAgADi1kAAtnsaElCTVZiHuCa8QI",
-        "y_draw": "CAADAgADJGAAAnMXaEkIuKQWnVoHVAI",
-        "y_reverse": "CAADAgAD514AAg0LaEmCIOaD-A2JiQI",
-        "y_skip": "CAADAgADN1wAAi50aUnbZeAAAUpdIN0C"
-    }
-}
+    RED = 0
+    YELLOW = 1
+    GREEN = 2
+    BLUE = 3
+    BLACK = 4
 
-STICKERS_OPTIONS = {
-    "option_bluff": "CAADAgADkmcAAttjaEmfg1PaY1hvyAI",
-    "option_draw": "CAADAgADwmkAArcyaUnnzpUUU7YQYAI",
-    "option_info": "CAADAgADkmAAAv-aaUlM0SwReOh3WwI",
-    "option_pass": "CAADAgADJl8AAsMIaEl7l8IZc-EdXwI",
-}
+    def __str__(self) -> str:
+        """Представление цвета в виде смайлика."""
+        return COLOR_EMOJI[self.value]
 
-# TODO: Support multiple card packs
-# For now, just use classic colorblind
-STICKERS = {
-    **CARDS_CLASSIC["normal"],
-    **STICKERS_OPTIONS,
-}
+CARD_TYPES = ["", "skip", "reverse", "+", "choosed", "take"]
 
-STICKERS_GREY = {
-    **CARDS_CLASSIC["not_playable"],
-}
+class CardType(IntEnum):
+    """Основные типы карт UNO.
+
+    - NUMBER: Числа от 0 до 9.
+    - TURN: Пропуск хода следующего игрока.
+    - REVERSE: Переворачивает очередь ходов.
+    - TAKE: Следующий игрок берёт карты.
+    - CHOOSE_COLOR: Выбирает любой цвет для карты.
+    - TAKE_FOUR: Выбирает цвет, даёт +4 карты следующему игроку.
+    """
+
+    NUMBER = 0
+    TURN = 1
+    REVERSE = 2
+    TAKE = 3
+    CHOOSE_COLOR = 4
+    TAKE_FOUR = 5
+
+    def __str__(self) -> str:
+        """Представление тип карты одним словом."""
+        return CARD_TYPES[self.value]
 
 
-class Card(object):
-    """Represents an UNO card."""
+# Описание карт
+# =============
 
-    def __init__(self, color, value, special=None):
-        self.color = color
+class BaseCard:
+    """Описание каждой карты Uno.
+
+    Предоставляет общий функционал для всех карт.
+    """
+
+    def __init__(self, color: CardColor, card_type: CardType):
+        self.color: CardColor = color
+        self.card_type: CardType = card_type
+        self.value: int = 0
+        self.cost: int = 0
+
+    def can_cover(self, other_card: Self) -> bool:
+        """Проверяет что другая карта может покрыть текущую.
+
+        По правилам игры цель каждого игрока - избавить от своих карт.
+        Чтобы избавиться от карт, нужно накрыть текущую карту с
+        верхушки одной из своей руки.
+        Как только карты кончатся - вы победили.
+
+        Данный метод проверяет что вы можете покрыть текущую карту
+        другой картой.
+
+        Args:
+            other_card (BaseCard): Карта, которой вы хотите покрыть
+                текущую.
+
+        Returns:
+            bool: Можно ли покрыть текущую карту данной
+        """
+        if self.color == other_card.color:
+            return True
+        elif (self.card_type == other_card.type
+            and self.value == other_card.value
+        ):
+            return True
+        else:
+            return False
+
+    def get_cover_cards(self, hand: Iterable[Self]) -> Iterator[Self, bool]:
+        """Проверяет какие карты вы можете покрыть из своей руки.
+
+        Используется чтобы проверить всю свою руку на наличие карт,
+        которыми можно покрыть текущую.
+
+        Args:
+            hand (Iterable[BaseCard]): Карты в вашей руке.
+
+        Yields:
+            Iterator[BaseCard, bool]: Возвращает карту и можете ли вы
+                ею покрыть текущую.
+        """
+        for card in hand:
+            yield (card, self.can_cover(card))
+
+    def use_card(self, game) -> Any:
+        """Выполняет способность карты.
+
+        У каждой карты есть свой способность.
+        Все способности реализуются путём изменения параметров игры.
+
+        Args:
+            game (UnoGame): Текущая игровая сессия где вызвана карта.
+
+        Returns:
+            Any: Резльтат работы карты, возвращаемый обратно в игру.
+        """
+        logger.debug("Used card {} in chat {}", self, game.chat_id)
+
+
+    def __call__(self, game) -> None:
+        """Синтаксический сахар для вызова действия карты.
+
+        Позволяет использовать способность этой карты.
+        Является сокращением для метода use_card.
+        """
+        return self.use_card(game)
+
+    def __str__(self) -> str:
+        """Представление карты в строковом виде."""
+        return f"{self.color} {self.card_type} {self.value}"
+
+    def __repr__(self) -> str:
+        """Представление карты при отладке."""
+        return self.__str__()
+
+
+class NumberCard(BaseCard):
+    """Карта с числом.
+
+    Данная карта не обладает какими-либо особенностями.
+    Просто карта с определённым число от 0 до 9.
+    """
+
+    def __init__(self, color: CardColor, value: int):
+        super().__init__(color, CardType.NUMBER)
         self.value = value
-        self.special = special
+        self.cost = value
+
+    def __str__(self) -> str:
+        """Представление карты в строковом виде."""
+        return f"{self.color} {self.value}"
+
+
+class TurnCard(BaseCard):
+    """Карта пропуска хода.
+
+    Позволяет пропустить ход для следующих игроков.
+    """
+
+    def __init__(self, color: CardColor, value: int):
+        super().__init__(color, CardType.TURN)
+        self.value = value
+        self.cost = 20
+
+    def use_card(self, game) -> None:
+        """Пропускает ход для следующего игрока.
+
+        Args:
+            game (UnoGame): Текущая сессия игры.
+        """
+        logger.info("Skip {} players", self.value)
+        game.skip_players(self.value)
 
     def __str__(self):
-        if self.special:
-            return self.special
+        """Представление карты в строковое виде."""
+        return f"{self.color} skip {self.value if self.value != 1 else ''}"
+
+
+class ReverseCard(BaseCard):
+    """Карта разворота.
+
+    Разворачивает очередь ходов.
+    """
+
+    def __init__(self, color: CardColor):
+        super().__init__(color, CardType.REVERSE)
+        self.cost = 20
+
+    def use_card(self, game) -> None:
+        """Разворачивает очерёдность ходов для игры.
+
+        Args:
+            game (UnoGame): Текущая сессия игры.
+        """
+        # Когда игроков двое, работает как карта пропуска
+        if len(game.players) == 2: # noqa
+            game.skip_players()
         else:
-            return '%s_%s' % (self.color, self.value)
+            game.reverse = not game.reverse
+            logger.info("Reverse flag now {}", game.reverse)
 
-    def __repr__(self):
-        if self.special:
-            return '%s%s%s' % (COLOR_ICONS.get(self.color, ''),
-                               COLOR_ICONS[BLACK],
-                               ' '.join([s.capitalize()
-                                         for s in self.special.split('_')]))
-        else:
-            return '%s%s' % (COLOR_ICONS[self.color], self.value.capitalize())
-
-    def __eq__(self, other):
-        """Needed for sorting the cards."""
-        return str(self) == str(other)
-
-    def __lt__(self, other):
-        """Needed for sorting the cards."""
-        return str(self) < str(other)
+    def __str__(self):
+        """Представление карты в строковое виде."""
+        return f"{self.color} reverse"
 
 
-def from_str(string):
-    """Decodes a Card object from a string."""
-    if string not in SPECIALS:
-        color, value = string.split('_')
-        return Card(color, value)
-    else:
-        return Card(None, None, string)
+class TakeCard(BaseCard):
+    """Взять две карты.
+
+    На самом деле тут может быть и больше.
+    Следующий игрок должен будет взять несколько карт.
+    """
+
+    def __init__(self, color: CardColor, value: int = 2):
+        super().__init__(color, CardType.TAKE)
+        self.value = value
+        self.cost = 20
+
+    def use_card(self, game):
+        """Следующий игрок берёт несколько карт.
+
+        Args:
+            game (UnoGame): Текущая сессия игры.
+        """
+        game.take_counter += self.value
+        logger.info("Take counter increase by {} and now {}",
+            self.value, game.take_counter
+        )
+
+    def __str__(self):
+        """Представление карты в строковое виде."""
+        return f"{self.color} +{self.value}"
+
+
+class ChooseColorCard(BaseCard):
+    """карта выбора цвета.
+
+    Позволяет изменить цвет текущей карты.
+    """
+
+    def __init__(self):
+        super().__init__(CardColor.BLACK, CardType.CHOOSE_COLOR)
+        self.cost = 50
+
+    def use_card(self, game):
+        """Следующий игрок берёт несколько карт.
+
+        Args:
+            game (UnoGame): Текущая сессия игры.
+        """
+        game.choose_color_flag = True
+
+    def __str__(self):
+        """Представление карты в строковое виде."""
+        return f"{self.card_type} {self.color}"
+
+
+class TakeFourCard(BaseCard):
+    """Карта дать +4.
+
+    Особая карта, меняющая цвет и выдающая следующему игроку 4 карты.
+    """
+
+    def __init__(self, value: int = 4):
+        super().__init__(CardColor.BLACK, CardType.TAKE_FOUR)
+        self.value = value
+        self.cost = 50
+
+    def use_card(self, game):
+        """Следующий игрок берёт несколько карт.
+
+        Args:
+            game (UnoGame): Текущая сессия игры.
+        """
+        game.choose_color_flag = True
+        game.take_counter += 4
