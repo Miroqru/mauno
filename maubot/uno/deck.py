@@ -1,68 +1,149 @@
+"""Колода карт для игры.
+
+В колоде располагаются все карты для игры.
+После эти карты могут перемещаться в руку игрока или обратно в колоду.
+Также хранит информацию о текущей верхней карте колоды.
+"""
+
 from random import shuffle
+from typing import Iterator
 
 from loguru import logger
 
-import maubot.uno.card as c
-from maubot.uno.card import Card
-from maubot.uno.errors import DeckEmptyError
+from maubot.uno.card import BaseCard, NumberCard, ReverseCard, TakeCard, TurnCard, TakeFourCard, ChooseColorCard, CardColor
+from maubot.uno.exceptions import DeckEmptyError
 
 
-class Deck(object):
-    """represents a deck of cards."""
+class Deck:
+    """Колода карт.
+
+    В колоде располагаются все карты для игры.
+    Предоставляется методы для добавления, удаления и перемещения карт.
+    """
 
     def __init__(self):
-        self.cards = []
-        self.graveyard = []
+        self.cards: list[BaseCard] = []
+        self.used_cards: list[BaseCard] = []
+        self.top: BaseCard | None = None
 
-        logger.debug(self.cards)
 
-    def shuffle(self):
-        """Shuffles the deck."""
-        logger.debug("Shuffling Deck")
+    # Работа с целой колодой
+    # ======================
+
+    def clear(self) -> None:
+        """Очищает колоду карт."""
+        self.cards.clear()
+        self.used_cards.clear()
+        self.top = None
+        logger.info("Deck cleared")
+
+    def shuffle(self) -> None:
+        """Перемешивает карты в колоде.
+
+        Обязательно перемешивайте карты в колоде как добавили их.
+        """
         shuffle(self.cards)
 
-    def draw(self):
-        """Draws a card from this deck."""
-        try:
-            card = self.cards.pop()
-            logger.debug("Drawing card {}", card)
-            return card
-        except IndexError:
-            if len(self.graveyard):
-                while len(self.graveyard):
-                    self.cards.append(self.graveyard.pop())
-                self.shuffle()
-                return self.draw()
-            else:
-                raise DeckEmptyError()
-
-    def dismiss(self, card):
-        """Return a card to the deck."""
-        if card.special:
-            card.color = None
-        self.graveyard.append(card)
-
-    def _fill_classic_(self):
-        # Fill deck with the classic card set
-        self.cards.clear()
-        for color in c.COLORS:
-            for value in c.VALUES:
-                self.cards.append(Card(color, value))
-                if not value == c.ZERO:
-                    self.cards.append(Card(color, value))
-        for special in c.SPECIALS:
-            for _ in range(4):
-                self.cards.append(Card(None, None, special=special))
+    def prepared_used_cards(self) -> None:
+        """Возвращает использованные карты в колоду."""
+        self.cards.extend(self.used_cards)
+        self.used_cards.clear()
         self.shuffle()
 
-    def _fill_wild_(self):
-        # Fill deck with a wild card set
-        self.cards.clear()
-        for color in c.COLORS:
-            for value in c.WILD_VALUES:
-                for _ in range(4):
-                    self.cards.append(Card(color, value))
-        for special in c.SPECIALS:
-            for _ in range(6):
-                self.cards.append(Card(None, None, special=special))
+
+    # Работа с картами
+    # ================
+
+    def take(self, count: int = 1) -> Iterator:
+        """Берёт одну карту из колоды.
+
+        Используется чтобы дать участнику несколько карт.
+
+        Args:
+            count (int, optional): Сколько взять карт (одну).
+
+        Yields:
+            Iterator: Возвращает по одной карте из всех взятых.
+        """
+        if len(self.cards) < count:
+            self.prepared_used_cards()
+        if len(self.cards) < count:
+            raise DeckEmptyError()
+
+        for i in range(count):
+            card = self.cards.pop()
+            logger.debug("Take {} / {} card: {}", i, count, card)
+            yield card
+
+    def take_one(self) -> BaseCard:
+        """Берёт одну карту из колоды.
+
+        В тех случаях, когда нужно взять только одну карту.
+        """
+        logger.debug("Take one card from deck")
+        return self.cards.pop()
+
+
+    def put(self, card: BaseCard) -> None:
+        """Возвращает использованную карту в колоду."""
+        self.used_cards.append(card)
+
+
+    # Работа с верхней картой
+    # =======================
+
+    def put_on_top(self, card: BaseCard) -> None:
+        """Ложит карту на вершину стопки."""
+        if self.top is None:
+            self.top = card
+
+        self.used_cards.append(self.top)
+        self.top = card
+
+
+    # Наполнение колоды
+    # =================
+
+    def fill_classic(self) -> None:
+        """Наполняет колоду классическим набором карт."""
+        logger.info("Add classic card set in deck")
+        self.clear()
+
+        # Нули добавляем отдельно поскольку их всегда по одному
+        for c in CardColor:
+            self.cards.append(NumberCard(CardColor(c), 0))
+
+        # Добавляем по два набора всех остальных карт
+        for _ in range(2):
+            for c in CardColor:
+                for value in range(1, 10):
+                    self.cards.append(NumberCard(CardColor(c), value))
+                self.cards.append(ReverseCard(CardColor(c)))
+                self.cards.append(TurnCard(CardColor(c)))
+                self.cards.append(TakeCard(CardColor(c)))
+
+        # Добавляем козырные карты
+        for _ in range(4):
+            self.cards.append(ChooseColorCard())
+            self.cards.append(TakeFourCard())
+
+        self.shuffle()
+
+    def fill_wild(self) -> None:
+        """Наполняет колоду диким набором карт."""
+        logger.info("Add wild card set in deck")
+        self.clear()
+        # Добавляем по 4 набора диких карт
+        for _ in range(4):
+            for c in CardColor:
+                for value in range(1, 6):
+                    self.cards.append(NumberCard(CardColor(c), value))
+                self.cards.append(ReverseCard(CardColor(c)))
+                self.cards.append(TurnCard(CardColor(c)))
+                self.cards.append(TakeCard(CardColor(c)))
+
+        # Добавляем козырные карты
+        for _ in range(6):
+            self.cards.append(ChooseColorCard())
+            self.cards.append(TakeFourCard())
         self.shuffle()

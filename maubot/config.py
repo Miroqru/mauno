@@ -1,46 +1,46 @@
-import json
-import os
+"""Настройки бота и Уно.
+
+Находятся в одном месте, чтобы все обработчики могли получить доступ
+к настройкам.
+Загружаются один раз при запуске и больше не изменяются.
+"""
+
+from pathlib import Path
+
+from aiogram.client.default import DefaultBotProperties
+from loguru import logger
+from pydantic import BaseModel, SecretStr
+
+# Общие настройки бота
+# ====================
+
+CONFIG_PATh = Path("config.json")
+
+class Config(BaseModel):
+    """Общие настройки для Telegram бота, касающиеся Uno."""
+
+    token: SecretStr
+    admin_list: list[int]
+    db_url: str = "sqlite://ubo.sqlite"
+    open_lobby: bool = True
+    default_gamemode: str = "classic"
+    waiting_time: int = 120
+    time_removal_after_skip: int = 20
+    min_fast_turn_time: int = 15
+    min_players: int = 2
 
 try:
-    with open("config.json", "r") as f:
-        config = json.load(f)
-except FileNotFoundError:
-    config = {}
+    with open(CONFIG_PATh) as f:
+        config: Config = Config.model_validate_json(f.read())
+except FileNotFoundError as e:
+    logger.error(e)
+    logger.info("Copy config.json.sample, then edit it")
 
-TOKEN = os.getenv("TOKEN", config.get("token"))
-WORKERS = int(os.getenv("WORKERS", config.get("workers", 32)))
-ADMIN_LIST = os.getenv("ADMIN_LIST", config.get("admin_list", None))
 
-if isinstance(ADMIN_LIST, str):
-    ADMIN_LIST = set(int(x) for x in ADMIN_LIST.split())
+# Параметры по умолчанию для бота aiogram
+# =======================================
 
-OPEN_LOBBY = os.getenv("OPEN_LOBBY", config.get("open_lobby", True))
-ENABLE_TRANSLATIONS = os.getenv(
-    "ENABLE_TRANSLATIONS",
-    config.get("enable_translations", False)
+# Настройки бота по умолчанию
+default = DefaultBotProperties(
+    parse_mode="html"
 )
-
-if isinstance(OPEN_LOBBY, str):
-    OPEN_LOBBY = OPEN_LOBBY.lower() in ("yes", "true", "t", "1")
-
-if isinstance(ENABLE_TRANSLATIONS, str):
-    ENABLE_TRANSLATIONS = ENABLE_TRANSLATIONS.lower() in ("yes", "true", "t")
-
-DEFAULT_GAMEMODE = os.getenv(
-    "DEFAULT_GAMEMODE",
-    config.get("default_gamemode", "fast")
-)
-WAITING_TIME = int(
-    os.getenv("WAITING_TIME",
-        config.get("waiting_time", 120)
-    )
-)
-TIME_REMOVAL_AFTER_SKIP = int(
-    os.getenv("TIME_REMOVAL_AFTER_SKIP",
-        config.get("time_removal_after_skip", 20)
-    )
-)
-MIN_FAST_TURN_TIME = int(
-    os.getenv("MIN_FAST_TURN_TIME", config.get("min_fast_turn_time", 15))
-)
-MIN_PLAYERS = int(os.getenv("MIN_PLAYERS", config.get("min_players", 2)))

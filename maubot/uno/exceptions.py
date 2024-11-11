@@ -1,3 +1,8 @@
+"""Все исключения, возникающие при работе с Uno.
+
+Собраны в одном месте для удобства.
+"""
+
 class NoGameInChatError(Exception):
     """If there is no active game created in the chat.
 
@@ -23,5 +28,10 @@ class NotEnoughPlayersError(Exception):
 
 class DeckEmptyError(Exception):
     """When the deck runs out of cards."""
+
+    pass
+
+class ClassCoverError(Exception):
+    """When the user tries to cover with the wrong card."""
 
     pass

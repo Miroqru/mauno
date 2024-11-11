@@ -5,7 +5,9 @@ py -m maubot
 ```
 """
 
-from maubot.bot import start_bot
+import asyncio
+
+from maubot.bot import main
 
 if __name__ == "__main__":
-    start_bot()
+    asyncio.run(main())
