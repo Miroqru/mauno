@@ -91,14 +91,15 @@ class BaseCard:
         Returns:
             bool: Можно ли покрыть текущую карту данной
         """
-        if self.color == other_card.color:
+        if other_card.color == CardColor.BLACK:
+            return True
+        elif self.color == other_card.color:
             return True
         elif (self.card_type == other_card.type
             and self.value == other_card.value
         ):
             return True
-        else:
-            return False
+        return False
 
     def get_cover_cards(self, hand: Iterable[Self]) -> Iterator[Self, bool]:
         """Проверяет какие карты вы можете покрыть из своей руки.

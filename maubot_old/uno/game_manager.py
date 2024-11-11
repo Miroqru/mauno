@@ -21,30 +21,11 @@ class GameManager(object):
         self.userid_current = {}
         self.remind_dict = {}
 
-    def new_game(self, chat):
-        """Create a new game in this chat."""
-        logger.debug("Creating new game in chat {}", chat.id)
-        game = Game(chat)
-
-        if chat.id not in self.chatid_games:
-            self.chatid_games[chat.id] = list()
-
-        # remove old games
-        for g in list(self.chatid_games[chat.id]):
-            if not g.players:
-                self.chatid_games[chat.id].remove(g)
-
-        self.chatid_games[chat.id].append(game)
-        return game
 
     def join_game(self, user, chat):
         """Create a player from the Telegram user and add it to the game."""
         logger.info("Joining {} game with id {}", user, chat.id)
 
-        try:
-            game = self.chatid_games[chat.id][-1]
-        except (KeyError, IndexError):
-            raise NoGameInChatError()
 
         if not game.open:
             raise LobbyClosedError()
