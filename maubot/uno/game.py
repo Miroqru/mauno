@@ -59,6 +59,13 @@ class UnoGame:
         return self.players[self.current_player]
 
 
+    def get_player(self, user_id: int):
+        for player in self.players:
+            if player.user.id == user_id:
+                return player
+        return None
+
+
     # Управление потоком игры
     # =======================
 
