@@ -5,20 +5,27 @@
 
 import sys
 
+from typing import Any, Callable, Awaitable
+
 from aiogram import Bot, Dispatcher
 from aiogram.utils.token import TokenValidationError
+from aiogram.types import Message
 from loguru import logger
 from tortoise import Tortoise
 
 from maubot.config import config, default
 from maubot.handlers import ROUTERS
+from maubot.uno.session import SessionManager
 
 # Константы
 # =========
 
-dp = Dispatcher()
-# TODO: Импортировать Game Manager сюда
-# gm = GameManager()
+sm = SessionManager()
+
+dp = Dispatcher(
+    # Добавляем менеджер игровых сессия в бота
+    sm=sm
+)
 
 # Настраиваем формат отображения логов loguru
 # Обратите внимание что в проекте помимо loguru используется logging
@@ -27,6 +34,19 @@ LOG_FORMAT = (
     "{file}:{function} "
     "<lvl>{message}</>"
 )
+
+# Middleware
+# ==========
+
+@dp.message.middleware()
+async def game_middleware(
+    handler: Callable[[Message, dict[str, Any]], Awaitable[Any]],
+    event: Message,
+    data: dict[str, Any]
+):
+    """Предоставляет экземпляр игры в обработчики сообщений."""
+    data["game"] = sm.games.get(event.chat.id)
+    return await handler(event, data)
 
 
 # Главная функция запуска бота

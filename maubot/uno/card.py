@@ -101,7 +101,7 @@ class BaseCard:
             return True
         return False
 
-    def get_cover_cards(self, hand: Iterable[Self]) -> Iterator[Self, bool]:
+    def get_cover_cards(self, hand: Iterable[Self]) -> Iterator[tuple[Self, bool]]:
         """Проверяет какие карты вы можете покрыть из своей руки.
 
         Используется чтобы проверить всю свою руку на наличие карт,

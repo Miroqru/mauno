@@ -13,6 +13,8 @@ from loguru import logger
 
 from maubot.uno.card import BaseCard, CardColor
 from maubot.uno.deck import Deck
+from maubot.uno.exceptions import LobbyClosedError, AlreadyJoinedError
+from maubot.uno.player import Player
 
 
 class GameRules(NamedTuple):
@@ -20,6 +22,14 @@ class GameRules(NamedTuple):
 
     timer: bool
     wild: bool
+
+    @classmethod
+    def default(cls):
+        """Правила игры по умолчанию."""
+        return GameRules(
+            timer=False,
+            wild=False
+        )
 
 
 class UnoGame:
@@ -29,17 +39,16 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, chat_id: int, rules: GameRules):
+    def __init__(self, chat_id: int):
         self.chat_id = chat_id
-        self.rules = rules
+        self.rules = GameRules.default()
         self.deck = Deck()
 
         # Игроки Uno
-        # TODO: Тип игрока
         self.current_player: int = 0
         self.start_player = None
-        self.players = []
-        self.winners = []
+        self.players: list[Player] = []
+        self.winners: list[Player] = []
 
         # Настройки игры
         self.started: bool = False
@@ -52,14 +61,14 @@ class UnoGame:
         self.game_start = datetime.now()
         self.turn_start = datetime.now()
 
-    # TODO: Тип игрока
     @property
-    def player(self):
+    def player(self) -> Player:
         """Возвращает текущего игрока."""
         return self.players[self.current_player]
 
 
-    def get_player(self, user_id: int):
+    def get_player(self, user_id: int) -> Player | None:
+        """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
             if player.user.id == user_id:
                 return player
@@ -80,11 +89,19 @@ class UnoGame:
         else:
             self.deck.fill_classic()
 
+        for player in self.players:
+            player.take_first_hand()
+
         self.take_first_card()
+
+    def end(self) -> None:
+        """Завершает текущую игру."""
+        self.players.clear()
+        self.winners.clear()
+        self.started = False
 
     def take_first_card(self):
         """Берёт первую карту для начали игры."""
-        # TODO: Описание карт
         while self.deck.top is None or self.deck.top.color == CardColor.BLACK:
             card = self.deck.take_one()
             if card.color == CardColor.BLACK:
@@ -113,6 +130,42 @@ class UnoGame:
         self.choose_color_flag = False
         self.turn_start = datetime.now()
         self.skip_players()
+
+
+    # Управление списком игроков
+    # ==========================
+
+    def add_player(self, user) -> None:
+        """Добавляет игрока в игру."""
+        logger.info("Joining {} in game with id {}", user, self.chat_id)
+        if not self.open:
+            raise LobbyClosedError()
+
+        player = self.get_player(user.id)
+        if player is not None:
+            raise AlreadyJoinedError()
+
+        player = Player(self, user)
+        player.on_leave()
+        if self.started:
+            player.draw_first_hand()
+
+        self.players.append(player)
+
+    def remove_player(self, user_id: int) -> None:
+        """Удаляет пользователя из игры."""
+        logger.info("Leaving {} game with id {}", user_id, self.chat_id)
+
+        player = self.get_player(user_id)
+        if player is None:
+            return
+        if player is self.player:
+            self.next_turn()
+        player.on_leave()
+        self.players.remove(player)
+
+        if len(self.players) <= 1:
+            self.end()
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
