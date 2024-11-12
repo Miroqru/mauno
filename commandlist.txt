@@ -1,9 +1,9 @@
+game - Создать игровую комнату
+join - Подключиться к комнате
 user - Просмотреть профиль игрока
-help - Как начать играть в боте
+help - Первые шаги в боте
 status - Информация о боте
 
-new - Start a new game
-join - Join the current game
 start - Start the game
 leave - Leave the game you're in
 close - Close the game lobby

@@ -20,7 +20,7 @@ from telegram.ext import (
 
 import maubot.uno.card as c
 from maubot import settings, simple_commands
-from maubot.config import DEFAULT_GAMEMODE, MIN_PLAYERS, WAITING_TIME
+from maubot.config import MIN_PLAYERS, WAITING_TIME
 from maubot.results import (
     add_call_bluff,
     add_card,
@@ -46,9 +46,6 @@ from maubot.uno.actions import (
     start_player_countdown,
 )
 from maubot.uno.errors import (
-    AlreadyJoinedError,
-    DeckEmptyError,
-    LobbyClosedError,
     NoGameInChatError,
     NotEnoughPlayersError,
 )
@@ -88,29 +85,6 @@ def notify_me(update: Update, context: CallbackContext):
             logger.warning(e)
             gm.remind_dict[chat_id] = {update.message.from_user.id}
 
-def new_game(update: Update, context: CallbackContext):
-    """Handle for the /new command."""
-    chat_id = update.message.chat_id
-    chat = update.message.chat
-    if update.message.chat.type == 'private':
-        return help_handler(update, context)
-
-    if chat in gm.remind_dict:
-        for user in gm.remind_dict[chat]:
-            send_async(context.bot, user,
-                text=f"A new game has been started in {chat.title}"
-            )
-        gm.remind_dict.pop(chat)
-
-    game = gm.new_game(update.message.chat)
-    game.starter = update.message.from_user
-    game.owner.append(update.message.from_user.id)
-    game.mode = DEFAULT_GAMEMODE
-    send_async(context.bot, chat_id, text=(
-        "Created a new game!\n"
-        "Join the game with /join and start the game with /start"
-    ))
-
 def kill_game(update: Update, context: CallbackContext):
     """Handle for the /kill command."""
     chat = update.message.chat
@@ -143,41 +117,6 @@ def kill_game(update: Update, context: CallbackContext):
                 f"Only the game creator ({game.starter.first_name})"
                 " and admin can do that."
             ),
-            reply_to_message_id=update.message.message_id
-        )
-
-def join_game(update: Update, context: CallbackContext):
-    """Handle for the /join command."""
-    chat = update.message.chat
-    if update.message.chat.type == 'private':
-        help_handler(update, context)
-        return
-
-    try:
-        gm.join_game(update.message.from_user, chat)
-    except LobbyClosedError:
-        send_async(context.bot, chat.id, text="The lobby is closed")
-    except NoGameInChatError:
-        send_async(context.bot, chat.id, text=(
-                "No game is running at the moment. "
-                "Create a new game with /new"
-            ),
-            reply_to_message_id=update.message.message_id
-        )
-    except AlreadyJoinedError:
-        send_async(context.bot, chat.id,
-            text="You already joined the game. Start the game with /start",
-            reply_to_message_id=update.message.message_id
-        )
-    except DeckEmptyError:
-        send_async(context.bot, chat.id, text=(
-                "The deck is depleted. \n"
-                "leaving no cards for new players to participate."
-            ),
-            reply_to_message_id=update.message.message_id
-        )
-    else:
-        send_async(context.bot, chat.id, text="Joined the game",
             reply_to_message_id=update.message.message_id
         )
 
@@ -319,28 +258,8 @@ def start_game(update: Update, context: CallbackContext):
     if update.message.chat.type != 'private':
         chat = update.message.chat
 
-        try:
-            game = gm.chatid_games[chat.id][-1]
-        except (KeyError, IndexError):
-            return send_async(context.bot, chat.id, text=(
-                "There is no game running in this chat. Create "
-                "a new one with /new"
-            ))
-
-        if game.started:
-            send_async(context.bot, chat.id, text="The game has already started")
-
-        elif len(game.players) < MIN_PLAYERS:
-            send_async(context.bot, chat.id, text=(
-                f"At least {MIN_PLAYERS} players must /join the game "
-                "before you can start it"
-            ))
-
         else:
             game.start()
-            for player in game.players:
-                player.draw_first_hand()
-
             choice = [[
                 InlineKeyboardButton(
                     text="Make your choice!",
@@ -364,27 +283,6 @@ def start_game(update: Update, context: CallbackContext):
 
             dispatcher.run_async(send_first)
             start_player_countdown(context.bot, game, context.job_queue)
-
-    elif len(context.args) and context.args[0] == 'select':
-        players = gm.userid_players[update.message.from_user.id]
-
-        groups = []
-        for player in players:
-            title = player.game.chat.title
-            if player == gm.userid_current[update.message.from_user.id]:
-                title = '- %s -' % player.game.chat.title
-
-            groups.append([InlineKeyboardButton(
-                text=title, callback_data=str(player.game.chat.id))
-            ])
-
-        send_async(context.bot, update.message.chat_id,
-            text='Please select the group you want to play in.',
-            reply_markup=InlineKeyboardMarkup(groups)
-        )
-
-    else:
-        help_handler(update, context)
 
 def close_game(update: Update, context: CallbackContext):
     """Handle for the /close command."""
@@ -660,19 +558,12 @@ def start_bot():
     dispatcher.add_handler(CommandHandler(
         'start', start_game, pass_args=True, pass_job_queue=True
     ))
-    dispatcher.add_handler(CommandHandler('new', new_game))
     dispatcher.add_handler(CommandHandler('kill', kill_game))
-    dispatcher.add_handler(CommandHandler('join', join_game))
     dispatcher.add_handler(CommandHandler('leave', leave_game))
     dispatcher.add_handler(CommandHandler('kick', kick_player))
     dispatcher.add_handler(CommandHandler('open', open_game))
     dispatcher.add_handler(CommandHandler('close', close_game))
     dispatcher.add_handler(CommandHandler('skip', skip_player))
     dispatcher.add_handler(CommandHandler('notify_me', notify_me))
-    simple_commands.register()
-    settings.register()
     dispatcher.add_handler(MessageHandler(Filters.status_update, status_update))
     dispatcher.add_error_handler(error)
-
-    # Start bot
-    updater.start_polling()
