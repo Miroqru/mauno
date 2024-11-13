@@ -1,10 +1,13 @@
+"""Хранилище игровых сессий."""
+
 from loguru import logger
 
 from maubot.uno.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
-from maubot.uno.game import GameRules, UnoGame
+from maubot.uno.game import UnoGame
+from maubot.uno.player import Player
 
 
 class SessionManager:
@@ -16,6 +19,7 @@ class SessionManager:
 
     def __init__(self):
         self.games: dict[str, UnoGame] = {}
+        self.user_to_chat: dict[int, int] = {}
 
 
     # Управление игроками в сессии
@@ -33,6 +37,33 @@ class SessionManager:
             raise  LobbyClosedError()
 
         game.add_player(user)
+        self.user_to_chat[user.id] = chat_id
+        logger.debug(self.user_to_chat)
+
+    def leave(self, player: Player) -> None:
+        """Убирает игрока из игры."""
+        chat_id = self.user_to_chat.get(player.user.id)
+        if chat_id is None:
+            raise NoGameInChatError()
+
+        game = self.games[chat_id]
+
+        if player is game.player:
+            game.next_turn()
+
+        player.on_leave()
+        game.players.remove(player)
+        self.user_to_chat.pop(player.user.id)
+
+        if len(game.players) <= 1:
+            game.end()
+
+    def get_player(self, user_id: int) -> Player | None:
+        """Получает игрока по его id."""
+        chat_id = self.user_to_chat.get(user_id)
+        if chat_id is None:
+            return None
+        return self.games[chat_id].get_player(user_id)
 
 
     # Управление сессиями
@@ -52,7 +83,9 @@ class SessionManager:
         `UnoGame.end()`.
         """
         try:
-            self.games.pop(chat_id)
+            game = self.games.pop(chat_id)
+            for user in game.players:
+                self.user_to_chat.pop(user.id)
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError()

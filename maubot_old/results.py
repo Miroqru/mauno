@@ -37,31 +37,6 @@ def player_list(game):
         for player in game.players
     ]
 
-def add_no_game(results):
-    """Add text result if user is not playing."""
-    results.append(InlineQueryResultArticle(
-        "nogame",
-        title="You are not playing",
-        input_message_content=InputTextMessageContent(
-            (
-                "Not playing right now. Use /new to "
-                "start a game or /join to join the "
-                "current game in this group"
-            )
-        )
-    ))
-
-def add_not_started(results):
-    """Add text result if the game has not yet started."""
-    results.append(InlineQueryResultArticle(
-        "nogame",
-        title="The game wasn't started yet",
-        input_message_content=InputTextMessageContent(
-            "Start the game with /start"
-        ),
-    ))
-
-
 def add_draw(player, results):
     """Add option to draw."""
     n = player.game.draw_counter or 1

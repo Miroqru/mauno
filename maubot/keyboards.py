@@ -3,11 +3,13 @@
 В тои числе клавиатура для Inline Query.
 """
 
+from maubot import stickers
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InlineQueryResultArticle,
     InputTextMessageContent,
+    InlineQueryResultCachedSticker
 )
 
 # Кнопка для совершения хода игроком
@@ -44,3 +46,28 @@ SELECT_GAME_QUERY = [
     )
 ]
 
+NO_GAME_QUERY = [
+    InlineQueryResultArticle(
+        id="nogame",
+        title="В чатике ещё нет комнаты",
+        input_message_content=InputTextMessageContent(message_text=(
+            "Сейчас никто не играет.\n\n"
+            "Используйте /game для создания новой комнаты.\n"
+            "А после воспользуйтесь командой /join чтобы присоединиться. "
+        ))
+    )
+]
+
+
+def get_hand_query(player) -> list:
+    result = [
+        InlineQueryResultCachedSticker(
+            id="draw",
+            sticker_file_id=stickers.OPTIONS.draw,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
+                InlineKeyboardButton(text="Кусь")
+            ]])
+        )
+    ]
+
+    return result
