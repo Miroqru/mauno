@@ -148,7 +148,7 @@ class UnoGame:
         player = Player(self, user)
         player.on_leave()
         if self.started:
-            player.draw_first_hand()
+            player.take_first_hand()
 
         self.players.append(player)
 

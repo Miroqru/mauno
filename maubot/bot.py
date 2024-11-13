@@ -9,7 +9,7 @@ from typing import Any, Callable, Awaitable
 
 from aiogram import Bot, Dispatcher
 from aiogram.utils.token import TokenValidationError
-from aiogram.types import Message
+from aiogram.types import Message, InlineQuery
 from loguru import logger
 from tortoise import Tortoise
 
@@ -39,13 +39,31 @@ LOG_FORMAT = (
 # ==========
 
 @dp.message.middleware()
+@dp.inline_query.middleware()
 async def game_middleware(
-    handler: Callable[[Message, dict[str, Any]], Awaitable[Any]],
-    event: Message,
+    handler: Callable[[Message | InlineQuery, dict[str, Any]], Awaitable[Any]],
+    event: Message | InlineQuery,
     data: dict[str, Any]
 ):
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    data["game"] = sm.games.get(event.chat.id)
+    if isinstance(event, Message):
+        game =  sm.games.get(event.chat.id)
+        data["game"] = game
+    elif isinstance(event, InlineQuery):
+        chat_id = sm.user_to_chat.get(event.from_user.id)
+        if chat_id is None:
+            game = None
+        else:
+            game = sm.games.get(chat_id)
+        data["game"] = game
+        logger.debug("chat_id {} / game {} event {} {}", chat_id, game, type(event), event)
+
+    if game is not None:
+        data["player"] = game.get_player(event.from_user.id)
+    else:
+        data["player"] = None
+
+
     return await handler(event, data)
 
 
