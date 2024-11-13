@@ -62,39 +62,6 @@ def add_not_started(results):
     ))
 
 
-def add_mode_classic(results):
-    """Change mode to classic."""
-    results.append(InlineQueryResultArticle(
-        "mode_classic",
-        title="🎻 Classic mode",
-        input_message_content=InputTextMessageContent("Classic 🎻"),
-    ))
-
-def add_mode_fast(results):
-    """Change mode to fast."""
-    results.append(InlineQueryResultArticle(
-        "mode_fast",
-        title="🚀 Sanic mode",
-        input_message_content=InputTextMessageContent("Gotta go fast! 🚀")
-    ))
-
-def add_mode_wild(results):
-    """Change mode to wild."""
-    results.append(InlineQueryResultArticle(
-        "mode_wild",
-        title="🐉 Wild mode",
-        input_message_content=InputTextMessageContent("Into the Wild~ 🐉")
-    ))
-
-def add_mode_text(results):
-    """Change mode to text."""
-    results.append(InlineQueryResultArticle(
-        "mode_text",
-        title="✍️ Text mode",
-        input_message_content=InputTextMessageContent("Text ✍️"),
-    ))
-
-
 def add_draw(player, results):
     """Add option to draw."""
     n = player.game.draw_counter or 1

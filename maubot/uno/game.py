@@ -13,7 +13,7 @@ from loguru import logger
 
 from maubot.uno.card import BaseCard, CardColor
 from maubot.uno.deck import Deck
-from maubot.uno.exceptions import LobbyClosedError, AlreadyJoinedError
+from maubot.uno.exceptions import LobbyClosedError, AlreadyJoinedError, NoGameInChatError
 from maubot.uno.player import Player
 
 
@@ -158,7 +158,7 @@ class UnoGame:
 
         player = self.get_player(user_id)
         if player is None:
-            return
+            raise NoGameInChatError()
         if player is self.player:
             self.next_turn()
         player.on_leave()
