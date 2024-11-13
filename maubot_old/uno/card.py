@@ -1,105 +1,7 @@
-# Colors
-RED = 'r'
-BLUE = 'b'
-GREEN = 'g'
-YELLOW = 'y'
-BLACK = 'x'
-
-COLORS = (RED, BLUE, GREEN, YELLOW)
-
-COLOR_ICONS = {
-    RED: '❤️',
-    BLUE: '💙',
-    GREEN: '💚',
-    YELLOW: '💛',
-    BLACK: '⬛️'
-}
-
-# Values
-ZERO = '0'
-ONE = '1'
-TWO = '2'
-THREE = '3'
-FOUR = '4'
-FIVE = '5'
-SIX = '6'
-SEVEN = '7'
-EIGHT = '8'
-NINE = '9'
-DRAW_TWO = 'draw'
-REVERSE = 'reverse'
-SKIP = 'skip'
-
-VALUES = (ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, DRAW_TWO,
-          REVERSE, SKIP)
-WILD_VALUES = (ONE, TWO, THREE, FOUR, FIVE, DRAW_TWO, REVERSE, SKIP)
-
-# Special cards
-CHOOSE = 'colorchooser'
-DRAW_FOUR = 'draw_four'
-
-SPECIALS = (CHOOSE, DRAW_FOUR)
-
 CARDS_CLASSIC = {
     "normal": {
-        "colorchooser": "CAADAgADLV0AAoa8aEnWTgiOOj_X-AI",
-        "draw_four": "CAADAgADL2QAAkppaEkmy1ZFZDL6agI",
-        "r_0": "CAADAgADBmMAArRBaElwMzXDyh5TRQI",
-        "r_1": "CAADAgAD3mMAApwxaUmeEycLntbJ9AI",
-        "r_2": "CAADAgADfVgAAoSUaEnPtdohyJdp-QI",
-        "r_3": "CAADAgADm2EAAmdjaUlL_dbd1w1MsAI",
-        "r_4": "CAADAgADM2IAAn7CaUmYxLJTmXb4zgI",
-        "r_5": "CAADAgADaVwAAiZ0aEmfhVMrmSa1ugI",
-        "r_6": "CAADAgADqGsAAqpxaUnM9xRYVjgHUgI",
-        "r_7": "CAADAgADiVkAAlpzaUkdrBhsrb8uxgI",
-        "r_8": "CAADAgAD8F8AAikBaUnf9qXSHCvPvgI",
-        "r_9": "CAADAgADumgAAhvMaEkjiV1DXeqEuwI",
-        "r_draw": "CAADAgADiFoAAkiMaEns7jTQDVI5DgI",
-        "r_reverse": "CAADAgADAWMAAikOYEmDR_QQ7AABdHkC",
-        "r_skip": "CAADAgADk10AAhY8aElof7bmbvcnPAI",
-        "g_0": "CAADAgADKWMAAssRaEkStDq0EUlljgI",
-        "g_1": "CAADAgAD63YAAtz3aUlJ7q0VYF5MzAI",
-        "g_2": "CAADAgADpnAAAvDEaEnAHngF_LaW2wI",
-        "g_3": "CAADAgADX2UAAiD1aUlw-cO0LtErwQI",
-        "g_4": "CAADAgADmlkAAi4QaUla8U8nwQl7MgI",
-        "g_5": "CAADAgADbFwAAtXaaUkH2I86VzQKwQI",
-        "g_6": "CAADAgADHFkAAm_7aUm0I7-pxWbzMAI",
-        "g_7": "CAADAgADa2IAAsJCaUlCMbsCEMHgvQI",
-        "g_8": "CAADAgADKF8AAid4aElAuvnFv4RZngI",
-        "g_9": "CAADAgADy1gAAvYmaEnAaDCWq37o5gI",
-        "g_draw": "CAADAgADxmMAAhj2aUkapOvXS7aFRQI",
-        "g_reverse": "CAADAgADO1gAAjCKaElVdF90GpJkLAI",
-        "g_skip": "CAADAgAD1FsAAkIaaUncotvBqx1aXAI",
-        "b_0": "CAADAgADZ1gAAoRqaUnRixlEAywPnwI",
-        "b_1": "CAADAgADnWMAAn5kaElP2J_f3OK-DwI",
-        "b_2": "CAADAgADi1wAAg5NaEnQ2uNUSYVpewI",
-        "b_3": "CAADAgADp2AAAmXcaUlB3bqTCHhmQwI",
-        "b_4": "CAADAgAD9GIAAjJJaEmPvdLKTQAB8usC",
-        "b_5": "CAADAgADBmYAApx4aUm0asm6l8KO-AI",
-        "b_6": "CAADAgADk2MAAuPlaElUotP5J8-lDQI",
-        "b_7": "CAADAgADtGQAAjzGaUlTWW33svpz7AI",
-        "b_8": "CAADAgADgFwAAl-RaUlBXu5Y8XpRjgI",
-        "b_9": "CAADAgADIGIAAlH0aUlnbTrlxr4bogI",
-        "b_draw": "CAADAgADQWAAAl3paUkx0IL1fHvLnwI",
-        "b_reverse": "CAADAgADDFwAAt26aEkodi50VNrdEAI",
-        "b_skip": "CAADAgADx24AAqo1aEm-993LRWNXUwI",
-        "y_0": "CAADAgAD3GAAAi3baElq2AZUE-T-AgI",
-        "y_1": "CAADAgADZGUAAj7HaEkAAVV0FEu49qgC",
-        "y_2": "CAADAgADx2IAAu-OaUnhkUO_-Y6DIgI",
-        "y_3": "CAADAgADGV4AAue5aEmMgL0o2SN3DQI",
-        "y_4": "CAADAgAD8l0AAhBNaUnA9vfUFKBeQQI",
-        "y_5": "CAADAgADIWMAAvN8aUmTvGioQAoXPgI",
-        "y_6": "CAADAgAD4GcAAnLpaUnJfMtYnNbcDAI",
-        "y_7": "CAADAgAEXAACdeJoSX-JOi-1ZWnMAg",
-        "y_8": "CAADAgAD1WkAAnooaUmlvNaBzYhAgQI",
-        "y_9": "CAADAgADCVMAAgNbaEnfZBZ5dy8B8QI",
-        "y_draw": "CAADAgADtmYAAksKaUkej4If1HjqsQI",
-        "y_reverse": "CAADAgADx1wAAuFaaEkyJjcJ2V2i-wI",
-        "y_skip": "CAADAgADIGMAAmd3aEnD6omtxRkSIwI"
     },
     "not_playable": {
-        "colorchooser": "CAADAgAD22IAAlBmaUmR6oS5M0fwDwI",
-        "draw_four": "CAADAgADe2MAAuVKaEniBMzksrl8CAI",
         "r_0": "CAADAgAD9l8AAqG-aEm1N0MDmDKmuQI",
         "r_1": "CAADAgADCl8AAkmuaUluF1n2I8-47wI",
         "r_2": "CAADAgADrmAAAqmLaUn_xH_m5MZCGAI",
@@ -153,24 +55,6 @@ CARDS_CLASSIC = {
         "y_reverse": "CAADAgAD514AAg0LaEmCIOaD-A2JiQI",
         "y_skip": "CAADAgADN1wAAi50aUnbZeAAAUpdIN0C"
     }
-}
-
-STICKERS_OPTIONS = {
-    "option_bluff": "CAADAgADkmcAAttjaEmfg1PaY1hvyAI",
-    "option_draw": "CAADAgADwmkAArcyaUnnzpUUU7YQYAI",
-    "option_info": "CAADAgADkmAAAv-aaUlM0SwReOh3WwI",
-    "option_pass": "CAADAgADJl8AAsMIaEl7l8IZc-EdXwI",
-}
-
-# TODO: Support multiple card packs
-# For now, just use classic colorblind
-STICKERS = {
-    **CARDS_CLASSIC["normal"],
-    **STICKERS_OPTIONS,
-}
-
-STICKERS_GREY = {
-    **CARDS_CLASSIC["not_playable"],
 }
 
 

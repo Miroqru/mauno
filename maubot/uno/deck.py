@@ -115,11 +115,11 @@ class Deck:
 
         # Добавляем по два набора всех остальных карт
         for _ in range(2):
-            for c in CardColor:
-                for value in range(1, 10):
+            for c in range(4):
+                for value in range(10):
                     self.cards.append(NumberCard(CardColor(c), value))
                 self.cards.append(ReverseCard(CardColor(c)))
-                self.cards.append(TurnCard(CardColor(c)))
+                self.cards.append(TurnCard(CardColor(c), 1))
                 self.cards.append(TakeCard(CardColor(c)))
 
         # Добавляем козырные карты
@@ -135,11 +135,11 @@ class Deck:
         self.clear()
         # Добавляем по 4 набора диких карт
         for _ in range(4):
-            for c in CardColor:
+            for c in range(4):
                 for value in range(1, 6):
                     self.cards.append(NumberCard(CardColor(c), value))
                 self.cards.append(ReverseCard(CardColor(c)))
-                self.cards.append(TurnCard(CardColor(c)))
+                self.cards.append(TurnCard(CardColor(c), 1))
                 self.cards.append(TakeCard(CardColor(c)))
 
         # Добавляем козырные карты
