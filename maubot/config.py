@@ -21,7 +21,7 @@ class Config(BaseModel):
 
     token: SecretStr
     admin_list: list[int]
-    db_url: str = "sqlite://ubo.sqlite"
+    db_url: str = "sqlite://uno.sqlite"
     open_lobby: bool = True
     default_gamemode: str = "classic"
     waiting_time: int = 120

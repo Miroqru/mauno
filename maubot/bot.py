@@ -7,7 +7,15 @@ import sys
 from typing import Any, Awaitable, Callable
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import InlineQuery, Message, CallbackQuery
+from aiogram.types import (
+    CallbackQuery,
+    ChatMemberUpdated,
+    ChosenInlineResult,
+    ErrorEvent,
+    InlineQuery,
+    Message,
+    Update,
+)
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 from tortoise import Tortoise
@@ -40,26 +48,27 @@ LOG_FORMAT = (
 @dp.message.middleware()
 @dp.inline_query.middleware()
 @dp.callback_query.middleware()
+@dp.chat_member.middleware()
+@dp.chosen_inline_result.middleware()
 async def game_middleware(
-    handler: Callable[[Message | InlineQuery, dict[str, Any]], Awaitable[Any]],
-    event: Message | InlineQuery,
+    handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
+    event: Update,
     data: dict[str, Any]
 ):
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    if isinstance(event, Message):
+    if isinstance(event, (Message, ChatMemberUpdated)):
         game =  sm.games.get(event.chat.id)
         data["game"] = game
     elif isinstance(event, CallbackQuery):
         game =  sm.games.get(event.message.chat.id)
         data["game"] = game
-    elif isinstance(event, InlineQuery):
+    elif isinstance(event, (InlineQuery, ChosenInlineResult)):
         chat_id = sm.user_to_chat.get(event.from_user.id)
         if chat_id is None:
             game = None
         else:
             game = sm.games.get(chat_id)
         data["game"] = game
-        logger.debug("chat_id {} / game {} event {} {}", chat_id, game, type(event), event)
 
     if game is not None:
         data["player"] = game.get_player(event.from_user.id)
@@ -68,6 +77,13 @@ async def game_middleware(
 
 
     return await handler(event, data)
+
+@dp.errors()
+async def catch_errors(event: ErrorEvent):
+    """Простой обработчик для ошибок."""
+    logger.warning(event)
+    logger.exception(event.exception)
+    # await event.update.message.answer("Что-то явно пошло не по плану.")
 
 
 # Главная функция запуска бота

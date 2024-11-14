@@ -4,6 +4,7 @@
 """
 
 from maubot.config import config
+from maubot.uno.game import UnoGame
 
 # Когда пользователь пишет сообщение /help
 HELP_MESSAGE = (
@@ -52,6 +53,7 @@ NOT_ENOUGH_PLAYERS = (
     "Воспользуйтесь командой /join чтобы присоединиться к игре."
 )
 
+
 def get_room_status(game, now_created: bool = False) -> str:
     """Отображает статус текущей комнаты."""
     if now_created:
@@ -69,3 +71,15 @@ def get_room_status(game, now_created: bool = False) -> str:
         "- /join чтобы присоединиться к игре\n"
         "- /start для начала веселья"
     )
+
+def game_status(game: UnoGame) -> str:
+    """Отображает краткую информацию о текущем состоянии игры."""
+    players_str = ""
+    for player in game.players:
+        players_str += f"\n- {player.user.first_name} ({len(player.hand)} карт)"
+
+    return (
+        f"<b>Текущая карта</b>: {game.deck.top}\n"
+        f"<b>Сейчас ходит</b>: {game.player.user.first_name}\n\n"
+        f"<b>Игроки</b> ({len(game.players)}):{players_str}"
+     )

@@ -4,12 +4,21 @@
 """
 
 from aiogram import Bot, F, Router
-from aiogram.filters import Command
-from aiogram.types import CallbackQuery, Message
+from aiogram.filters import (
+    IS_MEMBER,
+    IS_NOT_MEMBER,
+    ChatMemberUpdatedFilter,
+    Command,
+)
+from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
 from loguru import logger
 
 from maubot import keyboards
-from maubot.messages import NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS, get_room_status
+from maubot.messages import (
+    NO_ROOM_MESSAGE,
+    NOT_ENOUGH_PLAYERS,
+    get_room_status,
+)
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
     DeckEmptyError,
@@ -30,7 +39,7 @@ async def join_player(message: Message,
     game: UnoGame | None,
     bot: Bot
 ):
-    """Подключает пользователя к игру."""
+    """Подключает пользователя к игре."""
     try:
         sm.join(message.chat.id, message.from_user)
     except NoGameInChatError:
@@ -76,6 +85,7 @@ async def leave_player(message: Message,
 
     try:
         game.remove_player(message.from_user.id)
+        sm.user_to_chat.pop(message.from_user.id)
     except NoGameInChatError:
         return await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
 
@@ -121,3 +131,34 @@ async def join_callback(query: CallbackQuery,
             text=get_room_status(game),
             reply_markup=keyboards.get_room_markup(game)
         )
+
+# Обработчики событий
+# ===================
+
+@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+async def on_user_leave(event: ChatMemberUpdated,
+    game: UnoGame | None,
+    sm: SessionManager
+):
+    """Исключаем пользователя, если тот осмелился выйти из чата."""
+    if game is None:
+        return
+
+    try:
+        game.remove_player(event.from_user.id)
+        sm.user_to_chat.pop(event.from_user.id)
+    except NoGameInChatError:
+        pass
+
+    if game.started:
+        status_message = (
+            "🍰 Ладненько, следующих ход за "
+            f"{game.player.user.mention_html()}."
+        )
+        markup = keyboards.TURN_MARKUP
+    else:
+        status_message = NOT_ENOUGH_PLAYERS
+        markup = None
+        sm.remove(event.chat.id)
+
+    await event.answer(status_message, reply_markup=markup)
