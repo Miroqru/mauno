@@ -1,14 +1,14 @@
 game - Создать игровую комнату
 join - Подключиться к комнате
+start - Запустить игру
+leave - Покинуть комнату
 user - Просмотреть профиль игрока
+close - Close the game lobby
+open - Open the game lobby
+kick - Выгнать игрока из комнаты
+kill - Завершить игру
 help - Первые шаги в боте
 status - Информация о боте
 
-start - Start the game
-leave - Leave the game you're in
-close - Close the game lobby
-open - Open the game lobby
-kill - Terminate the game
-kick - Kick players out of the game
 skip - Skip the current player
 notify_me - Get a message when there's a new game in this group

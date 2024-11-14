@@ -5,19 +5,24 @@
 действия карт из колоды.
 """
 
+from dataclasses import dataclass
 from datetime import datetime
 from random import shuffle
-from typing import NamedTuple
 
 from loguru import logger
 
 from maubot.uno.card import BaseCard, CardColor
 from maubot.uno.deck import Deck
-from maubot.uno.exceptions import LobbyClosedError, AlreadyJoinedError, NoGameInChatError
+from maubot.uno.exceptions import (
+    AlreadyJoinedError,
+    LobbyClosedError,
+    NoGameInChatError,
+)
 from maubot.uno.player import Player
 
 
-class GameRules(NamedTuple):
+@dataclass(slots=True)
+class GameRules:
     """Набор игровых правил, которые можно менять при запуске игры."""
 
     timer: bool
@@ -66,6 +71,15 @@ class UnoGame:
         """Возвращает текущего игрока."""
         return self.players[self.current_player]
 
+    @property
+    def prev(self) -> Player:
+        """Возвращает предыдущего игрока."""
+        if self.reverse:
+            prev_index = (self.current_player + 1) % len(self.players)
+        else:
+            prev_index = (self.current_player - 1) % len(self.players)
+        return self.players[prev_index]
+
 
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
@@ -97,7 +111,6 @@ class UnoGame:
     def end(self) -> None:
         """Завершает текущую игру."""
         self.players.clear()
-        self.winners.clear()
         self.started = False
 
     def take_first_card(self):
@@ -128,6 +141,7 @@ class UnoGame:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player")
         self.choose_color_flag = False
+        self.player.take_cards = False
         self.turn_start = datetime.now()
         self.skip_players()
 
@@ -174,6 +188,7 @@ class UnoGame:
 
         Args:
             n (int): Сколько игроков пропустить (1).
+
         """
         if self.reverse:
             self.current_player = (self.current_player - n) % len(self.players)

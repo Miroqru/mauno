@@ -10,7 +10,16 @@ from typing import Iterator
 
 from loguru import logger
 
-from maubot.uno.card import BaseCard, NumberCard, ReverseCard, TakeCard, TurnCard, TakeFourCard, ChooseColorCard, CardColor
+from maubot.uno.card import (
+    BaseCard,
+    CardColor,
+    ChooseColorCard,
+    NumberCard,
+    ReverseCard,
+    TakeCard,
+    TakeFourCard,
+    TurnCard,
+)
 from maubot.uno.exceptions import DeckEmptyError
 
 
@@ -64,6 +73,7 @@ class Deck:
 
         Yields:
             Iterator: Возвращает по одной карте из всех взятых.
+
         """
         if len(self.cards) < count:
             self.prepared_used_cards()
@@ -115,7 +125,7 @@ class Deck:
 
         # Добавляем по два набора всех остальных карт
         for _ in range(2):
-            for c in range(4):
+            for c in (0, 1, 2, 3):
                 for value in range(10):
                     self.cards.append(NumberCard(CardColor(c), value))
                 self.cards.append(ReverseCard(CardColor(c)))
@@ -123,7 +133,7 @@ class Deck:
                 self.cards.append(TakeCard(CardColor(c)))
 
         # Добавляем козырные карты
-        for _ in range(4):
+        for _ in (0, 1, 2, 3):
             self.cards.append(ChooseColorCard())
             self.cards.append(TakeFourCard())
 
@@ -134,8 +144,8 @@ class Deck:
         logger.info("Add wild card set in deck")
         self.clear()
         # Добавляем по 4 набора диких карт
-        for _ in range(4):
-            for c in range(4):
+        for _ in (0, 1, 2, 3):
+            for c in (0, 1, 2, 3):
                 for value in range(1, 6):
                     self.cards.append(NumberCard(CardColor(c), value))
                 self.cards.append(ReverseCard(CardColor(c)))

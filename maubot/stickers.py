@@ -92,6 +92,70 @@ NORMAL = {
 NOT_PLAYABLE = {
     "color": "CAADAgAD22IAAlBmaUmR6oS5M0fwDwI",
     "take_four": "CAADAgADe2MAAuVKaEniBMzksrl8CAI",
+
+    "take0": "CAADAgAD9mQAAtnnYUlEpboCdX8qrAI",
+    "take1": "CAADAgADJGAAAnMXaEkIuKQWnVoHVAI",
+    "take2": "CAADAgADFGIAAtADaEn_WWFq49idHQI",
+    "take3": "CAADAgADX1wAAslNaEkF16twdqHJCQI",
+
+    "reverse0": "CAADAgADWloAAjjNaUlWXvrnmEy3xwI",
+    "reverse1": "CAADAgAD514AAg0LaEmCIOaD-A2JiQI",
+    "reverse2": "CAADAgADkVsAAl4baEnQmC8B7PLk7gI",
+    "reverse3": "CAADAgADmmAAApQ4aEm-DEug76oHAQI",
+
+    "skip0": "CAADAgADCWgAAvsHaUl7v6RBUl8PlAI",
+    "skip1": "CAADAgADN1wAAi50aUnbZeAAAUpdIN0C",
+    "skip2": "CAADAgADu14AAn3fYUmgC__ZYoW3wwI",
+    "skip3": "CAADAgADdV4AAjL0aEl--q81vXlCMwI",
+
+    # Red number cards
+    "00": "CAADAgAD9l8AAqG-aEm1N0MDmDKmuQI",
+    "01": "CAADAgADCl8AAkmuaUluF1n2I8-47wI",
+    "02": "CAADAgADrmAAAqmLaUn_xH_m5MZCGAI",
+    "03": "CAADAgADLGUAAl8MaEln0qeSdyHJvAI",
+    "04": "CAADAgADJFwAArrlaUnNgARazALoSwI",
+    "05": "CAADAgADXmUAAqT9aUniTrgZNO6VQwI",
+    "06": "CAADAgAD_18AAsbNaUmQtV8W1Rnl1AI",
+    "07": "CAADAgAD8GQAAlsEaUmuWtwLO1Lk6QI",
+    "08": "CAADAgAD714AAvn6aUmMH4kb0r2N5gI",
+    "09": "CAADAgADQGAAAgKPaEmoacqaEnp8tAI",
+
+    # Yellow cover cards
+    "10": "CAADAgADp2UAAk2SaEmoCVHGcgdTtQI",
+    "11": "CAADAgADoF4AAou7aElRVaTkOU18WwI",
+    "12": "CAADAgADF1QAAgOxaEnb8upzNW4xgAI",
+    "13": "CAADAgADgFkAAqh_aUngp6xP4JXcPQI",
+    "14": "CAADAgADzVcAAsLmaUm-PHHdJDTxEQI",
+    "15": "CAADAgADYWMAArRoaElOqOjVhm_kvgI",
+    "16": "CAADAgADM2IAApHRaUnqGYs6DsRCwgI",
+    "17": "CAADAgADTVoAAuGzaEmUrXjZTeRAiQI",
+    "18": "CAADAgADL2QAAnLiaEnovkFJevgaFwI",
+    "19": "CAADAgADi1kAAtnsaElCTVZiHuCa8QI",
+
+
+    # Green cover cards
+    "20": "CAADAgADLWcAArqXaEm4wBY2S8eqpAI",
+    "21": "CAADAgAD9GAAAsSBaUkUM8BL6ccUKAI",
+    "22": "CAADAgADzmUAAp--aEn9498Mhr_kSAI",
+    "23": "CAADAgADFl4AAitIaUnjPMUFFd7KTAI",
+    "24": "CAADAgADQFkAAl2AaUkyanMOPXbRLwI",
+    "25": "CAADAgADnm0AAr-0aUkZn781zzosUAI",
+    "26": "CAADAgADA1kAAsJoaUnzTX_u2fW5FwI",
+    "27": "CAADAgADqF4AAkXsaUmJOP0m7XXC9wI",
+    "28": "CAADAgADEGIAAnoHaEmM2XXh-W9ZqgI",
+    "29": "CAADAgADFloAAjd3aUmdabV4t7JBpAI",
+
+    # Blue sticker cards
+    "30": "CAADAgADPWcAAv_LaUmTh1_yMkS96gI",
+    "31": "CAADAgADVlsAAjEnYElGUTtPoAGXCgI",
+    "32": "CAADAgADLWEAArjYaUmSjSAi3PRIUgI",
+    "33": "CAADAgADeF4AAt0YaEn8A4f2u3o-AwI",
+    "34": "CAADAgADaF0AAvxVaEnuW8vbG1ldRQI",
+    "35": "CAADAgADP1oAAjOtaUneHfpcA9NPtgI",
+    "36": "CAADAgADCl4AArAUaEmPRoVJZ1ERnAI",
+    "37": "CAADAgADhl4AAjFDaEkhBGKU4DFu1gI",
+    "38": "CAADAgADrGYAAup_aEmJr4vqhx3GmgI",
+    "39": "CAADAgADNmMAAoqYaUnvt34qaMi7qAI",
 }
 
 
@@ -125,16 +189,13 @@ OPTIONS = OptionStickers(
 
 # Паттерны для сопоставления
 # Обычные числовые карты обрабатываются последними
-skip_pattern = re.compile(r"skip([0-5])(\d)")
-take_pattern = re.compile(r"take([0-5])(\d)")
-reverse_pattern = re.compile(r"reverse([0-5])")
-number_pattern = re.compile(r"([0-5])(\d)")
+skip_pattern = re.compile(r"skip([0-5])(\d):\d")
+take_pattern = re.compile(r"take([0-5])(\d):\d")
+reverse_pattern = re.compile(r"reverse([0-5]):\d")
+number_pattern = re.compile(r"([0-5])(\d):\d")
 
-def to_str(card: BaseCard) -> str:
-    """Превращает карту в строковый ID.
-
-    После он будет использоваться чтобы отправить нужный стикер.
-    """
+def to_sticker_id(card: BaseCard) -> str:
+    """Преобразует карту в строковый ID для стикера."""
     if isinstance(card, NumberCard):
         return f"{card.color.value}{card.value}" # 00 .. # 59
     elif isinstance(card, TurnCard):
@@ -148,21 +209,45 @@ def to_str(card: BaseCard) -> str:
     elif isinstance(card, TakeFourCard):
         return "take_four"
 
-# TODO: Метод обратного преобразования из строки
-# def from_str(card_str: str) -> BaseCard:
-#     """Превращает строку карты в действительный экземпляр."""
-#     groups = skip_pattern.match(card_str).groups()
-#     if groups is not None:
-#         return TurnCard(CardColor(int(groups[0])), int(groups[1]))
+def to_str(card: BaseCard) -> str:
+    """Превращает карту в строковый ID."""
+    if isinstance(card, NumberCard):
+        return f"{card.color.value}{card.value}" # 00 .. # 59
+    elif isinstance(card, TurnCard):
+        return f"skip{card.color.value}{card.value}"
+    elif isinstance(card, ReverseCard):
+        return f"reverse{card.color.value}"
+    elif isinstance(card, TakeCard):
+        return f"take{card.color.value}{card.value}"
+    elif isinstance(card, ChooseColorCard):
+        return "color"
+    elif isinstance(card, TakeFourCard):
+        return "take_four"
 
-#     groups = take_pattern.match(card_str).groups()
-#     if groups is not None:
-#         return TakeCard(CardColor(int(groups[0])), int(groups[1]))
+def from_str(card_str: str) -> BaseCard:
+    """Превращает строку карты в действительный экземпляр."""
+    if card_str == "color":
+        return ChooseColorCard()
 
-#     groups = reverse_pattern.match(card_str).groups()
-#     if groups is not None:
-#         return ReverseCard(CardColor(int(groups[0])))
+    elif card_str == "take_four":
+        return TakeFourCard()
 
-#     groups = number_pattern.match(card_str).groups()
-#     if groups is not None:
-#         return NumberCard(CardColor(int(groups[0])), int(groups[1]))
+    match = skip_pattern.match(card_str)
+    if match is not None:
+        groups = match.groups()
+        return TurnCard(CardColor(int(groups[0])), int(groups[1]))
+
+    match = take_pattern.match(card_str)
+    if match is not None:
+        groups = match.groups()
+        return TakeCard(CardColor(int(groups[0])), int(groups[1]))
+
+    match = reverse_pattern.match(card_str)
+    if match is not None:
+        groups = match.groups()
+        return ReverseCard(CardColor(int(groups[0])))
+
+    match = number_pattern.match(card_str)
+    if match is not None:
+        groups = match.groups()
+        return NumberCard(CardColor(int(groups[0])), int(groups[1]))

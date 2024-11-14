@@ -84,8 +84,8 @@ class SessionManager:
         """
         try:
             game = self.games.pop(chat_id)
-            for user in game.players:
-                self.user_to_chat.pop(user.id)
+            for player in game.players:
+                self.user_to_chat.pop(player.user.id)
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError()

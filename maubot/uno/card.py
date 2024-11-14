@@ -90,12 +90,13 @@ class BaseCard:
 
         Returns:
             bool: Можно ли покрыть текущую карту данной
+
         """
         if other_card.color == CardColor.BLACK:
             return True
         elif self.color == other_card.color:
             return True
-        elif (self.card_type == other_card.type
+        elif (self.card_type == other_card.card_type
             and self.value == other_card.value
         ):
             return True
@@ -113,6 +114,7 @@ class BaseCard:
         Yields:
             Iterator[BaseCard, bool]: Возвращает карту и можете ли вы
                 ею покрыть текущую.
+
         """
         for card in hand:
             yield (card, self.can_cover(card))
@@ -128,6 +130,7 @@ class BaseCard:
 
         Returns:
             Any: Резльтат работы карты, возвращаемый обратно в игру.
+
         """
         logger.debug("Used card {} in chat {}", self, game.chat_id)
 
@@ -147,6 +150,23 @@ class BaseCard:
     def __repr__(self) -> str:
         """Представление карты при отладке."""
         return self.__str__()
+
+    def __eq__(self, other_card: Self) -> bool:
+        """Проверяет соответствие двух карт."""
+        return (
+            self.color == other_card.color
+            and self.card_type == other_card.card_type
+            and self.value == other_card.value
+            and self.cost == other_card.cost
+        )
+
+    def __lt__(self, other_card: Self) -> bool:
+        """Проверяет что данная карта меньшей стоимости чем прочая."""
+        return (
+            self.color < other_card.color
+            and self.value < other_card.value
+            and self.cost < other_card.cost
+        )
 
 
 class NumberCard(BaseCard):
@@ -182,6 +202,7 @@ class TurnCard(BaseCard):
 
         Args:
             game (UnoGame): Текущая сессия игры.
+
         """
         logger.info("Skip {} players", self.value)
         game.skip_players(self.value)
@@ -206,6 +227,7 @@ class ReverseCard(BaseCard):
 
         Args:
             game (UnoGame): Текущая сессия игры.
+
         """
         # Когда игроков двое, работает как карта пропуска
         if len(game.players) == 2: # noqa
@@ -236,6 +258,7 @@ class TakeCard(BaseCard):
 
         Args:
             game (UnoGame): Текущая сессия игры.
+
         """
         game.take_counter += self.value
         logger.info("Take counter increase by {} and now {}",
@@ -262,6 +285,7 @@ class ChooseColorCard(BaseCard):
 
         Args:
             game (UnoGame): Текущая сессия игры.
+
         """
         game.choose_color_flag = True
 
@@ -286,6 +310,7 @@ class TakeFourCard(BaseCard):
 
         Args:
             game (UnoGame): Текущая сессия игры.
+
         """
         game.choose_color_flag = True
         game.take_counter += 4

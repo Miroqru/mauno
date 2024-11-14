@@ -15,8 +15,11 @@ if TYPE_CHECKING:
 # ==========================
 
 class SortedCards(NamedTuple):
+    """Распределяет карты на: покрывающие и не покрывающие."""
+
     cover: list[BaseCard]
     uncover: list[BaseCard]
+
 
 class Player:
     """Игрок для сессии Uno.
@@ -33,6 +36,11 @@ class Player:
         self.bluffing = False
         self.took_card = False
         self.anti_cheat = 0
+
+    @property
+    def is_current(self) -> bool:
+        """Имеет ли право хода текущий игрок."""
+        return self is self.game.player
 
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
@@ -61,8 +69,8 @@ class Player:
         self.game.process_turn(card)
 
     def get_cover_cards(self) -> SortedCards:
-        logger.debug("Last card was {}", last)
         top = self.game.deck.top
+        logger.debug("Last card was {}", top)
         self.bluffing = False
         if isinstance(top, TakeFourCard) and self.game.take_counter:
             return SortedCards([], self.hand)
@@ -72,12 +80,14 @@ class Player:
         for card, can_cover in top.get_cover_cards(self.hand):
             if not can_cover:
                 uncover.append(card)
+                continue
             if (
                 isinstance(top, TakeCard)
                 and self.game.take_counter
                 and not isinstance(card, TakeCard)
             ):
                 uncover.append(card)
+                continue
 
             cover.append(card)
             self.bluffing = (
@@ -85,7 +95,7 @@ class Player:
                 or card.color == self.game.deck.top.color
             )
 
-        return SortedCards(cover, uncover)
+        return SortedCards(sorted(cover), sorted(uncover))
 
 
     # Обработка событий
