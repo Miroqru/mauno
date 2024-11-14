@@ -3,14 +3,17 @@
 В тои числе клавиатура для Inline Query.
 """
 
-from maubot import stickers
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InlineQueryResultArticle,
+    InlineQueryResultCachedSticker,
     InputTextMessageContent,
-    InlineQueryResultCachedSticker
 )
+
+from maubot.config import config
+from maubot.uno.game import UnoGame
+from maubot import stickers
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
@@ -20,6 +23,20 @@ TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
         switch_inline_query_current_chat=""
     )
 ]])
+
+def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
+    buttons = [[
+        InlineKeyboardButton(text="Выбрать режим",
+            switch_inline_query_current_chat=""
+        ),
+        InlineKeyboardButton(text="Зайти", callback_data="join")
+    ]]
+    if len(game.players) >= config.min_players:
+        buttons.append([InlineKeyboardButton(text="Начать игру",
+            callback_data="start_game"
+        )])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 
 # Меню выбора режима игры
 # Помогает удобнее применить настройки игровых правил

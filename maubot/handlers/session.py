@@ -5,14 +5,14 @@
 в роутер `player`.
 """
 
-from aiogram import Router
+from aiogram import Bot, F, Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
+from loguru import logger
 
-from maubot.messages import NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
-from maubot import keyboards, stickers
+from maubot import keyboards, messages, stickers
 from maubot.config import config
-from maubot.messages import HELP_MESSAGE
+from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
 from maubot.uno.exceptions import NoGameInChatError
 from maubot.uno.game import UnoGame
 from maubot.uno.session import SessionManager
@@ -26,7 +26,8 @@ router = Router(name="Sessions")
 @router.message(Command("game"))
 async def create_game(message: Message,
     sm: SessionManager,
-    game: UnoGame | None
+    game: UnoGame | None,
+    bot: Bot
 ):
     """Создаёт новую комнату."""
     if message.chat.type == "private":
@@ -36,20 +37,15 @@ async def create_game(message: Message,
     if game is None or game.started:
         game = sm.create(message.chat.id)
         game.start_player = message.from_user
-        create_status = "☕ <b>Создано новая комната</b> для игры."
+        now_created = True
     else:
-        create_status = "☕ <b>Текущая комната</b> для игры."
+        now_created = False
 
-    members_list = f"✨ Участники ({len(game.players)}):\n"
-    for player in game.players:
-        members_list += f"- {player.user.mention_html()}\n"
-
-    await message.answer((
-        f"{create_status}\n"
-        f"Автор: {game.start_player.mention_html()}\n\n{members_list}\n"
-        "- /join чтобы присоединиться к игре\n"
-        "- /start для начала веселья"
-    ))
+    lobby_message = await message.answer(
+        messages.get_room_status(game, now_created),
+        reply_markup=keyboards.get_room_markup(game)
+    )
+    game.lobby_message = lobby_message.message_id
 
 @router.message(Command("start"))
 async def start_gama(message: Message, game: UnoGame | None):
@@ -67,6 +63,14 @@ async def start_gama(message: Message, game: UnoGame | None):
         await message.answer9(NOT_ENOUGH_PLAYERS)
 
     else:
+        try:
+            await message.delete()
+        except Exception as e:
+            logger.warning("Unable to delete message: {}", e)
+            await message.answer(
+                "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
+            )
+
         game.start()
         await message.answer_sticker(
             stickers.NORMAL[stickers.to_str(game.deck.top)]
@@ -189,3 +193,31 @@ async def kick_player(message: Message,
         markup = None
 
     await message.answer(status_message, reply_markup=markup)
+
+
+# Обработчики событий
+# ===================
+
+@router.callback_query(F.data=="start_game")
+async def start_game_call(query: CallbackQuery, game: UnoGame | None):
+    """Запускает игру в комнате."""
+    try:
+        await query.message.delete()
+    except Exception as e:
+        logger.warning("Unable to delete message: {}", e)
+        await query.message.answer(
+            "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
+        )
+
+    game.start()
+    await query.message.answer_sticker(
+        stickers.NORMAL[stickers.to_str(game.deck.top)]
+    )
+
+    await query.message.answer((
+            "🍰 Да начнётся <b>Новая игра!</b>!\n"
+            f"И первым у нас ходит {game.player.user.mention_html()}\n"
+            "/close чтобы закрыть комнату от посторонних."
+        ),
+        reply_markup=keyboards.TURN_MARKUP
+    )

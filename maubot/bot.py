@@ -4,12 +4,11 @@
 """
 
 import sys
-
-from typing import Any, Callable, Awaitable
+from typing import Any, Awaitable, Callable
 
 from aiogram import Bot, Dispatcher
+from aiogram.types import InlineQuery, Message, CallbackQuery
 from aiogram.utils.token import TokenValidationError
-from aiogram.types import Message, InlineQuery
 from loguru import logger
 from tortoise import Tortoise
 
@@ -40,6 +39,7 @@ LOG_FORMAT = (
 
 @dp.message.middleware()
 @dp.inline_query.middleware()
+@dp.callback_query.middleware()
 async def game_middleware(
     handler: Callable[[Message | InlineQuery, dict[str, Any]], Awaitable[Any]],
     event: Message | InlineQuery,
@@ -48,6 +48,9 @@ async def game_middleware(
     """Предоставляет экземпляр игры в обработчики сообщений."""
     if isinstance(event, Message):
         game =  sm.games.get(event.chat.id)
+        data["game"] = game
+    elif isinstance(event, CallbackQuery):
+        game =  sm.games.get(event.message.chat.id)
         data["game"] = game
     elif isinstance(event, InlineQuery):
         chat_id = sm.user_to_chat.get(event.from_user.id)
