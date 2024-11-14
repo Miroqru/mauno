@@ -73,7 +73,7 @@ async def start_gama(message: Message, game: UnoGame | None):
 
         game.start()
         await message.answer_sticker(
-            stickers.NORMAL[stickers.to_str(game.deck.top)]
+            stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
         )
 
         await message.answer((
@@ -211,7 +211,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None):
 
     game.start()
     await query.message.answer_sticker(
-        stickers.NORMAL[stickers.to_str(game.deck.top)]
+        stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
     )
 
     await query.message.answer((
