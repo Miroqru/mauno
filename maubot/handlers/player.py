@@ -3,18 +3,18 @@
 Присоединение, отключение, пропуск хода.
 """
 
-from aiogram import Router
+from aiogram import Bot, F, Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
+from loguru import logger
 
 from maubot import keyboards
-from maubot.messages import NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
+from maubot.messages import NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS, get_room_status
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
     DeckEmptyError,
     LobbyClosedError,
     NoGameInChatError,
-    NotEnoughPlayersError,
 )
 from maubot.uno.game import UnoGame
 from maubot.uno.session import SessionManager
@@ -27,7 +27,8 @@ router = Router(name="Player")
 @router.message(Command("join"))
 async def join_player(message: Message,
     sm: SessionManager,
-    game: UnoGame | None
+    game: UnoGame | None,
+    bot: Bot
 ):
     """Подключает пользователя к игру."""
     try:
@@ -48,10 +49,21 @@ async def join_player(message: Message,
     except DeckEmptyError:
         await message.answer("👀 К сожалению у нас не осталось для вас карт.")
     else:
-        await message.answer((
-            "🍰 Добро пожаловать к нам!\n"
-            "Игра начнётся как все буудт в сборе."
-        ))
+        try:
+            await message.delete()
+        except Exception as e:
+            logger.warning("Unable to delete message: {}", e)
+            await message.answer(
+                "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
+            )
+
+    if game is not None and not game.started:
+        await bot.edit_message_text(
+            text=get_room_status(game),
+            chat_id=game.chat_id,
+            message_id=game.lobby_message,
+            reply_markup=keyboards.get_room_markup(game)
+        )
 
 @router.message(Command("leave"))
 async def leave_player(message: Message,
@@ -79,3 +91,33 @@ async def leave_player(message: Message,
         sm.remove(message.chat.id)
 
     await message.answer(status_message, reply_markup=markup)
+
+
+# Обработчики для кнопок
+# ======================
+
+@router.callback_query(F.data=="join")
+async def join_callback(query: CallbackQuery,
+    sm: SessionManager,
+    game: UnoGame |  None
+):
+    """Добавляет игрока в текущую комнату."""
+    try:
+        sm.join(query.message.chat.id, query.from_user)
+    except LobbyClosedError:
+        await query.message.answer((
+            "👀 К сожалению данная комната <b>закрыта</b>.\n"
+            f"Вы можете попросить {game.start_player.mention_html()} открыть"
+            "комнату."
+        ))
+    except AlreadyJoinedError:
+        await query.message.answer("🍰 Вы уже и без того с нами в комнате.")
+    except DeckEmptyError:
+        await query.message.answer(
+            "👀 К сожалению у нас не осталось для вас карт."
+        )
+    else:
+        await query.message.edit_text(
+            text=get_room_status(game),
+            reply_markup=keyboards.get_room_markup(game)
+        )

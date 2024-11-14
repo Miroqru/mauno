@@ -52,3 +52,20 @@ NOT_ENOUGH_PLAYERS = (
     "Воспользуйтесь командой /join чтобы присоединиться к игре."
 )
 
+def get_room_status(game, now_created: bool = False) -> str:
+    """Отображает статус текущей комнаты."""
+    if now_created:
+        header = "☕ <b>Создана новая комната</b> для игры."
+    else:
+        header = "☕ <b>Текущая комната</b> для игры."
+
+    members_list = f"✨ Участники ({len(game.players)}):\n"
+    for player in game.players:
+        members_list += f"- {player.user.mention_html()}\n"
+
+    return (
+        f"{header}\n"
+        f"Автор: {game.start_player.mention_html()}\n\n{members_list}\n"
+        "- /join чтобы присоединиться к игре\n"
+        "- /start для начала веселья"
+    )
