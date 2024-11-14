@@ -287,6 +287,7 @@ class ChooseColorCard(BaseCard):
             game (UnoGame): Текущая сессия игры.
 
         """
+        logger.info("Set choose color flag to True")
         game.choose_color_flag = True
 
     def __str__(self):

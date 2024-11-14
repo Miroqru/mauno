@@ -220,16 +220,16 @@ def to_str(card: BaseCard) -> str:
     elif isinstance(card, TakeCard):
         return f"take{card.color.value}{card.value}"
     elif isinstance(card, ChooseColorCard):
-        return "color"
+        return "choose_color"
     elif isinstance(card, TakeFourCard):
         return "take_four"
 
 def from_str(card_str: str) -> BaseCard:
     """Превращает строку карты в действительный экземпляр."""
-    if card_str == "color":
+    if re.match(r"choose_color:\d", card_str):
         return ChooseColorCard()
 
-    elif card_str == "take_four":
+    elif re.match(r"take_four:\d", card_str):
         return TakeFourCard()
 
     match = skip_pattern.match(card_str)

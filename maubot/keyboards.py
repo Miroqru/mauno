@@ -105,7 +105,9 @@ def get_color_query(player) -> list:
         id="status",
         title="Ваши карты (жмяк для статуса комнаты):",
         description=", ".join([str(card) for card in player.hand]),
-        input_message_content=game_status(player.game),
+        input_message_content=InputTextMessageContent(
+            message_text=game_status(player.game)
+        ),
     ))
     return result
 

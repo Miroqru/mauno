@@ -69,10 +69,11 @@ def call_bluff(player: Player) -> str:
 
 def play_card(player: Player, card: BaseCard) -> str:
     """Разыгрывает выброшенную карту."""
-    logger.info("Push {} from {}", card, player)
+    logger.warning("Push {} from {}", card, player)
     player.hand.remove(card)
     player.game.process_turn(card)
     status_message = ""
+    logger.debug(player.game.choose_color_flag)
 
     if len(player.hand) == 1:
         status_message += "🌟 UNO!\n"
@@ -116,6 +117,7 @@ async def process_card_handler(result: ChosenInlineResult,
     sm: SessionManager
 ):
     """Обрабатывает все выбранные события от бота."""
+    logger.info("Process result {} in game {}", result, game)
     # Пропускаем если нам передали не действительные значения игрока и игры
     # Нам не нужно повторно отправлять сообщения если это статус игры
     if (player is None
@@ -131,9 +133,7 @@ async def process_card_handler(result: ChosenInlineResult,
         game.next_turn()
 
     elif result.result_id == "take":
-        status_message = take_card(player)
-        if status_message is None:
-            status_message = ""
+        status_message = take_card(player) or ""
 
     elif result.result_id == "bluff":
         status_message = call_bluff(player)

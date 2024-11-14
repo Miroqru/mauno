@@ -45,13 +45,20 @@ class Player:
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self.user)
-        try:
-            self.hand = list(self.game.deck.take(7))
-        except DeckEmptyError:
-            for card in self.hand:
-                self.game.deck.put(card)
-            logger.warning("There not enough cards in deck for player")
-            raise DeckEmptyError()
+        # try:
+        #     self.hand = list(self.game.deck.take(7))
+        # except DeckEmptyError:
+        #     for card in self.hand:
+        #         self.game.deck.put(card)
+        #     logger.warning("There not enough cards in deck for player")
+        #     raise DeckEmptyError()
+        self.hand = [
+            TakeFourCard(),
+            TakeFourCard(),
+            TakeFourCard(),
+            TakeFourCard(),
+            TakeFourCard(),
+        ]
 
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""

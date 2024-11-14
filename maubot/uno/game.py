@@ -141,7 +141,7 @@ class UnoGame:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player")
         self.choose_color_flag = False
-        self.player.take_cards = False
+        self.player.took_card = False
         self.turn_start = datetime.now()
         self.skip_players()
 
