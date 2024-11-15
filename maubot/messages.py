@@ -54,32 +54,25 @@ NOT_ENOUGH_PLAYERS = (
 )
 
 
-def get_room_status(game, now_created: bool = False) -> str:
+def get_room_status(game: UnoGame, now_created: bool = False) -> str:
     """Отображает статус текущей комнаты."""
-    if now_created:
-        header = "☕ <b>Создана новая комната</b> для игры."
-    else:
-        header = "☕ <b>Текущая комната</b> для игры."
-
-    members_list = f"✨ Участники ({len(game.players)}):\n"
-    for player in game.players:
-        members_list += f"- {player.user.mention_html()}\n"
+    reverse_dim = "🔺" if game.reverse else "🔻"
+    members_list = f"✨ Участники ({len(game.players)}{reverse_dim}):\n"
+    for i, player in enumerate(game.players):
+        if i == game.current_player:
+            members_list += (
+                f"- <b>{player.user.mention_html()}</b> "
+                f"({len(player.hand)} карт)\n"
+            )
+        else:
+            members_list += (
+                f"- {player.user.mention_html()} "
+                f"({len(player.hand)} карт)\n"
+            )
 
     return (
-        f"{header}\n"
+        f"☕ <b>Текущая комната</b> для игры.\n"
         f"Автор: {game.start_player.mention_html()}\n\n{members_list}\n"
         "- /join чтобы присоединиться к игре\n"
         "- /start для начала веселья"
     )
-
-def game_status(game: UnoGame) -> str:
-    """Отображает краткую информацию о текущем состоянии игры."""
-    players_str = ""
-    for player in game.players:
-        players_str += f"\n- {player.user.first_name} ({len(player.hand)} карт)"
-
-    return (
-        f"<b>Текущая карта</b>: {game.deck.top}\n"
-        f"<b>Сейчас ходит</b>: {game.player.user.first_name}\n\n"
-        f"<b>Игроки</b> ({len(game.players)}):{players_str}"
-     )
