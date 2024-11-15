@@ -132,6 +132,7 @@ async def join_callback(query: CallbackQuery,
             reply_markup=keyboards.get_room_markup(game)
         )
 
+
 # Обработчики событий
 # ===================
 
@@ -152,8 +153,7 @@ async def on_user_leave(event: ChatMemberUpdated,
 
     if game.started:
         status_message = (
-            "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
+           f"🍰 Ладненько, следующих ход за {game.player.user.mention_html()}."
         )
         markup = keyboards.TURN_MARKUP
     else:
