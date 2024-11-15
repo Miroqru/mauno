@@ -10,6 +10,7 @@
 """
 
 from enum import IntEnum
+from random import randint
 from typing import Any, Iterable, Iterator, Self
 
 from loguru import logger
@@ -289,8 +290,18 @@ class ChooseColorCard(BaseCard):
             game (UnoGame): Текущая сессия игры.
 
         """
-        logger.info("Set choose color flag to True")
-        game.choose_color_flag = True
+        if game.rules.auto_choose_color:
+            logger.info("Auto choose color for card")
+            if game.reverse:
+                self.color = CardColor((game.deck.top.color + 1) % 3)
+            else:
+                self.color = CardColor((game.deck.top.color - 1) % 3)
+        elif game.rules.choose_random_color:
+            logger.info("Choose random color for card")
+            self.color = CardColor(randint(0, 3))
+        else:
+            logger.info("Set choose color flag to True")
+            game.choose_color_flag = True
 
     def __str__(self):
         """Представление карты в строковое виде."""
@@ -315,5 +326,15 @@ class TakeFourCard(BaseCard):
             game (UnoGame): Текущая сессия игры.
 
         """
-        game.choose_color_flag = True
+        if game.rules.auto_choose_color:
+            logger.info("Auto choose color for card")
+            if game.reverse:
+                self.color = CardColor((game.deck.top.color + 1) % 3)
+            else:
+                self.color = CardColor((game.deck.top.color - 1) % 3)
+        elif game.rules.choose_random_color:
+            logger.info("Choose random color for card")
+            self.color = CardColor(randint(0, 3))
+        else:
+            game.choose_color_flag = True
         game.take_counter += 4

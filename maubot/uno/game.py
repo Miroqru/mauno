@@ -5,6 +5,7 @@
 действия карт из колоды.
 """
 
+from random import randint
 from dataclasses import dataclass
 from datetime import datetime
 from random import shuffle
@@ -25,16 +26,10 @@ from maubot.uno.player import Player
 class GameRules:
     """Набор игровых правил, которые можно менять при запуске игры."""
 
-    timer: bool
-    wild: bool
-
-    @classmethod
-    def default(cls):
-        """Правила игры по умолчанию."""
-        return GameRules(
-            timer=False,
-            wild=False
-        )
+    wild: bool = False
+    auto_choose_color: bool = False
+    choose_random_color: bool = False
+    random_color: bool = False
 
 
 class UnoGame:
@@ -46,7 +41,7 @@ class UnoGame:
 
     def __init__(self, chat_id: int):
         self.chat_id = chat_id
-        self.rules = GameRules.default()
+        self.rules = GameRules()
         self.deck = Deck()
 
         # Игроки Uno
@@ -127,9 +122,10 @@ class UnoGame:
     def process_turn(self, card: BaseCard) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
+        card(self)
         self.deck.put_on_top(card)
-        self.deck.top(self)
         if not self.choose_color_flag:
+            self.deck.top.color = CardColor(randint(0, 3))
             self.next_turn()
 
     def choose_color(self, color: CardColor):
