@@ -69,17 +69,23 @@ def call_bluff(player: Player) -> str:
 
 def play_card(player: Player, card: BaseCard) -> str:
     """Разыгрывает выброшенную карту."""
-    logger.warning("Push {} from {}", card, player)
+    logger.info("Push {} from {}", card, player.user.id)
     player.hand.remove(card)
     player.game.process_turn(card)
     status_message = ""
-    logger.debug(player.game.choose_color_flag)
 
     if len(player.hand) == 1:
         status_message += "🌟 UNO!\n"
 
     if player.game.choose_color_flag:
         status_message += "🎨 Я выбираю цвет ...\n"
+
+    if (player.game.rules.random_color
+        or player.game.rules.choose_random_color
+        or player.game.rules.auto_choose_color
+    ):
+        status_message += f"🎨 Я выбираю цвет... {player.game.deck.top.color}\n"
+
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
