@@ -7,6 +7,7 @@
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
+from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
@@ -18,6 +19,13 @@ from maubot.uno.game import UnoGame
 from maubot.uno.session import SessionManager
 
 router = Router(name="Sessions")
+
+ROOM_SETTINGS = (
+    "⚙️ <b>Настройки комнаты</b>:'\n\n"
+    "В этом разделе вы можете настроить дополнительные параметры для игры.\n"
+    "Они привносят дополнительное разнообразие в игровые правила.\n\n"
+    "Пункты помеченные 🌟 <b>активированы</b>."
+)
 
 
 # Обработчики
@@ -220,4 +228,49 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None):
             "/close чтобы закрыть комнату от посторонних."
         ),
         reply_markup=keyboards.TURN_MARKUP
+    )
+
+
+# Настройки комнаты
+# =================
+
+@router.message(Command("settings"))
+async def settings_menu(message: Message, game: UnoGame | None):
+    """Отображает настройки для текущей комнаты."""
+    if game is None:
+        return await message.answer(NO_ROOM_MESSAGE)
+    
+    await message.answer(ROOM_SETTINGS,
+        reply_markup=keyboards.get_settings_markup(game.rules)
+    )
+
+@router.callback_query(F.data=="room_settings")
+async def settings_menu_call(query: CallbackQuery, game: UnoGame | None):
+    """Отображает настройки для текущей комнаты."""
+    if game is None:
+        return await query.message.answer(NO_ROOM_MESSAGE)
+    
+    await query.message.answer(ROOM_SETTINGS,
+        reply_markup=keyboards.get_settings_markup(game.rules)
+    )
+
+class SettingsCallback(CallbackData, prefix="set"):
+    """Переключатель настроек."""
+
+    key: str
+    value: bool
+
+@router.callback_query(SettingsCallback.filter())
+async def edit_room_settings_call(query: CallbackQuery,
+    callback_data: SettingsCallback,
+    game: UnoGame | None
+):
+    """Изменяет настройки для текущей комнаты."""
+    if game is None:
+        return await query.message.answer(NO_ROOM_MESSAGE)
+
+    setattr(game.rules, callback_data.key, callback_data.value)
+
+    await query.message.edit_text(ROOM_SETTINGS,
+        reply_markup=keyboards.get_settings_markup(game.rules)
     )
