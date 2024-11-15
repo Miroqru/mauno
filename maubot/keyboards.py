@@ -17,7 +17,7 @@ from maubot import stickers
 from maubot.config import config
 from maubot.messages import game_status
 from maubot.uno.card import TakeFourCard
-from maubot.uno.game import UnoGame
+from maubot.uno.game import GameRules, UnoGame
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
@@ -29,14 +29,15 @@ TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
 ]])
 
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
+    """Вспомогательная клавиатура для управления комнатой."""
     buttons = [[
-        InlineKeyboardButton(text="Выбрать режим",
-            switch_inline_query_current_chat=""
+        InlineKeyboardButton(text="⚙️ Настройки",
+            callback_data="room_settings"
         ),
-        InlineKeyboardButton(text="Зайти", callback_data="join")
+        InlineKeyboardButton(text="☕ Зайти", callback_data="join")
     ]]
     if len(game.players) >= config.min_players:
-        buttons.append([InlineKeyboardButton(text="Начать игру",
+        buttons.append([InlineKeyboardButton(text="🃏 Начать игру",
             callback_data="start_game"
         )])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -200,3 +201,27 @@ def get_hand_query(player) -> list:
     )))
 
     return result
+
+
+# Настройки игровой комнаты
+# =========================
+
+_RULES = (
+    ("wild", "Дикие карты"),
+)
+
+def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
+    buttons = []
+    for key, name in _RULES:
+        status = getattr(game_rules, key, False)
+        if status:
+            status_sim = "🌟"
+        else:
+            status_sim = ""
+        
+        buttons.append([InlineKeyboardButton(
+            text=f"{status_sim}{name}",
+            callback_data=f"set:{key}:{not status}"
+        )])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)

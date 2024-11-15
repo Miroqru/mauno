@@ -9,6 +9,7 @@ from maubot.messages import HELP_MESSAGE, STATUS_MESSAGE
 
 router = Router(name="simple commands")
 
+
 # Обработчики
 # ===========
 
