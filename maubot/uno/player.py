@@ -45,20 +45,14 @@ class Player:
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self.user)
-        # try:
-        #     self.hand = list(self.game.deck.take(7))
-        # except DeckEmptyError:
-        #     for card in self.hand:
-        #         self.game.deck.put(card)
-        #     logger.warning("There not enough cards in deck for player")
-        #     raise DeckEmptyError()
-        self.hand = [
-            TakeFourCard(),
-            TakeFourCard(),
-            TakeFourCard(),
-            TakeFourCard(),
-            TakeFourCard(),
-        ]
+        try:
+            self.hand = list(self.game.deck.take(7))
+        except DeckEmptyError:
+            for card in self.hand:
+                self.game.deck.put(card)
+            logger.warning("There not enough cards in deck for player")
+            raise DeckEmptyError()
+
 
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""
@@ -76,6 +70,11 @@ class Player:
         self.game.process_turn(card)
 
     def get_cover_cards(self) -> SortedCards:
+        """Возвращает отсортированный список карт из руки пользователя.
+
+        Карты делятся на те, которыми он может покрыть и которыми не может
+        покрыть текущую верхнюю карту.
+        """
         top = self.game.deck.top
         logger.debug("Last card was {}", top)
         self.bluffing = False
