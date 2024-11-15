@@ -15,7 +15,7 @@ from aiogram.types import (
 
 from maubot import stickers
 from maubot.config import config
-from maubot.messages import game_status
+from maubot.messages import get_room_status
 from maubot.uno.card import TakeFourCard
 from maubot.uno.game import GameRules, UnoGame
 
@@ -107,7 +107,7 @@ def get_color_query(player) -> list:
         title="Ваши карты (жмяк для статуса комнаты):",
         description=", ".join([str(card) for card in player.hand]),
         input_message_content=InputTextMessageContent(
-            message_text=game_status(player.game)
+            message_text=get_room_status(player.game)
         ),
     ))
     return result
@@ -128,7 +128,7 @@ def get_hand_cards(player) -> Iterator:
                 stickers.to_sticker_id(cover_card)
             ],
             input_message_content=InputTextMessageContent(
-                message_text=game_status(player.game)
+                message_text=get_room_status(player.game)
             )
         )
 
@@ -141,7 +141,7 @@ def get_all_hand_cards(player):
                 stickers.to_sticker_id(cover_card)
             ],
             input_message_content=InputTextMessageContent(
-                message_text=game_status(player.game)
+                message_text=get_room_status(player.game)
             )
         )
 
@@ -197,7 +197,7 @@ def get_hand_query(player) -> list:
         id="status",
         sticker_file_id=stickers.OPTIONS.info,
         input_message_content=InputTextMessageContent(
-            message_text=game_status(player.game)
+            message_text=get_room_status(player.game)
     )))
 
     return result
@@ -214,6 +214,7 @@ _RULES = (
 )
 
 def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
+    """Клавиатура для управления настройками комнаты."""
     buttons = []
     for key, name in _RULES:
         status = getattr(game_rules, key, False)

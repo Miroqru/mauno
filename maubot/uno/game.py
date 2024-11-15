@@ -5,10 +5,9 @@
 действия карт из колоды.
 """
 
-from random import randint
 from dataclasses import dataclass
 from datetime import datetime
-from random import shuffle
+from random import randint, shuffle
 
 from loguru import logger
 
@@ -125,7 +124,8 @@ class UnoGame:
         card(self)
         self.deck.put_on_top(card)
         if not self.choose_color_flag:
-            self.deck.top.color = CardColor(randint(0, 3))
+            if self.rules.random_color:
+                self.deck.top.color = CardColor(randint(0, 3))
             self.next_turn()
 
     def choose_color(self, color: CardColor):
