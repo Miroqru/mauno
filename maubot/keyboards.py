@@ -17,7 +17,7 @@ from maubot import stickers
 from maubot.config import config
 from maubot.messages import get_room_status
 from maubot.uno.card import TakeFourCard
-from maubot.uno.game import GameRules, UnoGame
+from maubot.uno.game import RULES, GameRules, UnoGame
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
@@ -206,17 +206,10 @@ def get_hand_query(player) -> list:
 # Настройки игровой комнаты
 # =========================
 
-_RULES = (
-    ("wild", "🐉 Дикие карты"),
-    ("auto_choose_color", "🃏 самоцвет"),
-    ("choose_random_color", "🎨 Случайный цвет"),
-    ("random_color", "🎨 Какой цвет дальше?"),
-)
-
 def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Клавиатура для управления настройками комнаты."""
     buttons = []
-    for key, name in _RULES:
+    for key, name in RULES:
         status = getattr(game_rules, key, False)
         if status:
             status_sim = "🌟"
