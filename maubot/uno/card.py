@@ -33,7 +33,7 @@ class CardColor(IntEnum):
         """Представление цвета в виде смайлика."""
         return COLOR_EMOJI[self.value]
 
-CARD_TYPES = ["", "skip", "reverse", "+", "choosed", "take"]
+CARD_TYPES = ["", "skip", "reverse", "+", "choose", "take"]
 
 class CardType(IntEnum):
     """Основные типы карт UNO.
@@ -102,7 +102,9 @@ class BaseCard:
             return True
         return False
 
-    def get_cover_cards(self, hand: Iterable[Self]) -> Iterator[tuple[Self, bool]]:
+    def get_cover_cards(
+        self, hand: Iterable[Self]
+    ) -> Iterator[tuple[Self, bool]]:
         """Проверяет какие карты вы можете покрыть из своей руки.
 
         Используется чтобы проверить всю свою руку на наличие карт,
@@ -129,7 +131,7 @@ class BaseCard:
             game (UnoGame): Текущая игровая сессия где вызвана карта.
 
         Returns:
-            Any: Резльтат работы карты, возвращаемый обратно в игру.
+            Any: Результат работы карты, возвращаемый обратно в игру.
 
         """
         logger.debug("Used card {} in chat {}", self, game.chat_id)
