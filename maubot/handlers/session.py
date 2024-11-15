@@ -84,11 +84,7 @@ async def start_gama(message: Message, game: UnoGame | None):
             stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
         )
 
-        await message.answer((
-                "🍰 Да начнётся <b>Новая игра!</b>!\n"
-                f"И первым у нас ходит {game.player.user.mention_html()}\n"
-                "/close чтобы закрыть комнату от посторонних."
-            ),
+        await message.answer(messages.get_new_game_message(game),
             reply_markup=keyboards.TURN_MARKUP
         )
 
@@ -222,11 +218,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None):
         stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
     )
 
-    await query.message.answer((
-            "🍰 Да начнётся <b>Новая игра!</b>!\n"
-            f"И первым у нас ходит {game.player.user.mention_html()}\n"
-            "/close чтобы закрыть комнату от посторонних."
-        ),
+    await query.message.answer(messages.get_new_game_message(game),
         reply_markup=keyboards.TURN_MARKUP
     )
 

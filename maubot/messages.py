@@ -4,7 +4,7 @@
 """
 
 from maubot.config import config
-from maubot.uno.game import UnoGame
+from maubot.uno.game import UnoGame, RULES
 
 # Когда пользователь пишет сообщение /help
 HELP_MESSAGE = (
@@ -35,6 +35,20 @@ STATUS_MESSAGE = (
     "Узнать о всех новостях проекта вы можете в Telegram канале "
     "<a href='https://t.me/mili_qlaster'>Salorhard</a>."
 )
+
+
+def get_new_game_message(game: UnoGame):
+    mode_info = "🔥 Выбранные режимы:"
+    for key, name in RULES:
+        status = getattr(game.rules, key, False)
+        if status:
+            mode_info += f"\n- {name}"
+
+    return (
+        "🍰 Да начнётся <b>Новая игра!</b>!\n"
+        f"И первым у нас ходит {game.player.user.mention_html()}\n"
+        f"/close чтобы закрыть комнату от посторонних.\n{mode_info}"
+    )
 
 
 # Игровые комнаты
