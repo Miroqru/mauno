@@ -16,7 +16,7 @@ from aiogram.types import (
 from maubot import stickers
 from maubot.config import config
 from maubot.messages import get_room_status
-from maubot.uno.card import TakeFourCard
+from maubot.uno.card import CardType, TakeFourCard
 from maubot.uno.game import RULES, GameRules, UnoGame
 
 # Кнопка для совершения хода игроком
@@ -26,6 +26,14 @@ TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
         text="Сделать ход",
         switch_inline_query_current_chat=""
     )
+]])
+
+# Используется при выборе цвета для специальных карт
+COLOR_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
+    InlineKeyboardButton(text="❤️", callback_data="color:0"),
+    InlineKeyboardButton(text="💛", callback_data="color:1"),
+    InlineKeyboardButton(text="💚", callback_data="color:2"),
+    InlineKeyboardButton(text="💙", callback_data="color:3")
 ]])
 
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
@@ -116,10 +124,21 @@ def get_hand_cards(player) -> Iterator:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
-        yield InlineQueryResultCachedSticker(
-            id=f"{stickers.to_str(cover_card)}:{i}",
-            sticker_file_id=stickers.NORMAL[stickers.to_sticker_id(cover_card)]
-        )
+        if cover_card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
+            yield InlineQueryResultCachedSticker(
+                id=f"{stickers.to_str(cover_card)}:{i}",
+                sticker_file_id=stickers.NORMAL[
+                    stickers.to_sticker_id(cover_card)
+                ],
+                reply_markup=COLOR_MARKUP
+            )
+        else:
+            yield InlineQueryResultCachedSticker(
+                id=f"{stickers.to_str(cover_card)}:{i}",
+                sticker_file_id=stickers.NORMAL[
+                    stickers.to_sticker_id(cover_card)
+                ]
+            )
 
     for i, cover_card in enumerate(player_cards.uncover):
         yield InlineQueryResultCachedSticker(
@@ -215,7 +234,7 @@ def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
             status_sim = "🌟"
         else:
             status_sim = ""
-        
+
         buttons.append([InlineKeyboardButton(
             text=f"{status_sim}{name}",
             callback_data=f"set:{key}:{not status}"

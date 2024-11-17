@@ -4,7 +4,7 @@
 """
 
 from maubot.config import config
-from maubot.uno.game import UnoGame, RULES
+from maubot.uno.game import RULES, UnoGame
 
 # Когда пользователь пишет сообщение /help
 HELP_MESSAGE = (
