@@ -37,7 +37,8 @@ STATUS_MESSAGE = (
 )
 
 
-def get_new_game_message(game: UnoGame):
+def get_new_game_message(game: UnoGame) -> str:
+    """Сообщение о выбранных режимах игры."""
     mode_info = "🔥 Выбранные режимы:"
     for key, name in RULES:
         status = getattr(game.rules, key, False)
@@ -70,8 +71,13 @@ NOT_ENOUGH_PLAYERS = (
 
 def get_room_status(game: UnoGame, now_created: bool = False) -> str:
     """Отображает статус текущей комнаты."""
-    reverse_dim = "🔺" if game.reverse else "🔻"
-    members_list = f"✨ Участники ({len(game.players)}{reverse_dim}):\n"
+    if game.deck.top is None:
+        top_card = ""
+    else:
+        top_card = f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
+
+    reverse_sim = "🔺" if game.reverse else "🔻"
+    members_list = f"✨ Участники ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
         if i == game.current_player:
             members_list += (
@@ -85,7 +91,7 @@ def get_room_status(game: UnoGame, now_created: bool = False) -> str:
             )
 
     return (
-        f"☕ <b>Текущая комната</b> для игры.\n"
+        f"☕ <b>Текущая комната</b> для игры.\n{top_card}"
         f"Автор: {game.start_player.mention_html()}\n\n{members_list}\n"
         "- /join чтобы присоединиться к игре\n"
         "- /start для начала веселья"
