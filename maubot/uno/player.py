@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, NamedTuple
 from loguru import logger
 
 from maubot.uno.card import BaseCard, TakeCard, TakeFourCard
-from maubot.uno.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
     from maubot.uno.game import UnoGame
@@ -44,15 +43,20 @@ class Player:
 
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
-        logger.debug("{} Draw first hand for player", self.user)
-        try:
-            self.hand = list(self.game.deck.take(7))
-        except DeckEmptyError:
-            for card in self.hand:
-                self.game.deck.put(card)
-            logger.warning("There not enough cards in deck for player")
-            raise DeckEmptyError()
-
+        # logger.debug("{} Draw first hand for player", self.user)
+        # try:
+        #     self.hand = list(self.game.deck.take(7))
+        # except DeckEmptyError:
+        #     for card in self.hand:
+        #         self.game.deck.put(card)
+        #     logger.warning("There not enough cards in deck for player")
+        #     raise DeckEmptyError()
+        logger.debug("{} Draw debug first hand for player", self.user)
+        self.hand = [
+            TakeFourCard(),
+            TakeFourCard(),
+            TakeFourCard()
+        ]
 
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""

@@ -57,25 +57,21 @@ async def game_middleware(
 ):
     """Предоставляет экземпляр игры в обработчики сообщений."""
     if isinstance(event, (Message, ChatMemberUpdated)):
-        game =  sm.games.get(event.chat.id)
-        data["game"] = game
+        game = sm.games.get(event.chat.id)
     elif isinstance(event, CallbackQuery):
-        game =  sm.games.get(event.message.chat.id)
-        data["game"] = game
+        if event.message is None:
+            chat_id = sm.user_to_chat.get(event.from_user.id)
+            game = None if chat_id is None else sm.games.get(chat_id)
+        else:
+            game = sm.games.get(event.message.chat.id)
     elif isinstance(event, (InlineQuery, ChosenInlineResult)):
         chat_id = sm.user_to_chat.get(event.from_user.id)
-        if chat_id is None:
-            game = None
-        else:
-            game = sm.games.get(chat_id)
-        data["game"] = game
+        game = None if chat_id is None else sm.games.get(chat_id)
 
-    if game is not None:
-        data["player"] = game.get_player(event.from_user.id)
-    else:
-        data["player"] = None
-
-
+    data["game"] = game
+    data["player"] = None if game is None else game.get_player(
+        event.from_user.id
+    )
     return await handler(event, data)
 
 @dp.errors()

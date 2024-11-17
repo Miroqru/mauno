@@ -5,8 +5,8 @@
 
 import re
 
-from aiogram import Bot, Router
-from aiogram.types import ChosenInlineResult, InlineQuery
+from aiogram import Bot, F, Router
+from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 from loguru import logger
 
 from maubot import keyboards
@@ -77,15 +77,11 @@ def play_card(player: Player, card: BaseCard) -> str:
     if len(player.hand) == 1:
         status_message += "🌟 UNO!\n"
 
-    if player.game.choose_color_flag:
-        status_message += "🎨 Я выбираю цвет ...\n"
-
     if (player.game.rules.random_color
         or player.game.rules.choose_random_color
         or player.game.rules.auto_choose_color
     ):
         status_message += f"🎨 Я выбираю цвет... {player.game.deck.top.color}\n"
-
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
@@ -170,7 +166,64 @@ async def process_card_handler(result: ChosenInlineResult,
         sm.remove(player.game.chat_id)
         markup = None
 
+    if game.choose_color_flag:
+        return None
+
     await bot.send_message(player.game.chat_id,
         text=status_message,
         reply_markup=markup
     )
+
+
+# Обработчики для кнопок
+# ======================
+
+@router.callback_query(F.data.regexp(r"color:([0-3])").as_("color"))
+async def choose_color_call( # noqa
+    query: CallbackQuery,
+    game: UnoGame | None,
+    player: Player | None,
+    color: re.Match[str],
+    sm: SessionManager,
+    bot: Bot
+):
+    """Выбирает цвет по нажатию на кнопку."""
+    # Игнорируем нажатие на кнопку если это требуется
+    if (game is None
+        or player is None
+        or not game.choose_color_flag
+        or game.player.user.id != player.user.id
+    ):
+        return await query.answer("👀 Вы не играете или сейчас не ваш ход.")
+
+    color = CardColor(int(color.groups()[0]))
+    game.choose_color(color)
+
+    status_message = f"🎨 Я выбираю цвет ... {color}\n"
+    if len(player.hand) == 1:
+        status_message += "🌟 UNO!\n"
+
+    if len(player.hand) == 0:
+        status_message += f"👑 {player.user.first_name} победил(а)!\n"
+        player.game.winners.append(player)
+        player.game.remove_player(player.user.id)
+
+        if not player.game.started:
+            status_message += "\n✨ <b>Игра завершена</b>!"
+            for i, winner in enumerate(player.game.winners):
+                status_message += f"\n{i+1}. {winner.user.first_name}"
+
+    if game.started:
+        status_message += (
+            f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+        )
+        markup = keyboards.TURN_MARKUP
+    else:
+        sm.remove(player.game.chat_id)
+        markup = None
+
+    await bot.send_message(player.game.chat_id,
+        text=status_message,
+        reply_markup=markup
+    )
+    return await query.answer(f"🎨 Вы выбрали {color}.")
