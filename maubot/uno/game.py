@@ -31,12 +31,19 @@ class GameRules:
     random_color: bool = False
     debug_cards: bool = False
 
+@dataclass(frozen=True, slots=True)
+class Rule:
+    """Правило для игры."""
+
+    key: str
+    name: str
+
 RULES = (
-    ("wild", "🐉 Дикие карты"),
-    ("auto_choose_color", "🃏 самоцвет"),
-    ("choose_random_color", "🎨 Случайный цвет"),
-    ("random_color", "🎨 Какой цвет дальше?"),
-    ("debug_cards", "🦝 Отладочные карты?"),
+    Rule("wild", "🐉 Дикие карты"),
+    Rule("auto_choose_color", "🃏 самоцвет"),
+    Rule("choose_random_color", "🎨 Случайный цвет"),
+    Rule("random_color", "🎨 Какой цвет дальше?"),
+    Rule("debug_cards", "🦝 Отладочные карты!"),
 )
 
 

@@ -228,16 +228,16 @@ def get_hand_query(player) -> list:
 def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Клавиатура для управления настройками комнаты."""
     buttons = []
-    for key, name in RULES:
-        status = getattr(game_rules, key, False)
+    for rule in RULES:
+        status = getattr(game_rules, rule.key, False)
         if status:
             status_sim = "🌟"
         else:
             status_sim = ""
 
         buttons.append([InlineKeyboardButton(
-            text=f"{status_sim}{name}",
-            callback_data=f"set:{key}:{not status}"
+            text=f"{status_sim}{rule.name}",
+            callback_data=f"set:{rule.key}:{not status}"
         )])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
