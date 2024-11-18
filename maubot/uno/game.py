@@ -29,12 +29,14 @@ class GameRules:
     auto_choose_color: bool = False
     choose_random_color: bool = False
     random_color: bool = False
+    debug_cards: bool = False
 
 RULES = (
     ("wild", "🐉 Дикие карты"),
     ("auto_choose_color", "🃏 самоцвет"),
     ("choose_random_color", "🎨 Случайный цвет"),
     ("random_color", "🎨 Какой цвет дальше?"),
+    ("debug_cards", "🦝 Отладочные карты?"),
 )
 
 
