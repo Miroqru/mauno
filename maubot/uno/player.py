@@ -1,6 +1,6 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Self
 
 from loguru import logger
 
@@ -59,10 +59,10 @@ class Player:
                 TakeCard(CardColor(1)),
                 TakeCard(CardColor(2)),
                 TakeCard(CardColor(3)),
-                NumberCard(CardColor(0), 8),
-                NumberCard(CardColor(1), 8),
-                NumberCard(CardColor(2), 8),
-                NumberCard(CardColor(3), 8)
+                NumberCard(CardColor(0), 7),
+                NumberCard(CardColor(1), 7),
+                NumberCard(CardColor(2), 7),
+                NumberCard(CardColor(3), 7)
             ]
             return
 
@@ -138,6 +138,13 @@ class Player:
         for card in self.hand:
             self.game.deck.put(card)
         self.hand = []
+
+    def twist_hand(self, other_player: Self) -> None:
+        logger.info("Switch hand between {} and {}", self, other_player)
+        player_hand = self.hand.copy()
+        self.hand = other_player.hand.copy()
+        other_player.hand = player_hand
+        self.game.next_turn()
 
 
     # Магические методы
