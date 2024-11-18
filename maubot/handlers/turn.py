@@ -12,6 +12,7 @@ from loguru import logger
 from maubot import keyboards
 from maubot.stickers import from_str
 from maubot.uno.card import BaseCard, CardColor, TakeCard, TakeFourCard
+from maubot.uno.enums import GameState
 from maubot.uno.exceptions import DeckEmptyError
 from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
@@ -95,6 +96,12 @@ def play_card(player: Player, card: BaseCard) -> str:
 
     return status_message
 
+def twist_hand(player: Player, other_player: Player):
+    player.twist_hand(other_player)
+    return (f"🤝 {player.user.first_name} и {other_player.user.first_name} "
+        "обменялись руками.\n"
+    )
+
 
 # Обработчики
 # ===========
@@ -144,14 +151,23 @@ async def process_card_handler(result: ChosenInlineResult,
     if game_mode is not None:
         new_mode = game_mode.groups()[0]
         if new_mode == "wild":
-            player.game.rules.wild = True
+            game.rules.wild = True
         else:
-            player.game.rules.wild = False
+            game.rules.wild = False
         return
 
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
-        player.game.choose_color(CardColor(int(change_color.groups()[0])))
+        game.choose_color(CardColor(int(change_color.groups()[0])))
+
+    select_player = re.match(r"select_player:(\d)", result.result_id)
+    if select_player is not None:
+        other_player = game.players[int(select_player.groups()[0])]
+        if game.state == GameState.TWIST_HAND:
+            status_message += twist_hand(player, other_player)
+        else:
+            status_message += "🍻 Что-то пошло не такЮ но мы не знаем что."
+
 
     card = from_str(result.result_id)
     if card is not None:
@@ -166,7 +182,7 @@ async def process_card_handler(result: ChosenInlineResult,
         sm.remove(player.game.chat_id)
         markup = None
 
-    if game.choose_color_flag:
+    if game.state != GameState.NEXT:
         return None
 
     await bot.send_message(player.game.chat_id,
@@ -191,7 +207,7 @@ async def choose_color_call( # noqa
     # Игнорируем нажатие на кнопку если это требуется
     if (game is None
         or player is None
-        or not game.choose_color_flag
+        or game.state != GameState.CHOOSE_COLOR
         or game.player.user.id != player.user.id
     ):
         return await query.answer("👀 Вы не играете или сейчас не ваш ход.")

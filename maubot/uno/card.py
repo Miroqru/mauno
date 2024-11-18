@@ -15,6 +15,8 @@ from typing import Any, Iterable, Iterator, Self
 
 from loguru import logger
 
+from maubot.uno.enums import GameState
+
 # Дополнительные перечисления
 # ===========================
 
@@ -301,7 +303,7 @@ class ChooseColorCard(BaseCard):
             self.color = CardColor(randint(0, 3))
         else:
             logger.info("Set choose color flag to True")
-            game.choose_color_flag = True
+            game.state = GameState.CHOOSE_COLOR
 
     def __str__(self):
         """Представление карты в строковое виде."""
@@ -336,5 +338,5 @@ class TakeFourCard(BaseCard):
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
         else:
-            game.choose_color_flag = True
+            game.state = GameState.CHOOSE_COLOR
         game.take_counter += 4

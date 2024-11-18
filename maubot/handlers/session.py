@@ -245,6 +245,7 @@ async def settings_menu_call(query: CallbackQuery, game: UnoGame | None):
     await query.message.answer(ROOM_SETTINGS,
         reply_markup=keyboards.get_settings_markup(game.rules)
     )
+    await query.answer()
 
 class SettingsCallback(CallbackData, prefix="set"):
     """Переключатель настроек."""

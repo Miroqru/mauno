@@ -18,6 +18,7 @@ from maubot.config import config
 from maubot.messages import get_room_status
 from maubot.uno.card import CardType, TakeFourCard
 from maubot.uno.game import RULES, GameRules, UnoGame
+from maubot.uno.enums import GameState
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
@@ -27,6 +28,14 @@ TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
         switch_inline_query_current_chat=""
     )
 ]])
+
+SELECT_PLAYER_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
+    InlineKeyboardButton(
+        text="Выбрать игрока",
+        switch_inline_query_current_chat=""
+    )
+]])
+
 
 # Используется при выборе цвета для специальных карт
 COLOR_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
@@ -120,6 +129,25 @@ def get_color_query(player) -> list:
     ))
     return result
 
+def select_player_query(player) -> list:
+    """Клавиатура для выбора игрока."""
+    result = []
+
+    for i, pl in enumerate(player.game.players):
+        if i == player.game.current_player:
+            continue
+
+        result.append(InlineQueryResultArticle(
+            id=f"select_player:{i}",
+            title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+            input_message_content=InputTextMessageContent(message_text=(
+                f"🔪 Я выбираю {pl.user.first_name}."
+            ))
+        ))
+
+    return result
+
+
 def get_hand_cards(player) -> Iterator:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
@@ -131,6 +159,14 @@ def get_hand_cards(player) -> Iterator:
                     stickers.to_sticker_id(cover_card)
                 ],
                 reply_markup=COLOR_MARKUP
+            )
+        elif cover_card.value == 7 and player.game.rules.twist_hand:
+            yield InlineQueryResultCachedSticker(
+                id=f"{stickers.to_str(cover_card)}:{i}",
+                sticker_file_id=stickers.NORMAL[
+                    stickers.to_sticker_id(cover_card)
+                ],
+                reply_markup=SELECT_PLAYER_MARKUP
             )
         else:
             yield InlineQueryResultCachedSticker(
@@ -171,8 +207,11 @@ def get_hand_query(player) -> list:
     if not player.is_current:
         return get_all_hand_cards(player)
 
-    if player.game.choose_color_flag:
+    if player.game.state == GameState.CHOOSE_COLOR:
         return get_color_query(player)
+
+    if player.game.state == GameState.TWIST_HAND:
+        return select_player_query(player)
 
     if player.took_card:
         result = [InlineQueryResultCachedSticker(

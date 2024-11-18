@@ -5,13 +5,14 @@
 действия карт из колоды.
 """
 
+from enum import IntEnum
 from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
 
 from loguru import logger
 
-from maubot.uno.card import BaseCard, CardColor
+from maubot.uno.card import BaseCard, CardColor, CardType
 from maubot.uno.deck import Deck
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
@@ -19,6 +20,7 @@ from maubot.uno.exceptions import (
     NoGameInChatError,
 )
 from maubot.uno.player import Player
+from maubot.uno.enums import GameState
 
 
 @dataclass(slots=True)
@@ -30,6 +32,7 @@ class GameRules:
     choose_random_color: bool = False
     random_color: bool = False
     debug_cards: bool = False
+    twist_hand: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -44,6 +47,7 @@ RULES = (
     Rule("choose_random_color", "🎨 Случайный цвет"),
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
+    Rule("twist_hand", "🤝 Обмен руками"),
 )
 
 
@@ -69,8 +73,8 @@ class UnoGame:
         self.started: bool = False
         self.open: bool = True
         self.reverse: bool = False
-        self.choose_color_flag: bool = False
         self.take_counter: int = 0
+        self.state: GameState = GameState.NEXT
 
         # Таймеры
         self.game_start = datetime.now()
@@ -139,7 +143,9 @@ class UnoGame:
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_on_top(card)
-        if not self.choose_color_flag:
+        if self.rules.twist_hand and self.deck.top.value == 7:
+            self.state = GameState.TWIST_HAND
+        elif self.state == GameState.NEXT:
             if self.rules.random_color:
                 self.deck.top.color = CardColor(randint(0, 3))
             self.next_turn()
@@ -152,7 +158,7 @@ class UnoGame:
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player")
-        self.choose_color_flag = False
+        self.state = GameState.NEXT
         self.player.took_card = False
         self.turn_start = datetime.now()
         self.skip_players()
@@ -185,7 +191,7 @@ class UnoGame:
         player = self.get_player(user_id)
         if player is None:
             raise NoGameInChatError()
-        if player is self.player:
+        if player.user.id == self.player.user.id:
             self.next_turn()
         player.on_leave()
         self.players.remove(player)
