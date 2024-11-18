@@ -39,11 +39,19 @@ STATUS_MESSAGE = (
 
 def get_new_game_message(game: UnoGame) -> str:
     """Сообщение о выбранных режимах игры."""
-    mode_info = "🔥 Выбранные режимы:"
-    for key, name in RULES:
-        status = getattr(game.rules, key, False)
+    rule_list = ""
+    active_rules = 0
+    for rule in RULES:
+        status = getattr(game.rules, rule.key, False)
         if status:
-            mode_info += f"\n- {name}"
+            active_rules += 1
+            rule_list += f"\n- {rule.name}"
+
+    if active_rules == 0:
+        mode_info =  ""
+    else:
+        mode_info =  f"🔥 Выбранные режимы {active_rules}:{rule_list}"
+
 
     return (
         "🍰 Да начнётся <b>Новая игра!</b>!\n"
