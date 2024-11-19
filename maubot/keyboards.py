@@ -129,7 +129,7 @@ def get_color_query(player) -> list:
     ))
     return result
 
-def select_player_query(player) -> list:
+def select_player_query(player, add_pass_button: bool = False) -> list:
     """Клавиатура для выбора игрока."""
     result = []
 
@@ -142,6 +142,15 @@ def select_player_query(player) -> list:
             title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
             input_message_content=InputTextMessageContent(message_text=(
                 f"🔪 Я выбираю {pl.user.first_name}."
+            ))
+        ))
+
+    if add_pass_button:
+        result.append(InlineQueryResultArticle(
+            id="pass",
+            title="Пропустить ход",
+            input_message_content=InputTextMessageContent(message_text=(
+                "🍷 В этот раз я оставлю всё как есть."
             ))
         ))
 
