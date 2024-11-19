@@ -95,7 +95,7 @@ async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
         return await message.answer(NO_ROOM_MESSAGE)
 
     player = game.get_player(message.from_user.id)
-    if player is None or player.user.id != game.start_player.id:
+    if player is None or not player.is_owner:
         return await message.answer(
             "👀 Только создатель комнаты может завершить игру."
         )
@@ -114,7 +114,7 @@ async def open_gama(message: Message, game: UnoGame | None, sm: SessionManager):
         return await message.answer(NO_ROOM_MESSAGE)
 
     player = game.get_player(message.from_user.id)
-    if player is None or player.user.id != game.start_player.id:
+    if player is None or not player.is_owner:
         return await message.answer(
             "👀 Только создатель комнаты может открыть комнату."
         )
@@ -134,7 +134,7 @@ async def close_gama(message: Message,
         return await message.answer(NO_ROOM_MESSAGE)
 
     player = game.get_player(message.from_user.id)
-    if player is None or player.user.id != game.start_player.id:
+    if player is None or not player.is_owner:
         return await message.answer(
             "👀 Только создатель комнаты может закрыть комнату."
         )
@@ -163,7 +163,7 @@ async def kick_player(message: Message,
         )
 
     player = game.get_player(message.from_user.id)
-    if player is None or player.user.id != game.start_player.id:
+    if player is None or not  player.is_owner:
         return await message.answer(
             "👀 Только создатель комнаты может закрыть комнату."
         )

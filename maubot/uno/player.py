@@ -46,7 +46,12 @@ class Player:
     @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
-        return self is self.game.player
+        return self == self.game.player
+
+    @property
+    def is_owner(self) -> bool:
+        """Является ли текущий пользователь автором комнаты."""
+        return self.user.id == self.game.start_player
 
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
@@ -157,3 +162,11 @@ class Player:
     def __str__(self):
         """Представление игрока в строковом виде."""
         return str(self.user)
+
+    def __eq__(self, other_player: Self) -> bool:
+        """Сравнивает двух игроков по UID пользователя."""
+        return self.user.id == other_player.user.id
+
+    def __ne__(self, other_player: Self) -> bool:
+        """Проверяет что игроки не совпадают."""
+        return self.user.id != other_player.user.id
