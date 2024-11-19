@@ -120,7 +120,7 @@ class Deck:
         self.clear()
 
         # Нули добавляем отдельно поскольку их всегда по одному
-        for c in CardColor:
+        for c in (0, 1, 2, 3):
             self.cards.append(NumberCard(CardColor(c), 0))
 
         # Добавляем по два набора всех остальных карт
