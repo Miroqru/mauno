@@ -17,8 +17,8 @@ from maubot import stickers
 from maubot.config import config
 from maubot.messages import get_room_status
 from maubot.uno.card import CardType, TakeFourCard
-from maubot.uno.game import RULES, GameRules, UnoGame
 from maubot.uno.enums import GameState
+from maubot.uno.game import RULES, GameRules, UnoGame
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям

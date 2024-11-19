@@ -96,12 +96,6 @@ def play_card(player: Player, card: BaseCard) -> str:
 
     return status_message
 
-def twist_hand(player: Player, other_player: Player):
-    player.twist_hand(other_player)
-    return (f"🤝 {player.user.first_name} и {other_player.user.first_name} "
-        "обменялись руками.\n"
-    )
-
 
 # Обработчики
 # ===========
@@ -164,7 +158,11 @@ async def process_card_handler(result: ChosenInlineResult,
     if select_player is not None:
         other_player = game.players[int(select_player.groups()[0])]
         if game.state == GameState.TWIST_HAND:
-            status_message += twist_hand(player, other_player)
+            player.twist_hand(other_player)
+            status_message += (
+                f"🤝 {player.user.first_name} и {other_player.user.first_name} "
+                "обменялись руками.\n"
+            )
         else:
             status_message += "🍻 Что-то пошло не такЮ но мы не знаем что."
 
@@ -208,7 +206,7 @@ async def choose_color_call( # noqa
     if (game is None
         or player is None
         or game.state != GameState.CHOOSE_COLOR
-        or game.player.user.id != player.user.id
+        or game.player != player
     ):
         return await query.answer("👀 Вы не играете или сейчас не ваш ход.")
 

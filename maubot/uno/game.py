@@ -5,22 +5,21 @@
 действия карт из колоды.
 """
 
-from enum import IntEnum
 from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
 
 from loguru import logger
 
-from maubot.uno.card import BaseCard, CardColor, CardType
+from maubot.uno.card import BaseCard, CardColor
 from maubot.uno.deck import Deck
+from maubot.uno.enums import GameState
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
     LobbyClosedError,
     NoGameInChatError,
 )
 from maubot.uno.player import Player
-from maubot.uno.enums import GameState
 
 
 @dataclass(slots=True)
@@ -33,6 +32,7 @@ class GameRules:
     random_color: bool = False
     debug_cards: bool = False
     twist_hand: bool = False
+    shift_hands: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -48,6 +48,7 @@ RULES = (
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("twist_hand", "🤝 Обмен руками"),
+    Rule("shift_hands", "🧭 Обмен телами."),
 )
 
 
@@ -191,7 +192,7 @@ class UnoGame:
         player = self.get_player(user_id)
         if player is None:
             raise NoGameInChatError()
-        if player.user.id == self.player.user.id:
+        if player == self.player:
             self.next_turn()
         player.on_leave()
         self.players.remove(player)
