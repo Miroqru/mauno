@@ -95,7 +95,7 @@ class BaseCard:
             bool: Можно ли покрыть текущую карту данной
 
         """
-        if other_card.color == CardColor.BLACK:
+        if other_card.card_type in (CardType.CHOOSE_COLOR, CardType.TAKE_FOUR):
             return True
         elif self.color == other_card.color:
             return True
@@ -309,6 +309,14 @@ class ChooseColorCard(BaseCard):
         """Представление карты в строковое виде."""
         return f"{self.card_type} {self.color}"
 
+    def __eq__(self, other_card: Self) -> bool:
+        """Проверяет соответствие двух карт."""
+        return (
+            self.card_type == other_card.card_type
+            and self.value == other_card.value
+            and self.cost == other_card.cost
+        )
+
 
 class TakeFourCard(BaseCard):
     """Карта дать +4.
@@ -340,3 +348,11 @@ class TakeFourCard(BaseCard):
         else:
             game.state = GameState.CHOOSE_COLOR
         game.take_counter += 4
+
+    def __eq__(self, other_card: Self) -> bool:
+        """Проверяет соответствие двух карт."""
+        return (
+            self.card_type == other_card.card_type
+            and self.value == other_card.value
+            and self.cost == other_card.cost
+        )
