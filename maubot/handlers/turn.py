@@ -37,7 +37,7 @@ def take_card(player: Player) -> str | None:
         and take_counter
     ):
         player.game.next_turn()
-    return None
+    return None    
 
 def call_bluff(player: Player) -> str:
     """Проверка на честность предыдущего игрока."""
@@ -136,7 +136,11 @@ async def process_card_handler(result: ChosenInlineResult,
         game.next_turn()
 
     elif result.result_id == "take":
-        status_message = take_card(player) or ""
+        if game.rules.take_until_cover and game.take_counter == 0:
+            take_counter = player.take_until_cover()
+            status_message = f"🍷 беру {take_counter} карт.\n"
+        else:
+            status_message = take_card(player) or ""
 
     elif result.result_id == "bluff":
         status_message = call_bluff(player)

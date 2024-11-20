@@ -33,6 +33,7 @@ class GameRules:
     debug_cards: bool = False
     twist_hand: bool = False
     rotate_cards: bool = False
+    take_until_cover: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -49,6 +50,7 @@ RULES = (
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("twist_hand", "🤝 Обмен руками"),
     Rule("rotate_cards", "🧭 Обмен телами."),
+    Rule("take_until_cover", "🍷 Беру до последнего."),
 )
 
 
