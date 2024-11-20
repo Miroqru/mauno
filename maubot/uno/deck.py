@@ -146,7 +146,7 @@ class Deck:
         # Добавляем по 4 набора диких карт
         for _ in (0, 1, 2, 3):
             for c in (0, 1, 2, 3):
-                for value in range(1, 6):
+                for value in range(6):
                     self.cards.append(NumberCard(CardColor(c), value))
                 self.cards.append(ReverseCard(CardColor(c)))
                 self.cards.append(TurnCard(CardColor(c), 1))

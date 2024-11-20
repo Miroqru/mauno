@@ -145,6 +145,7 @@ class Player:
         self.hand = []
 
     def twist_hand(self, other_player: Self) -> None:
+        """Меняет местами руки для двух игроков."""
         logger.info("Switch hand between {} and {}", self, other_player)
         player_hand = self.hand.copy()
         self.hand = other_player.hand.copy()

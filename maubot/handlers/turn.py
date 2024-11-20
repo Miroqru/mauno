@@ -83,6 +83,9 @@ def play_card(player: Player, card: BaseCard) -> str:
     ):
         status_message += f"🎨 Я выбираю цвет.. {player.game.deck.top.color}\n"
 
+    if player.game.rules.rotate_cards and player.game.deck.top.cost == 0:
+        status_message += "🤝 Все игроки обменялись картами по кругу.\n"
+
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
         player.game.winners.append(player)

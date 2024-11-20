@@ -32,7 +32,7 @@ class GameRules:
     random_color: bool = False
     debug_cards: bool = False
     twist_hand: bool = False
-    shift_hands: bool = False
+    rotate_cards: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -48,7 +48,7 @@ RULES = (
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("twist_hand", "🤝 Обмен руками"),
-    Rule("shift_hands", "🧭 Обмен телами."),
+    Rule("rotate_cards", "🧭 Обмен телами."),
 )
 
 
@@ -144,11 +144,16 @@ class UnoGame:
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_on_top(card)
-        if self.rules.twist_hand and self.deck.top.value == 7:
+       
+        if (self.rules.twist_hand
+            and self.deck.top.cost == 2
+        ):
             self.state = GameState.TWIST_HAND
         elif self.state == GameState.NEXT:
             if self.rules.random_color:
                 self.deck.top.color = CardColor(randint(0, 3))
+            elif self.rules.rotate_cards and self.deck.top.cost == 0:
+                self.rotate_cards()       
             self.next_turn()
 
     def choose_color(self, color: CardColor):
@@ -213,3 +218,11 @@ class UnoGame:
             self.current_player = (self.current_player - n) % len(self.players)
         else:
             self.current_player = (self.current_player + n) % len(self.players)
+
+    def rotate_cards(self):
+        """Меняет карты в руках для всех игроков."""
+        last_hand = self.players[-1].hand.copy()
+        for i in range(len(self.players) - 1, 0, -1):
+            self.players[i].hand = self.players[i - 1].hand.copy()
+
+        self.players[0].hand = last_hand
