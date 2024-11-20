@@ -45,14 +45,12 @@ async def create_game(message: Message,
     if game is None or game.started:
         game = sm.create(message.chat.id)
         game.start_player = message.from_user
-        now_created = True
-    else:
-        now_created = False
 
     lobby_message = await message.answer(
-        messages.get_room_status(game, now_created),
+        messages.get_room_status(game),
         reply_markup=keyboards.get_room_markup(game)
     )
+    # Добавляем ID сообщения с лобби, чтобы после редактировать его
     game.lobby_message = lobby_message.message_id
 
 @router.message(Command("start"))
@@ -65,7 +63,7 @@ async def start_gama(message: Message, game: UnoGame | None):
         await message.answer(NO_ROOM_MESSAGE)
 
     elif game.started:
-        await message.answer("👀 Игра уже началась.")
+        await message.answer("👀 Игра уже началась ранее.")
 
     elif len(game.players) < config.min_players:
         await message.answer9(NOT_ENOUGH_PLAYERS)
@@ -76,7 +74,7 @@ async def start_gama(message: Message, game: UnoGame | None):
         except Exception as e:
             logger.warning("Unable to delete message: {}", e)
             await message.answer(
-                "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
+                "🧹 Пожалуйста выдайте мне права удалять сообщения в чате."
             )
 
         game.start()
@@ -121,7 +119,7 @@ async def open_gama(message: Message, game: UnoGame | None, sm: SessionManager):
 
     game.open = True
     await message.answer(
-        "🧹 Комната <b>открыта</b>!\n любой участник может зайти (/join)."
+        "🍰 Комната <b>открыта</b>!\n любой участник может зайти (/join)."
     )
 
 @router.message(Command("close"))
@@ -141,7 +139,7 @@ async def close_gama(message: Message,
 
     game.open = False
     await message.answer(
-        "🧹 Комната <b>закрыта</b>.\nНикто не помешает вам доиграть."
+        "🔒 Комната <b>закрыта</b>.\nНикто не помешает вам доиграть."
     )
 
 
@@ -170,7 +168,7 @@ async def kick_player(message: Message,
 
     if message.reply_to_message is None:
         return await message.answer(
-            "👀 Перешлите сообщение негодника, которого нужно исключить."
+            "🍷 Перешлите сообщение негодника, которого нужно исключить."
         )
 
     kicked_user = message.reply_to_message.from_user
@@ -263,7 +261,6 @@ async def edit_room_settings_call(query: CallbackQuery,
         return await query.message.answer(NO_ROOM_MESSAGE)
 
     setattr(game.rules, callback_data.key, callback_data.value)
-
     await query.message.edit_text(ROOM_SETTINGS,
         reply_markup=keyboards.get_settings_markup(game.rules)
     )

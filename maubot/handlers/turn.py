@@ -37,7 +37,6 @@ def take_card(player: Player) -> str | None:
         and take_counter
     ):
         player.game.next_turn()
-
     return None
 
 def call_bluff(player: Player) -> str:
@@ -82,7 +81,7 @@ def play_card(player: Player, card: BaseCard) -> str:
         or player.game.rules.choose_random_color
         or player.game.rules.auto_choose_color
     ):
-        status_message += f"🎨 Я выбираю цвет... {player.game.deck.top.color}\n"
+        status_message += f"🎨 Я выбираю цвет.. {player.game.deck.top.color}\n"
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
@@ -105,8 +104,6 @@ async def inline_handler(query: InlineQuery, game: UnoGame | None):
     """Обработчик inline запросов к бот."""
     if game is None:
         result = keyboards.NO_GAME_QUERY
-    elif not game.started:
-        result = keyboards.SELECT_GAME_QUERY
     else:
         result = keyboards.get_hand_query(game.get_player(query.from_user.id))
 
@@ -141,15 +138,6 @@ async def process_card_handler(result: ChosenInlineResult,
     elif result.result_id == "bluff":
         status_message = call_bluff(player)
 
-    game_mode = re.match(r"mode:([a-z]{3,})", result.result_id)
-    if game_mode is not None:
-        new_mode = game_mode.groups()[0]
-        if new_mode == "wild":
-            game.rules.wild = True
-        else:
-            game.rules.wild = False
-        return
-
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
         game.choose_color(CardColor(int(change_color.groups()[0])))
@@ -164,7 +152,7 @@ async def process_card_handler(result: ChosenInlineResult,
                 "обменялись руками.\n"
             )
         else:
-            status_message += "🍻 Что-то пошло не такЮ но мы не знаем что."
+            status_message += "🍻 Что-то пошло не так, но мы не знаем что."
 
 
     card = from_str(result.result_id)
@@ -213,7 +201,7 @@ async def choose_color_call( # noqa
     color = CardColor(int(color.groups()[0]))
     game.choose_color(color)
 
-    status_message = f"🎨 Я выбираю цвет ... {color}\n"
+    status_message = f"🎨 Я выбираю цвет.. {color}\n"
     if len(player.hand) == 1:
         status_message += "🌟 UNO!\n"
 

@@ -1,6 +1,6 @@
 """Взаимодействие пользователя с игровыми комнатами.
 
-Присоединение, отключение, пропуск хода.
+Присоединение, отключение.
 """
 
 from aiogram import Bot, F, Router
@@ -17,6 +17,7 @@ from maubot import keyboards
 from maubot.messages import (
     NO_ROOM_MESSAGE,
     NOT_ENOUGH_PLAYERS,
+    get_closed_room_message,
     get_room_status,
 )
 from maubot.uno.exceptions import (
@@ -43,18 +44,11 @@ async def join_player(message: Message,
     try:
         sm.join(message.chat.id, message.from_user)
     except NoGameInChatError:
-        await message.answer((
-            "👀 В данном чате <b>нет игровой комнаты</b>.\n"
-            "Создайте новую при помощи команды /game."
-        ))
+        await message.answer(NO_ROOM_MESSAGE)
     except LobbyClosedError:
-        await message.answer((
-            "👀 К сожалению данная комната <b>закрыта</b>.\n"
-            f"Вы можете попросить {game.start_player.mention_html()} открыть"
-            "комнату."
-        ))
+        await message.answer(get_closed_room_message(game))
     except AlreadyJoinedError:
-        await message.answer("🍰 Вы уже и без того с нами в комнате.")
+        await message.answer("🍰 Вы уже с нами в комнате.")
     except DeckEmptyError:
         await message.answer("👀 К сожалению у нас не осталось для вас карт.")
     else:
@@ -66,13 +60,19 @@ async def join_player(message: Message,
                 "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
             )
 
-    if game is not None and not game.started:
-        await bot.edit_message_text(
-            text=get_room_status(game),
-            chat_id=game.chat_id,
-            message_id=game.lobby_message,
-            reply_markup=keyboards.get_room_markup(game)
-        )
+    if game is not None:
+        if not game.started:
+            await bot.edit_message_text(
+                text=get_room_status(game),
+                chat_id=game.chat_id,
+                message_id=game.lobby_message,
+                reply_markup=keyboards.get_room_markup(game)
+            )
+        else:
+            await message.answer(
+                "🍰 Добро пожаловать в игру, "
+                f"{message.from_user.mention_html()}]"
+            )
 
 @router.message(Command("leave"))
 async def leave_player(message: Message,
@@ -115,11 +115,7 @@ async def join_callback(query: CallbackQuery,
     try:
         sm.join(query.message.chat.id, query.from_user)
     except LobbyClosedError:
-        await query.message.answer((
-            "👀 К сожалению данная комната <b>закрыта</b>.\n"
-            f"Вы можете попросить {game.start_player.mention_html()} открыть"
-            "комнату."
-        ))
+        await query.message.answer(get_closed_room_message(game))
     except AlreadyJoinedError:
         await query.message.answer("🍰 Вы уже и без того с нами в комнате.")
     except DeckEmptyError:
