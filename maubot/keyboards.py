@@ -137,7 +137,7 @@ def get_hand_cards(player) -> Iterator:
     for i, cover_card in enumerate(player_cards.cover):
         if cover_card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
             reply_markup = COLOR_MARKUP
-        elif cover_card.value == 7 and player.game.rules.twist_hand:
+        elif cover_card.cost == 2 and player.game.rules.twist_hand:
             reply_markup = SELECT_PLAYER_MARKUP
         else:
             reply_markup = None
