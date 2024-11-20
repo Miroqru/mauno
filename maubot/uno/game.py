@@ -84,7 +84,7 @@ class UnoGame:
     @property
     def player(self) -> Player:
         """Возвращает текущего игрока."""
-        return self.players[self.current_player]
+        return self.players[self.current_player % len(self.players)]
 
     @property
     def prev(self) -> Player:
