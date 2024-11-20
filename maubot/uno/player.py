@@ -90,6 +90,26 @@ class Player:
         self.game.take_counter = 0
         self.took_card = True
 
+    def take_until_cover(self) -> int:
+        """Пользователь будет брать карты, пока одна из них не покроет верную.
+        
+        Используется в режиме взять пачку.
+        """
+        logger.debug("{} Draw card until cover", self.user)
+        can_cover = False
+        take_counter = 0
+        while not can_cover:
+            try:
+                card = self.game.deck.take_one()
+            except DeckEmptyError:
+                logger.warning("Deck is empty", self.user)
+                break
+            take_counter += 1
+            self.hand.append(card)
+            can_cover = self.game.deck.top.can_cover(card)
+        self.took_card = True
+        return take_counter
+
     def put_card(self, card_index: int):
         """Разыгрывает одну из карт из своей руки."""
         card = self.hand.pop(card_index)
