@@ -51,7 +51,7 @@ class Player:
     @property
     def is_owner(self) -> bool:
         """Является ли текущий пользователь автором комнаты."""
-        return self.user.id == self.game.start_player
+        return self.user.id == self.game.start_player.id
 
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""

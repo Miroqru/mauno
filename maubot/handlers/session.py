@@ -196,6 +196,38 @@ async def kick_player(message: Message,
 
     await message.answer(status_message, reply_markup=markup)
 
+@router.message(Command("skip"))
+async def skip_player(message: Message,
+    game: UnoGame | None,
+    sm: SessionManager
+):
+    """пропускает участника за долгое бездействие."""
+    if game is None:
+        return await message.answer(NO_ROOM_MESSAGE)
+
+    if not game.started:
+        return await message.answer(
+            "🍰 Игра ещё не началась, пока рано выкидывать участников."
+        )
+
+    player = game.get_player(message.from_user.id)
+    if player is None or not player.is_owner:
+        return await message.answer(
+            "👀 Только создатель комнаты может пропустить игрока."
+        )
+
+    game.take_counter += 1
+    game.player.take_cards()
+    skip_player = game.player
+    game.next_turn()
+    await message.answer(text=(
+        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+        "Мы их нашли и дали игроку ещё немного карт от нас."
+            "🍰 Ладненько, следующих ход за "
+            f"{game.player.user.mention_html()}."
+        ), reply_markup=keyboards.TURN_MARKUP
+    )
+
 
 # Обработчики событий
 # ===================
