@@ -15,7 +15,7 @@ from aiogram.types import (
 
 from maubot import stickers
 from maubot.config import config
-from maubot.messages import get_room_status
+from maubot.messages import get_room_status, plural_form
 from maubot.uno.card import CardType, TakeFourCard
 from maubot.uno.enums import GameState
 from maubot.uno.game import RULES, GameRules, UnoGame
@@ -24,15 +24,13 @@ from maubot.uno.game import RULES, GameRules, UnoGame
 # Будет прикрепляться к игровым сообщениям
 TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(
-        text="Сделать ход",
-        switch_inline_query_current_chat=""
+        text="🎮 Сделать ход", switch_inline_query_current_chat=""
     )
 ]])
 
 SELECT_PLAYER_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(
-        text="Выбрать игрока",
-        switch_inline_query_current_chat=""
+        text="🔪 Выбрать игрока", switch_inline_query_current_chat=""
     )
 ]])
 
@@ -48,51 +46,27 @@ COLOR_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
     """Вспомогательная клавиатура для управления комнатой."""
     buttons = [[
-        InlineKeyboardButton(text="⚙️ Настройки",
+        InlineKeyboardButton(text="⚙️ Правила",
             callback_data="room_settings"
         ),
         InlineKeyboardButton(text="☕ Зайти", callback_data="join")
     ]]
     if len(game.players) >= config.min_players:
-        buttons.append([InlineKeyboardButton(text="🃏 Начать игру",
+        buttons.append([InlineKeyboardButton(text="🎮 Начать",
             callback_data="start_game"
         )])
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-
-# Меню выбора режима игры
-# Помогает удобнее применить настройки игровых правил
-# Тут есть только два пункта: классика и дикий режим
-# TODO: Переписать под функцию, после это может понадобиться
-SELECT_GAME_QUERY = [
-    InlineQueryResultArticle(
-        id="mode:classic",
-        title="🎻 Классический режим",
-        input_message_content=InputTextMessageContent(message_text=(
-            "🎻 <b>Классический режим</b>:\n"
-            "Уже привычная вам игра с набором из 108 карт."
-        ))
-    ),
-    InlineQueryResultArticle(
-        id="mode:wild",
-        title="🐉 Дикий режим",
-        input_message_content=InputTextMessageContent(message_text=(
-            "🐉 <b>Дикий режим</b>:\n"
-            "Более динамичный вариант игры.\n"
-            "По 4 набора числовых карт 0-5 и специальных карт.\n"
-            "А также по 6 чёрных карт чтобы игра была веселее."
-        ))
-    )
-]
 
 NO_GAME_QUERY = [
     InlineQueryResultArticle(
         id="nogame",
         title="В чате ещё нет комнаты",
         input_message_content=InputTextMessageContent(message_text=(
-            "Сейчас никто не играет.\n\n"
+            "☕ Сейчас никто не играет.\n\n"
             "Используйте /game для создания новой комнаты.\n"
-            "А после воспользуйтесь командой /join чтобы присоединиться. "
+            "А после воспользуйтесь /join чтобы присоединиться к комнате. "
         ))
     )
 ]
@@ -112,9 +86,9 @@ def get_color_query(player) -> list:
     result = [
         InlineQueryResultArticle(
             id=f"color:{i}",
-            title=f"Выбираю {name}",
+            title=f"Выбрать {name}",
             input_message_content=InputTextMessageContent(message_text=(
-                f"Я выбираю {sim}{name}"
+                f"🎨 Я выбираю.. {sim}"
             ))
         )
         for i, name, sim in _COLOR_INFO
@@ -141,7 +115,7 @@ def select_player_query(player, add_pass_button: bool = False) -> list:
             id=f"select_player:{i}",
             title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
             input_message_content=InputTextMessageContent(message_text=(
-                f"🔪 Я выбираю {pl.user.first_name}."
+                f"🔪 Я <b>выбираю</b> {pl.user.first_name}."
             ))
         ))
 
@@ -162,28 +136,19 @@ def get_hand_cards(player) -> Iterator:
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
         if cover_card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
-            yield InlineQueryResultCachedSticker(
-                id=f"{stickers.to_str(cover_card)}:{i}",
-                sticker_file_id=stickers.NORMAL[
-                    stickers.to_sticker_id(cover_card)
-                ],
-                reply_markup=COLOR_MARKUP
-            )
+            reply_markup = COLOR_MARKUP
         elif cover_card.value == 7 and player.game.rules.twist_hand:
-            yield InlineQueryResultCachedSticker(
-                id=f"{stickers.to_str(cover_card)}:{i}",
-                sticker_file_id=stickers.NORMAL[
-                    stickers.to_sticker_id(cover_card)
-                ],
-                reply_markup=SELECT_PLAYER_MARKUP
-            )
+            reply_markup = SELECT_PLAYER_MARKUP
         else:
-            yield InlineQueryResultCachedSticker(
-                id=f"{stickers.to_str(cover_card)}:{i}",
-                sticker_file_id=stickers.NORMAL[
-                    stickers.to_sticker_id(cover_card)
-                ]
-            )
+            reply_markup = None
+
+        yield InlineQueryResultCachedSticker(
+            id=f"{stickers.to_str(cover_card)}:{i}",
+            sticker_file_id=stickers.NORMAL[
+                stickers.to_sticker_id(cover_card)
+            ],
+            reply_markup=reply_markup
+        )
 
     for i, cover_card in enumerate(player_cards.uncover):
         yield InlineQueryResultCachedSticker(
@@ -216,23 +181,26 @@ def get_hand_query(player) -> list:
     if not player.is_current:
         return get_all_hand_cards(player)
 
-    if player.game.state == GameState.CHOOSE_COLOR:
+    elif player.game.state == GameState.CHOOSE_COLOR:
         return get_color_query(player)
 
-    if player.game.state == GameState.TWIST_HAND:
+    elif player.game.state == GameState.TWIST_HAND:
         return select_player_query(player)
 
-    if player.took_card:
+    elif player.took_card:
         result = [InlineQueryResultCachedSticker(
             id="pass",
             sticker_file_id=stickers.OPTIONS.next_turn,
             input_message_content=InputTextMessageContent(message_text=(
-                "Пропускаю."
+                "🃏 Пропускаю."
             )))
         ]
     else:
         if player.game.take_counter:
-            take_message = f"🃏 Беру {player.game.take_counter} карт."
+            take_message = (
+                f"🃏 Беру {player.game.take_counter} "
+                f"{plural_form(player.game.take_counter, ('карту', 'карты', 'карт'))}" # noqa
+            )
         else:
             take_message = "🃏 Беру карту."
 
@@ -251,7 +219,7 @@ def get_hand_query(player) -> list:
             id="bluff",
             sticker_file_id=stickers.OPTIONS.bluff,
             input_message_content=InputTextMessageContent(message_text=(
-                "Я оспорю твой блеф!"
+                "🍷 Ты блефуешь, показывай карты!"
             ))
         ))
 
