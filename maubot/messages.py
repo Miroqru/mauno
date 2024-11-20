@@ -3,6 +3,8 @@
 Разные обработчики могут получить доступ к данным сообщениям.
 """
 
+from datetime import datetime
+
 from maubot.config import config
 from maubot.uno.game import RULES, UnoGame
 
@@ -55,10 +57,34 @@ NOT_ENOUGH_PLAYERS = (
 )
 
 
+# Вспомогательные функции
+# =======================
+
+def plural_form(n: int, v: tuple[str, str, str]) -> str:
+    """Возвращает склонённое значение в зависимости от числа.
+
+    Возвращает склонённое слово: "для одного", "для двух",
+    "для пяти" значений.
+    """
+    return v[2 if (4 < n % 100 < 20) else (2, 0, 1, 1, 1, 2)[min(n % 10, 5)]] #noqa
+
+def get_str_timedelta(seconds: int):
+    """Возвращает строковое представление времени из количества секунд."""
+    m, s = divmod(seconds, 60)
+    if m == 0:
+        return f"{s} {plural_form(m, ('секунда', "секунды", 'секунд'))}" 
+    if s == 0:
+        return f"{m} {plural_form(m, ('минуту', "минуты", 'минут'))}"
+    return (
+        f"{m} {plural_form(m, ('минуту', "минуты", 'минут'))} и "
+        f"{s} {plural_form(m, ('секунда', "секунды", 'секунд'))}"
+    )
+
+
 # Динамические сообщения
 #  =====================
 
-def get_room_rules(game: UnoGame):
+def get_room_rules(game: UnoGame) -> str:
     """Получает включенные игровые правила для текущей комнаты."""
     rule_list = ""
     active_rules = 0
@@ -72,43 +98,55 @@ def get_room_rules(game: UnoGame):
         return ""
     return f"🔥 Выбранные правила {active_rules}:{rule_list}"
 
-
-def get_new_game_message(game: UnoGame) -> str:
-    """Сообщение о выбранных режимах игры."""
-    return (
-        "🍰 Да начнётся <b>Новая игра!</b>!\n"
-        f"И первым у нас ходит {game.player.user.mention_html()}\n"
-        f"/close чтобы закрыть комнату от посторонних.\n{get_room_rules(game)}"
-    )
-
-
-def get_room_status(game: UnoGame, now_created: bool = False) -> str:
-    """Отображает статус текущей комнаты."""
-    if game.deck.top is None:
-        top_card = ""
-    else:
-        top_card = f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
-
-    # Собираем список игроков
+def get_room_players(game: UnoGame) -> str:
+    """Собирает список игроков для текущей комнаты."""
+    if len(game.players) == 0:
+        return "✨ В комнате пока никого нету.\n"
+    
     reverse_sim = "🔺" if game.reverse else "🔻"
-    members_list = f"✨ Участники ({len(game.players)}{reverse_sim}):\n"
+    players_list = f"✨ Участники ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
         if i == game.current_player:
-            members_list += (
+            players_list += (
                 f"- <b>{player.user.mention_html()}</b> "
                 f"({len(player.hand)} карт)\n"
             )
         else:
-            members_list += (
+            players_list += (
                 f"- {player.user.mention_html()} "
                 f"({len(player.hand)} карт)\n"
             )
+    return players_list
 
-    # Собираем итоговое сообщение
+
+def get_new_game_message(game: UnoGame) -> str:
+    """Сообщение о начале новой игры в комнате."""
     return (
-        f"☕ <b>Текущая комната</b> для игры.\n{top_card}"
-        f"<b>Создал</b>: {game.start_player.mention_html()}\n\n{members_list}\n"
+        "🍰 Да начнётся <b>Новая игра!</b>!\n"
+        f"И первым у нас ходит {game.player.user.mention_html()}\n"
+        "/close чтобы закрыть комнату от посторонних.\n\n"
+        f"{get_room_rules(game)}"
+    )
+
+def get_room_status(game: UnoGame, now_created: bool = False) -> str:
+    """Отображает статус текущей комнаты."""
+    if not game.started:
+        return (
+            f"☕ Новая <b>Игровая комната</b>!\n"
+            f"<b>Создал</b>: {game.start_player.mention_html()}\n\n"
+            f"{get_room_players(game)}\n"
+            "- /join чтобы присоединиться к игре\n"
+            "- /start для начала веселья!🍰"
+        )
+    now = datetime.now()
+    game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
+    turn_delta = get_str_timedelta(int((now - game.turn_start).total_seconds()))
+    return (
+        f"☕ <b>Игровая комната</b> {game.start_player.first_name}:\n"
+        f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
+        f"🦝 <b>Сейчас ход</b> {game.player.user.first_name} "
+        f"(прошло {turn_delta})\n\n"
+        f"{get_room_players(game)}\n"
         f"{get_room_rules(game)}\n"
-        "- /join чтобы присоединиться к игре\n"
-        "- /start для начала веселья"
+        f"⏳ <b>Игра длится</b> {game_delta}"
     )
