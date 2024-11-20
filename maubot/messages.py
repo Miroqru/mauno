@@ -6,6 +6,9 @@
 from maubot.config import config
 from maubot.uno.game import RULES, UnoGame
 
+# Статические сообщения
+# =====================
+
 # Когда пользователь пишет сообщение /help
 HELP_MESSAGE = (
     "🍰 <b>Три простых шага чтобы начать</b>:\n"
@@ -36,32 +39,7 @@ STATUS_MESSAGE = (
     "<a href='https://t.me/mili_qlaster'>Salorhard</a>."
 )
 
-
-def get_new_game_message(game: UnoGame) -> str:
-    """Сообщение о выбранных режимах игры."""
-    rule_list = ""
-    active_rules = 0
-    for rule in RULES:
-        status = getattr(game.rules, rule.key, False)
-        if status:
-            active_rules += 1
-            rule_list += f"\n- {rule.name}"
-
-    if active_rules == 0:
-        mode_info =  ""
-    else:
-        mode_info =  f"🔥 Выбранные режимы {active_rules}:{rule_list}"
-
-
-    return (
-        "🍰 Да начнётся <b>Новая игра!</b>!\n"
-        f"И первым у нас ходит {game.player.user.mention_html()}\n"
-        f"/close чтобы закрыть комнату от посторонних.\n{mode_info}"
-    )
-
-
-# Игровые комнаты
-# ===============
+# Игровые комнаты ------------------------------------------------------
 
 # Если в данном чате ещё не создано ни одной комнаты
 NO_ROOM_MESSAGE = (
@@ -77,6 +55,33 @@ NOT_ENOUGH_PLAYERS = (
 )
 
 
+# Динамические сообщения
+#  =====================
+
+def get_room_rules(game: UnoGame):
+    """Получает включенные игровые правила для текущей комнаты."""
+    rule_list = ""
+    active_rules = 0
+    for rule in RULES:
+        status = getattr(game.rules, rule.key, False)
+        if status:
+            active_rules += 1
+            rule_list += f"\n- {rule.name}"
+
+    if active_rules == 0:
+        return ""
+    return f"🔥 Выбранные правила {active_rules}:{rule_list}"
+
+
+def get_new_game_message(game: UnoGame) -> str:
+    """Сообщение о выбранных режимах игры."""
+    return (
+        "🍰 Да начнётся <b>Новая игра!</b>!\n"
+        f"И первым у нас ходит {game.player.user.mention_html()}\n"
+        f"/close чтобы закрыть комнату от посторонних.\n{get_room_rules(game)}"
+    )
+
+
 def get_room_status(game: UnoGame, now_created: bool = False) -> str:
     """Отображает статус текущей комнаты."""
     if game.deck.top is None:
@@ -84,6 +89,7 @@ def get_room_status(game: UnoGame, now_created: bool = False) -> str:
     else:
         top_card = f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
 
+    # Собираем список игроков
     reverse_sim = "🔺" if game.reverse else "🔻"
     members_list = f"✨ Участники ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
@@ -98,9 +104,11 @@ def get_room_status(game: UnoGame, now_created: bool = False) -> str:
                 f"({len(player.hand)} карт)\n"
             )
 
+    # Собираем итоговое сообщение
     return (
         f"☕ <b>Текущая комната</b> для игры.\n{top_card}"
-        f"Автор: {game.start_player.mention_html()}\n\n{members_list}\n"
+        f"<b>Создал</b>: {game.start_player.mention_html()}\n\n{members_list}\n"
+        f"{get_room_rules(game)}\n"
         "- /join чтобы присоединиться к игре\n"
         "- /start для начала веселья"
     )
