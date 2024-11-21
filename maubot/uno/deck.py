@@ -93,6 +93,12 @@ class Deck:
         logger.debug("Take one card from deck")
         return self.cards.pop()
 
+    def count_until_cover(self) -> int:
+        """Получает количество кард в колоде до подходящей."""
+        for i, card in enumerate(reversed(self.cards)):
+            if self.top.can_cover(card):
+                return i+1
+        return 0
 
     def put(self, card: BaseCard) -> None:
         """Возвращает использованную карту в колоду."""

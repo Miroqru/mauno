@@ -25,7 +25,7 @@ router = Router(name="Turn")
 
 def take_card(player: Player) -> str | None:
     """Действие при взятии карты пользователем."""
-    logger.info("{} take card", player)
+    logger.info("{} take cards", player)
     take_counter = player.game.take_counter
     try:
         player.take_cards()
@@ -139,11 +139,12 @@ async def process_card_handler(result: ChosenInlineResult,
         game.next_turn()
 
     elif result.result_id == "take":
-        if game.rules.take_until_cover and game.take_counter == 0:
-            take_counter = player.take_until_cover()
-            status_message = f"🍷 беру {take_counter} карт.\n"
-        else:
-            status_message = take_card(player) or ""
+        if game.rules.take_until_cover and game.take_counter == 0:        
+            game.take_counter = game.deck.count_until_cover() 
+            status_message += f"🍷 беру {game.take_counter} карт.\n"
+
+        # if game.take_counter <= 2:
+        status_message += take_card(player) or ""
 
     elif result.result_id == "bluff":
         status_message = call_bluff(player)

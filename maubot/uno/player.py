@@ -1,6 +1,7 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
 from typing import TYPE_CHECKING, NamedTuple, Self
+from random import randint
 
 from loguru import logger
 
@@ -43,6 +44,9 @@ class Player:
         self.took_card = False
         self.anti_cheat = 0
 
+        self.shotgun_current = 0
+        self.shotgun_lose = 0
+
     @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
@@ -79,6 +83,7 @@ class Player:
                 self.game.deck.put(card)
             logger.warning("There not enough cards in deck for player")
             raise DeckEmptyError()
+        self.shotgun_lose = randint(1, 8)
     
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""
@@ -89,26 +94,6 @@ class Player:
             self.hand.append(card)
         self.game.take_counter = 0
         self.took_card = True
-
-    def take_until_cover(self) -> int:
-        """Пользователь будет брать карты, пока одна из них не покроет верную.
-        
-        Используется в режиме взять пачку.
-        """
-        logger.debug("{} Draw card until cover", self.user)
-        can_cover = False
-        take_counter = 0
-        while not can_cover:
-            try:
-                card = self.game.deck.take_one()
-            except DeckEmptyError:
-                logger.warning("Deck is empty", self.user)
-                break
-            take_counter += 1
-            self.hand.append(card)
-            can_cover = self.game.deck.top.can_cover(card)
-        self.took_card = True
-        return take_counter
 
     def put_card(self, card_index: int):
         """Разыгрывает одну из карт из своей руки."""
@@ -171,6 +156,11 @@ class Player:
         self.hand = other_player.hand.copy()
         other_player.hand = player_hand
         self.game.next_turn()
+
+    def shotgun(self) -> bool:
+        """Выстрелить из револьвера."""
+        self.shotgun_current += 1
+        return self.shotgun_current >= self.shotgun_lose
 
 
     # Магические методы
