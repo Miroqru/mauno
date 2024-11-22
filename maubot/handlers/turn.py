@@ -144,7 +144,9 @@ async def process_card_handler(result: ChosenInlineResult,
             game.take_counter = game.deck.count_until_cover() 
             status_message += f"🍷 беру {game.take_counter} карт.\n"
 
-        if game.take_counter <= 2 or game.state == GameState.SHOTGUN:
+        if not game.rules.shotgun:
+            status_message += take_card(player) or ""
+        elif game.take_counter <= 2 or game.state == GameState.SHOTGUN:
             status_message += take_card(player) or ""
         else:
             status_message = (
@@ -178,7 +180,7 @@ async def process_card_handler(result: ChosenInlineResult,
 
     card = from_str(result.result_id)
     if card is not None:
-        status_message = play_card(player, card)
+        status_message += play_card(player, card)
 
     if game.started:
         status_message  += (
@@ -190,7 +192,8 @@ async def process_card_handler(result: ChosenInlineResult,
         sm.remove(player.game.chat_id)
 
     if game.state != GameState.NEXT:
-        return None
+        logger.warning("Game state now is {}", game.state)
+        status_message += f"⏳ Сейчас мы в состоянии: {game.state.name}\n"
 
     await bot.send_message(player.game.chat_id,
         text=status_message,
