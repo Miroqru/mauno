@@ -20,13 +20,16 @@ from maubot.messages import (
     get_closed_room_message,
     get_room_status,
 )
+from maubot.uno.card import TakeCard, TakeFourCard
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
     DeckEmptyError,
     LobbyClosedError,
     NoGameInChatError,
 )
+from maubot.uno.enums import GameState
 from maubot.uno.game import UnoGame
+from maubot.uno.player import Player
 from maubot.uno.session import SessionManager
 
 router = Router(name="Player")
@@ -127,6 +130,80 @@ async def join_callback(query: CallbackQuery,
             text=get_room_status(game),
             reply_markup=keyboards.get_room_markup(game)
         )
+
+@router.callback_query(F.data=="take")
+async def take_cards_call(query: CallbackQuery,
+    sm: SessionManager,
+    game: UnoGame |  None,
+    player: Player | None
+):
+    """Игрок выбирает взять карты."""
+    if (game is None or player is None or game.player != player):
+        return await query.answer("👀 Сейчас не ваша очередь ходить")
+
+    status = (
+        "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
+        f"Вы можете <b>взять {game.take_counter} карт</b> "
+        "или же <b>выстрелить из револьвера</b>.\n"
+        "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n."
+    )
+    
+    try:
+        status += "🃏 Вы решили что будет проще взять карты.\n"
+        player.take_cards()
+    except DeckEmptyError:
+        status += "🃏 В колоде не осталось карт для игрока.\n"
+
+    game.next_turn()
+    status += f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+
+    await query.message.edit_text(status, reply_markup=keyboards.TURN_MARKUP)
+
+@router.callback_query(F.data=="shot")
+async def shotgun_call(query: CallbackQuery,
+    sm: SessionManager,
+    game: UnoGame |  None,
+    player: Player | None
+):
+    """Игрок выбирает взять карты."""
+    if (game is None or player is None or game.player != player):
+        return await query.answer("👀 Сейчас не ваша очередь ходить")
+
+    status = (
+        "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
+        f"Вы можете <b>взять {game.take_counter} карт</b> "
+        "или же <b>выстрелить из револьвера</b>.\n"
+        "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n."
+    )
+    
+    res = player.shotgun()
+    if not res:
+        take_counter = round(game.take_counter*1.5)
+        status += (
+            "✨ На этот раз вам повезло и пистолет не выстрелил.\n"
+            f"🃏 Следующий игрок берёт {take_counter} карт!\n"
+        )    
+        game.next_turn()
+        game.state = GameState.SHOTGUN
+        game.take_counter += take_counter
+    else:
+        status = "😴 На этом игра для вас закончилась.\n"
+        game.remove_player(query.from_user.id)
+        chat_id = sm.user_to_chat.pop(query.from_user.id)
+    
+    if game.started:
+        status += (
+            f"🍰 Ладненько, следующим ходит {game.player.user.mention_html()}."
+        )
+        markup = keyboards.TURN_MARKUP
+    else:
+        status += NOT_ENOUGH_PLAYERS
+        markup = None
+        sm.remove(chat_id)
+
+    await query.message.edit_text(text=status, reply_markup=markup)
 
 
 # Обработчики событий

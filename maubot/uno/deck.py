@@ -78,7 +78,8 @@ class Deck:
         if len(self.cards) < count:
             self.prepared_used_cards()
         if len(self.cards) < count:
-            raise DeckEmptyError()
+            for card in self.cards:
+                yield card
 
         for i in range(count):
             card = self.cards.pop()
