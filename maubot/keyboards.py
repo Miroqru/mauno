@@ -35,8 +35,8 @@ SELECT_PLAYER_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
 ]])
 
 SHOTGUN_REPLY = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(text="Взять карты", callback_data="take"),
-    InlineKeyboardButton(text="Выстрелить", callback_data="shot"),
+    InlineKeyboardButton(text="🃏 Взять", callback_data="take"),
+    InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
 ]])
 
 # Используется при выборе цвета для специальных карт

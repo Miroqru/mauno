@@ -1,7 +1,7 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
-from typing import TYPE_CHECKING, NamedTuple, Self
 from random import randint
+from typing import TYPE_CHECKING, NamedTuple, Self
 
 from loguru import logger
 
@@ -12,6 +12,7 @@ from maubot.uno.card import (
     TakeCard,
     TakeFourCard,
 )
+from maubot.uno.enums import GameState
 from maubot.uno.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:

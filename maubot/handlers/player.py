@@ -146,13 +146,12 @@ async def take_cards_call(query: CallbackQuery,
         f"Вы можете <b>взять {game.take_counter} карт</b> "
         "или же <b>выстрелить из револьвера</b>.\n"
         "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n."
+        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n"
+        "🃏 Вы решили что будет проще <b>взять карты</b>.\n"
     )
-    
-    try:
-        status += "🃏 Вы решили что будет проще взять карты.\n"
-        player.take_cards()
-    except DeckEmptyError:
+  
+    player.take_cards()
+    if len(player.game.deck.cards) == 0:
         status += "🃏 В колоде не осталось карт для игрока.\n"
 
     game.next_turn()
@@ -180,16 +179,15 @@ async def shotgun_call(query: CallbackQuery,
     
     res = player.shotgun()
     if not res:
-        take_counter = round(game.take_counter*1.5)
+        game.take_counter = round(game.take_counter*1.5)
         status += (
-            "✨ На этот раз вам повезло и пистолет не выстрелил.\n"
-            f"🃏 Следующий игрок берёт {take_counter} карт!\n"
+            "✨ На этот раз <b>вам повезло</b> и пистолет не выстрелил.\n"
+            f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n"
         )    
         game.next_turn()
         game.state = GameState.SHOTGUN
-        game.take_counter += take_counter
     else:
-        status = "😴 На этом игра для вас закончилась.\n"
+        status += "😴 На этом игра для вас <b>закончилась</b>.\n"
         game.remove_player(query.from_user.id)
         chat_id = sm.user_to_chat.pop(query.from_user.id)
     
