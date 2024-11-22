@@ -5,3 +5,5 @@ class GameState(IntEnum):
     NEXT = 0
     CHOOSE_COLOR = 1
     TWIST_HAND = 2
+    SHOTGUN = 3
+

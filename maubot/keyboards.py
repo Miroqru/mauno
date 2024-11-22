@@ -34,6 +34,10 @@ SELECT_PLAYER_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
     )
 ]])
 
+SHOTGUN_REPLY = InlineKeyboardMarkup(inline_keyboard=[[
+    InlineKeyboardButton(text="Взять карты", callback_data="take"),
+    InlineKeyboardButton(text="Выстрелить", callback_data="shot"),
+]])
 
 # Используется при выборе цвета для специальных карт
 COLOR_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
@@ -228,8 +232,12 @@ def get_hand_query(player) -> list:
         ))
 
     # Карты из руки уже сортированы, остаётся только их добавить
-    for card_query in get_hand_cards(player):
-        result.append(card_query)
+    if player.game.rules.shotgun and player.game.take_counter:
+        for card_query in get_hand_cards(player):
+            result.append(card_query)
+    else:
+        for card_query in get_hand_cards(player):
+            result.append(card_query)
 
     # Явное отображение статуса игры
     result.append(InlineQueryResultCachedSticker(

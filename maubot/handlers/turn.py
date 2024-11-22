@@ -134,6 +134,7 @@ async def process_card_handler(result: ChosenInlineResult,
         return
 
     status_message = ""
+    markup = None
 
     if result.result_id == "pass":
         game.next_turn()
@@ -143,8 +144,17 @@ async def process_card_handler(result: ChosenInlineResult,
             game.take_counter = game.deck.count_until_cover() 
             status_message += f"🍷 беру {game.take_counter} карт.\n"
 
-        # if game.take_counter <= 2:
-        status_message += take_card(player) or ""
+        if game.take_counter <= 2 or game.state == GameState.SHOTGUN:
+            status_message += take_card(player) or ""
+        else:
+            status_message = (
+                "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
+                f"Вы можете <b>взять {game.take_counter} карт</b> "
+                "или же <b>выстрелить из револьвера</b>.\n"
+                "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+                f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n."
+            )
+            markup = keyboards.SHOTGUN_REPLY
 
     elif result.result_id == "bluff":
         status_message = call_bluff(player)
@@ -174,10 +184,10 @@ async def process_card_handler(result: ChosenInlineResult,
         status_message  += (
             f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
         )
-        markup = keyboards.TURN_MARKUP
+        if markup is None:
+            markup = keyboards.TURN_MARKUP
     else:
         sm.remove(player.game.chat_id)
-        markup = None
 
     if game.state != GameState.NEXT:
         return None
