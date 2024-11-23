@@ -209,10 +209,15 @@ class UnoGame:
         player = self.get_player(user_id)
         if player is None:
             raise NoGameInChatError()
+
         if player == self.player:
             self.next_turn()
+            if self.state == GameState.SHOTGUN:
+                self.losers.append(player)
+        else:
+            self.losers.append(player)
+
         player.on_leave()
-        self.losers.append(player)
         self.players.remove(player)
 
         if len(self.players) <= 1:
