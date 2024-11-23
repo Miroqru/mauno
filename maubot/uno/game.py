@@ -73,6 +73,7 @@ class UnoGame:
         self.start_player = None
         self.players: list[Player] = []
         self.winners: list[Player] = []
+        self.losers: list[Player] = []
 
         # Настройки игры
         self.started: bool = False
@@ -114,6 +115,8 @@ class UnoGame:
     def start(self) -> None:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.chat_id)
+        self.winners.clear()
+        self.losers.clear()
         self.started = True
         shuffle(self.players)
 
@@ -208,6 +211,7 @@ class UnoGame:
         if player == self.player:
             self.next_turn()
         player.on_leave()
+        self.losers.append(player)
         self.players.remove(player)
 
         if len(self.players) <= 1:
