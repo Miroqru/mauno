@@ -233,7 +233,7 @@ def get_hand_query(player) -> list:
 
     # Карты из руки уже сортированы, остаётся только их добавить
     if player.game.rules.shotgun and player.game.take_counter:
-        for card_query in get_hand_cards(player):
+        for card_query in get_all_hand_cards(player):
             result.append(card_query)
     else:
         for card_query in get_hand_cards(player):
