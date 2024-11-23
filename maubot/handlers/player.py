@@ -170,15 +170,15 @@ async def shotgun_call(query: CallbackQuery,
     if (game is None or player is None or game.player != player):
         return await query.answer("👀 Сейчас не ваша очередь ходить")
 
+    res = player.shotgun()
     status = (
         "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
         f"Вы можете <b>взять {game.take_counter} карт</b> "
         "или же <b>выстрелить из револьвера</b>.\n"
         "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n."
+        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз.\n\n"
     )
     
-    res = player.shotgun()
     if not res:
         game.take_counter = round(game.take_counter*1.5)
         status += (
