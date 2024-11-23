@@ -173,5 +173,9 @@ def end_game_message(game: UnoGame):
     res = "✨ <b>Игра завершена</b>!\n"
     for i, winner in enumerate(game.winners):
         res += f"{i+1}. {winner.user.mention_html()}\n"
+    res += "\n🗑️ Проигравшие:\n"
+    for i, loser in enumerate(game.losers):
+        res += f"{i+1}. {loser.user.mention_html()}\n"
+
     return res
     
