@@ -166,7 +166,9 @@ def get_room_status(game: UnoGame) -> str:
         f"(прошло {turn_delta})\n\n"
         f"{get_room_players(game)}\n"
         f"{get_room_rules(game)}\n"
-        f"⏳ <b>Игра длится</b> {game_delta}"
+        f"⏳ <b>Игра длится</b> {game_delta}\n"
+        f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
+        f"{len(game.deck.used_cards)} использовано."
     )
 
 def end_game_message(game: UnoGame):
