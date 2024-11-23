@@ -141,6 +141,7 @@ def get_new_game_message(game: UnoGame) -> str:
         "🍰 Да начнётся <b>Новая игра!</b>!\n"
         f"И первым у нас ходит {game.player.user.mention_html()}\n"
         "/close чтобы закрыть комнату от посторонних.\n\n"
+        f"{get_room_players(game)}\n"
         f"{get_room_rules(game)}"
     )
 
