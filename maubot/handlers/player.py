@@ -13,21 +13,20 @@ from aiogram.filters import (
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
 from loguru import logger
 
-from maubot import keyboards
+from maubot import keyboards, messages
 from maubot.messages import (
     NO_ROOM_MESSAGE,
     NOT_ENOUGH_PLAYERS,
     get_closed_room_message,
     get_room_status,
 )
-from maubot.uno.card import TakeCard, TakeFourCard
+from maubot.uno.enums import GameState
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
     DeckEmptyError,
     LobbyClosedError,
     NoGameInChatError,
 )
-from maubot.uno.enums import GameState
 from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
 from maubot.uno.session import SessionManager
@@ -99,7 +98,9 @@ async def leave_player(message: Message,
         )
         markup = keyboards.TURN_MARKUP
     else:
-        status_message = NOT_ENOUGH_PLAYERS
+        status_message = (
+            f"{NOT_ENOUGH_PLAYERS}\n{messages.end_game_message(game)}"
+        )
         markup = None
         sm.remove(message.chat.id)
 
@@ -197,7 +198,9 @@ async def shotgun_call(query: CallbackQuery,
         )
         markup = keyboards.TURN_MARKUP
     else:
-        status += NOT_ENOUGH_PLAYERS
+        status += (
+            f"{NOT_ENOUGH_PLAYERS}\n{messages.end_game_message(game)}"
+        )
         markup = None
         sm.remove(chat_id)
 

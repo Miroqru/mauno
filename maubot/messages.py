@@ -108,13 +108,19 @@ def get_room_rules(game: UnoGame) -> str:
         return ""
     return f"🔥 Выбранные правила {active_rules}:{rule_list}"
 
-def get_room_players(game: UnoGame) -> str:
-    """Собирает список игроков для текущей комнаты."""
+def get_all_room_players(game: UnoGame) -> str:
+    """Собирает список участников игры без описания карт и текущего игрока."""
     if len(game.players) == 0:
         return "✨ В комнате пока никого нету.\n"
-    
+    players_list = f"✨ всего игроков {len(game.players)}:\n"
+    for player in game.players:
+        players_list += f"- {player.user.mention_html()}\n"
+    return players_list
+
+def get_room_players(game: UnoGame) -> str:
+    """Собирает список игроков для текущей комнаты."""
     reverse_sim = "🔺" if game.reverse else "🔻"
-    players_list = f"✨ Участники ({len(game.players)}{reverse_sim}):\n"
+    players_list = f"✨ Игроки ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
         if i == game.current_player:
             players_list += (
@@ -144,7 +150,7 @@ def get_room_status(game: UnoGame) -> str:
         return (
             f"☕ Новая <b>Игровая комната</b>!\n"
             f"<b>Создал</b>: {game.start_player.mention_html()}\n\n"
-            f"{get_room_players(game)}\n"
+            f"{get_all_room_players(game)}\n"
             "⚙️ <b>правила</b> позволяют сделать игру более весёлой."
             "- /join чтобы присоединиться к игре\n"
             "- /start для начала веселья!🍰"
@@ -161,3 +167,11 @@ def get_room_status(game: UnoGame) -> str:
         f"{get_room_rules(game)}\n"
         f"⏳ <b>Игра длится</b> {game_delta}"
     )
+
+def end_game_message(game: UnoGame):
+    """Сообщение об окончании игры."""
+    res = "✨ <b>Игра завершена</b>!\n"
+    for i, winner in enumerate(game.winners):
+        res += f"{i+1}. {winner.user.mention_html()}\n"
+    return res
+    

@@ -211,6 +211,7 @@ class UnoGame:
         self.players.remove(player)
 
         if len(self.players) <= 1:
+            self.winners.extend(self.players)
             self.end()
 
     def skip_players(self, n: int = 1) -> None:
