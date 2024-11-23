@@ -9,7 +9,7 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 from loguru import logger
 
-from maubot import keyboards
+from maubot import keyboards, messages
 from maubot.stickers import from_str
 from maubot.uno.card import BaseCard, CardColor, TakeCard, TakeFourCard
 from maubot.uno.enums import GameState
@@ -95,10 +95,7 @@ def play_card(player: Player, card: BaseCard) -> str:
         player.game.remove_player(player.user.id)
 
         if not player.game.started:
-            status_message += "\n✨ <b>Игра завершена</b>!"
-            for i, winner in enumerate(player.game.winners):
-                status_message += f"\n{i+1}. {winner.user.first_name}"
-
+            status_message += messages.end_game_message(player.game)
     return status_message
 
 
@@ -191,9 +188,9 @@ async def process_card_handler(result: ChosenInlineResult,
     else:
         sm.remove(player.game.chat_id)
 
-    if game.state != GameState.NEXT:
+    if game.state == GameState.SHOTGUN:
         logger.warning("Game state now is {}", game.state)
-        status_message += f"⏳ Сейчас мы в состоянии: {game.state.name}\n"
+        status_message += "🔑 Сейчас игра в особом состоянии\n"
 
     await bot.send_message(player.game.chat_id,
         text=status_message,
@@ -235,9 +232,7 @@ async def choose_color_call( # noqa
         player.game.remove_player(player.user.id)
 
         if not player.game.started:
-            status_message += "\n✨ <b>Игра завершена</b>!"
-            for i, winner in enumerate(player.game.winners):
-                status_message += f"\n{i+1}. {winner.user.first_name}"
+            status_message += messages.end_game_message(game)
 
     if game.started:
         status_message += (
