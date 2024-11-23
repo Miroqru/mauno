@@ -226,8 +226,8 @@ async def skip_player(message: Message,
     skip_player = game.player
     game.next_turn()
     await message.answer(text=(
-        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
-        "Мы их нашли и дали игроку ещё немного карт от нас."
+            f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+            "Мы их нашли и дали игроку ещё немного карт от нас.\n"
             "🍰 Ладненько, следующих ход за "
             f"{game.player.user.mention_html()}."
         ), reply_markup=keyboards.TURN_MARKUP

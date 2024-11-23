@@ -190,7 +190,7 @@ async def process_card_handler(result: ChosenInlineResult,
 
     if game.state == GameState.SHOTGUN:
         logger.warning("Game state now is {}", game.state)
-        status_message += "🔑 Сейчас игра в особом состоянии\n"
+        status_message += "\n🔑 Сейчас игра немного поломанная\n"
 
     await bot.send_message(player.game.chat_id,
         text=status_message,
