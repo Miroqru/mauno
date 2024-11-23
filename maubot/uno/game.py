@@ -71,6 +71,7 @@ class UnoGame:
         # Игроки Uno
         self.current_player: int = 0
         self.start_player = None
+        self.bluff_player: Player = None
         self.players: list[Player] = []
         self.winners: list[Player] = []
         self.losers: list[Player] = []

@@ -42,14 +42,14 @@ def take_card(player: Player) -> str | None:
 def call_bluff(player: Player) -> str:
     """Проверка на честность предыдущего игрока."""
     logger.info("{} call bluff", player)
-    if player.game.prev.bluffing:
+    if player.game.bluff_player.bluffing:
         status_message = (
             "🔎 <b>Замечен блеф</b>!\n"
             f"{player.game.prev.user.first_name} получает "
             f"{player.game.take_counter} карт.\n"
         )
         try:
-            player.game.prev.take_cards()
+            player.game.bluff_player.take_cards()
         except DeckEmptyError:
             status_message += "🃏 В колоде не осталось карт для игрока.\n"
     else:

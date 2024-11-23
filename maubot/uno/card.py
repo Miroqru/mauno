@@ -348,6 +348,7 @@ class TakeFourCard(BaseCard):
         else:
             game.state = GameState.CHOOSE_COLOR
         game.take_counter += 4
+        game.bluff_player = game.player
 
     def __eq__(self, other_card: Self) -> bool:
         """Проверяет соответствие двух карт."""
