@@ -73,7 +73,7 @@ async def join_player(message: Message,
         else:
             await message.answer(
                 "🍰 Добро пожаловать в игру, "
-                f"{message.from_user.mention_html()}]"
+                f"{message.from_user.mention_html()}!"
             )
 
 @router.message(Command("leave"))
