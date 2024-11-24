@@ -20,6 +20,7 @@ from maubot.messages import (
     get_closed_room_message,
     get_room_status,
 )
+from maubot.uno.card import TakeCard, TakeFourCard
 from maubot.uno.enums import GameState
 from maubot.uno.exceptions import (
     AlreadyJoinedError,
@@ -142,20 +143,25 @@ async def take_cards_call(query: CallbackQuery,
     if (game is None or player is None or game.player != player):
         return await query.answer("👀 Сейчас не ваша очередь ходить")
 
+    take_counter = game.take_counter
     status = (
         "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
-        f"Вы можете <b>взять {game.take_counter} карт</b> "
+        f"Вы можете <b>взять {take_counter} карт</b> "
         "или же <b>выстрелить из револьвера</b>.\n"
         "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
         f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n"
         "🃏 Вы решили что будет проще <b>взять карты</b>.\n"
     )
-  
     player.take_cards()
     if len(player.game.deck.cards) == 0:
         status += "🃏 В колоде не осталось карт для игрока.\n"
 
-    game.next_turn()
+    # Если пользователь сам взял карты, то не нужно пропускать ход
+    if (isinstance(game.deck.top, (TakeCard, TakeFourCard))
+        and take_counter
+    ):
+        game.next_turn()
+
     status += f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
 
     await query.message.edit_text(status, reply_markup=keyboards.TURN_MARKUP)

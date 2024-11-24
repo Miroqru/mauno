@@ -81,6 +81,7 @@ class UnoGame:
         self.open: bool = True
         self.reverse: bool = False
         self.take_counter: int = 0
+        self.take_flag: bool = False
         self.state: GameState = GameState.NEXT
 
         # Таймеры
@@ -152,7 +153,7 @@ class UnoGame:
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_on_top(card)
-       
+
         if (self.rules.twist_hand
             and self.deck.top.cost == 2
             and len(self.player.hand) > 1
@@ -165,7 +166,7 @@ class UnoGame:
                 and self.deck.top.cost == 0
                 and len(self.player.hand) > 1
             ):
-                self.rotate_cards()       
+                self.rotate_cards()
             self.next_turn()
 
     def choose_color(self, color: CardColor):
@@ -177,7 +178,7 @@ class UnoGame:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player")
         self.state = GameState.NEXT
-        self.player.took_card = False
+        self.take_flag = False
         self.turn_start = datetime.now()
         self.skip_players()
 
