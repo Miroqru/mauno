@@ -185,7 +185,7 @@ def get_all_hand_cards(player):
 
 def get_hand_query(player) -> list:
     """Возвращает основную игровую клавиатуру."""
-    # Если игрой сейчас не играет, то и действий никаких у него нету
+    # Если игрок сейчас не играет, то и действий никаких у него нету
     if not player.is_current:
         return get_all_hand_cards(player)
 
@@ -231,13 +231,9 @@ def get_hand_query(player) -> list:
             ))
         ))
 
-    # Карты из руки уже сортированы, остаётся только их добавить
-    if player.game.rules.shotgun and player.game.take_counter:
-        for card_query in get_all_hand_cards(player):
-            result.append(card_query)
-    else:
-        for card_query in get_hand_cards(player):
-            result.append(card_query)
+    # Карты из руки уже отсортированы, остаётся только их добавить
+    for card_query in get_hand_cards(player):
+        result.append(card_query)
 
     # Явное отображение статуса игры
     result.append(InlineQueryResultCachedSticker(

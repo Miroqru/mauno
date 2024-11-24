@@ -12,6 +12,7 @@ from maubot.uno.card import (
     TakeCard,
     TakeFourCard,
 )
+from maubot.uno.enums import GameState
 from maubot.uno.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
@@ -110,6 +111,8 @@ class Player:
         logger.debug("Last card was {}", top)
         self.bluffing = False
         if isinstance(top, TakeFourCard) and self.game.take_counter:
+            return SortedCards([], self.hand)
+        if self.game.state == GameState.SHOTGUN:
             return SortedCards([], self.hand)
 
         cover = []
