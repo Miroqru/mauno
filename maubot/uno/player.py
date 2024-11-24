@@ -12,7 +12,6 @@ from maubot.uno.card import (
     TakeCard,
     TakeFourCard,
 )
-from maubot.uno.enums import GameState
 from maubot.uno.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
