@@ -37,32 +37,31 @@ def take_card(player: Player) -> str | None:
         and take_counter
     ):
         player.game.next_turn()
-    return None    
+    return None
 
 def call_bluff(player: Player) -> str:
     """Проверка на честность предыдущего игрока."""
     logger.info("{} call bluff", player)
-    if player.game.bluff_player.bluffing:
+    bluff_player = player.game.bluff_player
+    if bluff_player.bluffing:
         status_message = (
             "🔎 <b>Замечен блеф</b>!\n"
-            f"{player.game.prev.user.first_name} получает "
+            f"{bluff_player.user.first_name} получает "
             f"{player.game.take_counter} карт.\n"
         )
-        try:
-            player.game.bluff_player.take_cards()
-        except DeckEmptyError:
-            status_message += "🃏 В колоде не осталось карт для игрока.\n"
+        bluff_player.take_cards()
+        if len(player.game.deck.cards) == 0:
+            status_message += "🃏 В колоде не осталось свободных карт.\n"
     else:
         player.game.take_counter += 2
         status_message = (
-            f"🎩 {player.game.prev.user.first_name} <b>Честный игрок</b>!\n"
+            f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
             f"{player.user.first_name} получает "
             f"{player.game.take_counter} карт.\n"
         )
-        try:
-            player.take_cards()
-        except DeckEmptyError:
-            status_message += "🃏 В колоде не осталось карт для игрока.\n"
+        player.take_cards()
+        if len(player.game.deck.cards) == 0:
+            status_message += "🃏 В колоде не осталось свободных карт.\n"
 
     player.game.next_turn()
     return status_message
@@ -137,8 +136,8 @@ async def process_card_handler(result: ChosenInlineResult,
         game.next_turn()
 
     elif result.result_id == "take":
-        if game.rules.take_until_cover and game.take_counter == 0:        
-            game.take_counter = game.deck.count_until_cover() 
+        if game.rules.take_until_cover and game.take_counter == 0:
+            game.take_counter = game.deck.count_until_cover()
             status_message += f"🍷 беру {game.take_counter} карт.\n"
 
         if not game.rules.shotgun:
@@ -147,7 +146,7 @@ async def process_card_handler(result: ChosenInlineResult,
             status_message += take_card(player) or ""
         else:
             status_message = (
-                "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
+                "🍷 У нас для Вас есть <b>деловое предложение</b>!\n\n"
                 f"Вы можете <b>взять {game.take_counter} карт</b> "
                 "или же <b>выстрелить из револьвера</b>.\n"
                 "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
@@ -190,7 +189,10 @@ async def process_card_handler(result: ChosenInlineResult,
 
     if game.state == GameState.SHOTGUN:
         logger.warning("Game state now is {}", game.state)
-        status_message += "\n🔑 Сейчас игра немного поломанная\n"
+        status_message += "\n🔑 Сейчас игра немного поломанная.\n"
+    elif game.state != GameState.NEXT:
+        logger.info("Skip send status message")
+        return
 
     await bot.send_message(player.game.chat_id,
         text=status_message,
