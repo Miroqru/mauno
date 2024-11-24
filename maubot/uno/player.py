@@ -42,7 +42,6 @@ class Player:
         self.user = user
 
         self.bluffing = False
-        self.took_card = False
         self.anti_cheat = 0
 
         self.shotgun_current = 0
@@ -85,7 +84,7 @@ class Player:
             logger.warning("There not enough cards in deck for player")
             raise DeckEmptyError()
         self.shotgun_lose = randint(1, 8)
-    
+
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""
         take_counter = self.game.take_counter or 1
@@ -94,7 +93,7 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
-        self.took_card = True
+        self.game.take_flag = True
 
     def put_card(self, card_index: int):
         """Разыгрывает одну из карт из своей руки."""

@@ -195,7 +195,7 @@ def get_hand_query(player) -> list:
     elif player.game.state == GameState.TWIST_HAND:
         return select_player_query(player)
 
-    elif player.took_card:
+    elif player.game.take_flag:
         result = [InlineQueryResultCachedSticker(
             id="pass",
             sticker_file_id=stickers.OPTIONS.next_turn,

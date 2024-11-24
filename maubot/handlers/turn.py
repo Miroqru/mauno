@@ -13,7 +13,6 @@ from maubot import keyboards, messages
 from maubot.stickers import from_str
 from maubot.uno.card import BaseCard, CardColor, TakeCard, TakeFourCard
 from maubot.uno.enums import GameState
-from maubot.uno.exceptions import DeckEmptyError
 from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
 from maubot.uno.session import SessionManager
@@ -27,9 +26,8 @@ def take_card(player: Player) -> str | None:
     """Действие при взятии карты пользователем."""
     logger.info("{} take cards", player)
     take_counter = player.game.take_counter
-    try:
-        player.take_cards()
-    except DeckEmptyError:
+    player.take_cards()
+    if len(player.game.deck.cards) == 0:
         return "🃏 В колоде не осталось карт для игрока.\n"
 
     # Если пользователь выбрал взять карты, то он пропускает свой ход
@@ -37,6 +35,8 @@ def take_card(player: Player) -> str | None:
         and take_counter
     ):
         player.game.next_turn()
+    else:
+        player.game.state = GameState.NEXT
     return None
 
 def call_bluff(player: Player) -> str:
