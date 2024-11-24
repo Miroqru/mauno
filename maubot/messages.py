@@ -76,15 +76,15 @@ def plural_form(n: int, v: tuple[str, str, str]) -> str:
     Возвращает склонённое слово: "для одного", "для двух",
     "для пяти" значений.
     """
-    return v[2 if (4 < n % 100 < 20) else (2, 0, 1, 1, 1, 2)[min(n % 10, 5)]] #noqa
+    return v[2 if (4 < n % 100 < 20) else (2, 0, 1, 1, 1, 2)[min(n % 10, 5)]] # noqa: PLR2004
 
-def get_str_timedelta(seconds: int):
+def get_str_timedelta(seconds: int) -> str:
     """Возвращает строковое представление времени из количества секунд."""
     m, s = divmod(seconds, 60)
     if m == 0:
-        return f"{s} {plural_form(m, ('секунду', "секунды", 'секунд'))}" 
+        return f"{s} {plural_form(m, ('секунду', 'секунды', 'секунд'))}"
     if s == 0:
-        return f"{m} {plural_form(m, ('минуту', "минуты", 'минут'))}"
+        return f"{m} {plural_form(m, ('минуту', 'минуты', 'минут'))}"
     return (
         f"{m} {plural_form(m, ('минуту', "минуты", 'минут'))} и "
         f"{s} {plural_form(m, ('секунду', "секунды", 'секунд'))}"
@@ -171,7 +171,7 @@ def get_room_status(game: UnoGame) -> str:
         f"{len(game.deck.used_cards)} использовано."
     )
 
-def end_game_message(game: UnoGame):
+def end_game_message(game: UnoGame) -> str:
     """Сообщение об окончании игры."""
     res = "✨ <b>Игра завершена</b>!\n"
     for i, winner in enumerate(game.winners):
@@ -181,4 +181,4 @@ def end_game_message(game: UnoGame):
         res += f"{i+1}. {loser.user.mention_html()}\n"
 
     return res
-    
+
