@@ -295,9 +295,9 @@ class ChooseColorCard(BaseCard):
         if game.rules.auto_choose_color:
             logger.info("Auto choose color for card")
             if game.reverse:
-                self.color = CardColor((game.deck.top.color + 1) % 3)
+                self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
-                self.color = CardColor((game.deck.top.color - 1) % 3)
+                self.color = CardColor((game.deck.top.color - 1) % 4)
         elif game.rules.choose_random_color:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
@@ -339,9 +339,9 @@ class TakeFourCard(BaseCard):
         if game.rules.auto_choose_color:
             logger.info("Auto choose color for card")
             if game.reverse:
-                self.color = CardColor((game.deck.top.color + 1) % 3)
+                self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
-                self.color = CardColor((game.deck.top.color - 1) % 3)
+                self.color = CardColor((game.deck.top.color - 1) % 4)
         elif game.rules.choose_random_color:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
