@@ -22,10 +22,10 @@ ROOT_DIR = Path(__file__).resolve().parent
 # Configure cards groups
 COLORS = ["r", "g", "b", "y"]
 NUMBERS = [
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "draw", "reverse", "skip"
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "reverse", "skip", "take",
 ]
-SPECIALS = ["colorchooser", "draw_four"]
-OPTIONS = ["bluff", "draw", "draw2", "info", "pass", "pass2"]
+SPECIALS = ["colorchooser", "take_four"]
+OPTIONS = ["bluff", "next", "status", "take"]
 
 # Read config fire
 # Create this config file by copying the example file
@@ -42,19 +42,12 @@ OPTION_DIR = ROOT_DIR / config["option_dir"]
 with open(ROOT_DIR / "api_auth.json", "r", encoding="utf-8") as f:
     api_auth = json.load(f)
 
-api_id = api_auth["api_id"]
-api_hash = api_auth["api_hash"]
-
 # Load the session from disk, or create a new one if it doesn't exist
-SESSION_NAME = "sticker_uploader"
-session_file = ROOT_DIR / f"{SESSION_NAME}.session"
-session = str(session_file.absolute())
-
 # Create the client and connect
 client = TelegramClient(
-    session,
-    api_id,
-    api_hash,
+    session=str((ROOT_DIR / "sticker_uploader.session").absolute()),
+    api_id=api_auth["api_id"],
+    api_hash=api_auth["api_hash"],
     receive_updates=False,
 )
 client.start()
@@ -65,7 +58,6 @@ client.start()
 
 async def delete_if_existing(stickers_bot):
     sticker_sets = await client(GetAllStickersRequest(0))
-
     for s in sticker_sets.sets:
         if s.short_name == config["pack_name"]:
             print(f'Deleting existing sticker set "{s.short_name}" ({s.id})')
@@ -81,7 +73,6 @@ async def create_sticker_set(stickers_bot):
 async def get_sticker_set():
     """Get the sticker set that we just created."""
     sticker_sets = await client(GetAllStickersRequest(0))
-
     for s in sticker_sets.sets:
         if s.short_name == config["pack_name"]:
             sticker_set_ref = s
@@ -130,7 +121,7 @@ async def save_sticker_ids():
         json.dump(stickers, f, indent=4)
 
 async def upload_sticker(stickers_bot, sticker_path):
-    """Uploads a sticker to the current conversation."""
+    """Upload a sticker to the current conversation."""
     message = await client.send_file(
         stickers_bot,
         sticker_path,
@@ -192,7 +183,7 @@ async def main():
     await client.send_message(stickers_bot, config["pack_name"])
 
     # Wait for the user to add the sticker pack to their account
-    print("Please add the sticker pack to your account by clicking the link posted by @Stickers")
+    print("Please add the sticker pack to your account by clicking the link!")
     print(f"https://t.me/addstickers/{config['pack_name']}")
     await asyncio.sleep(10)
 

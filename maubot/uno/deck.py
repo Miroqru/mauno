@@ -20,7 +20,6 @@ from maubot.uno.card import (
     TakeFourCard,
     TurnCard,
 )
-from maubot.uno.exceptions import DeckEmptyError
 
 
 class Deck:
