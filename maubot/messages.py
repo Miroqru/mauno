@@ -122,15 +122,20 @@ def get_room_players(game: UnoGame) -> str:
     reverse_sim = "🔺" if game.reverse else "🔻"
     players_list = f"✨ Игроки ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
+        if game.rules.shotgun:
+            shotgun_stat = f" {player.shotgun_current} / 8 🔫"
+        else:
+            shotgun_stat = ""
+
         if i == game.current_player:
             players_list += (
                 f"- <b>{player.user.mention_html()}</b> "
-                f"({len(player.hand)} карт)\n"
+                f"({len(player.hand)} карт{shotgun_stat})\n"
             )
         else:
             players_list += (
                 f"- {player.user.mention_html()} "
-                f"({len(player.hand)} карт)\n"
+                f"({len(player.hand)} карт{shotgun_stat})\n"
             )
     return players_list
 
@@ -156,6 +161,12 @@ def get_room_status(game: UnoGame) -> str:
             "- /join чтобы присоединиться к игре\n"
             "- /start для начала веселья!🍰"
         )
+
+    if game.rules.single_shotgun:
+        shothun_stats = f"🔫 <b>Стреляли</b>: {game.shotgun_current} / 8"
+    else:
+        shothun_stats = ""
+
     now = datetime.now()
     game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
     turn_delta = get_str_timedelta(int((now - game.turn_start).total_seconds()))
@@ -168,7 +179,7 @@ def get_room_status(game: UnoGame) -> str:
         f"{get_room_rules(game)}\n"
         f"⏳ <b>Игра длится</b> {game_delta}\n"
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
-        f"{len(game.deck.used_cards)} использовано."
+        f"{len(game.deck.used_cards)} использовано.\n{shothun_stats}"
     )
 
 def end_game_message(game: UnoGame) -> str:
