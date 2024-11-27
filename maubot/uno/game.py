@@ -35,6 +35,7 @@ class GameRules:
     rotate_cards: bool = False
     take_until_cover: bool = False
     shotgun: bool = False
+    single_shotgun: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -45,14 +46,15 @@ class Rule:
 
 RULES = (
     Rule("wild", "🐉 Дикие карты"),
-    Rule("auto_choose_color", "🃏 самоцвет"),
-    Rule("choose_random_color", "🎨 Случайный цвет"),
-    Rule("random_color", "🎨 Какой цвет дальше?"),
-    Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("twist_hand", "🤝 Обмен руками"),
     Rule("rotate_cards", "🧭 Обмен телами."),
     Rule("take_until_cover", "🍷 Беру до последнего."),
     Rule("shotgun", "🔫 Рулетка."),
+    Rule("single_shotgun", "🎲 Общий револьвер."),
+    Rule("auto_choose_color", "🃏 самоцвет"),
+    Rule("choose_random_color", "🎨 Случайный цвет"),
+    Rule("random_color", "🎨 Какой цвет дальше?"),
+    Rule("debug_cards", "🦝 Отладочные карты!"),
 )
 
 
@@ -83,6 +85,9 @@ class UnoGame:
         self.take_counter: int = 0
         self.take_flag: bool = False
         self.state: GameState = GameState.NEXT
+
+        self.shotgun_lose: int = 0
+        self.shotgun_current: int = 0
 
         # Таймеры
         self.game_start = datetime.now()
@@ -126,6 +131,9 @@ class UnoGame:
             self.deck.fill_wild()
         else:
             self.deck.fill_classic()
+
+        if self.rules.single_shotgun:
+            self.shotgun_lose = randint(1, 8)
 
         for player in self.players:
             player.take_first_hand()
