@@ -100,7 +100,7 @@ async def leave_player(message: Message,
         markup = keyboards.TURN_MARKUP
     else:
         status_message = (
-            f"{NOT_ENOUGH_PLAYERS}\n{messages.end_game_message(game)}"
+            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
         )
         markup = None
         sm.remove(message.chat.id)
@@ -144,13 +144,15 @@ async def take_cards_call(query: CallbackQuery,
         return await query.answer("👀 Сейчас не ваша очередь ходить")
 
     take_counter = game.take_counter
+    current = (
+        game.shotgun_current if game.rules.single_shotgun
+        else player.shotgun_current
+    )
     status = (
         "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
-        f"Вы можете <b>взять {take_counter} карт</b> "
-        "или же <b>выстрелить из револьвера</b>.\n"
-        "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n\n"
-        "🃏 Вы решили что будет проще <b>взять карты</b>.\n"
+        f"Вы можете <b>взять {take_counter} карт</b> ..."
+        "🃏 Вы решили что будет проще <b>взять карты</b>.\n\n"
+        f"🔫 Из револьвера стреляли {current} / 8 раз\n"
     )
     player.take_cards()
     if len(player.game.deck.cards) == 0:
@@ -177,36 +179,36 @@ async def shotgun_call(query: CallbackQuery,
         return await query.answer("👀 Сейчас не ваша очередь ходить")
 
     res = player.shotgun()
+    current = (
+        game.shotgun_current if game.rules.single_shotgun
+        else player.shotgun_current
+    )
     status = (
         "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
-        f"Вы можете <b>взять {game.take_counter} карт</b> "
-        "или же <b>выстрелить из револьвера</b>.\n"
         "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-        f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз.\n\n"
+        f"🔫 Из револьвера стреляли {current} / 8 раз.\n\n"
     )
     
     if not res:
         game.take_counter = round(game.take_counter*1.5)
         status += (
-            "✨ На этот раз <b>вам повезло</b> и пистолет не выстрелил.\n"
+            "✨ <b>Вам улыбнулась удача</b>, револьвер не выстрелил.\n"
             f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n"
         )    
         game.next_turn()
         game.state = GameState.SHOTGUN
     else:
-        status += "😴 На этом игра для вас <b>закончилась</b>.\n"
+        status += "😴 На этом ваша игра <b>заканчивается</b>.\n\n"
         game.remove_player(query.from_user.id)
         chat_id = sm.user_to_chat.pop(query.from_user.id)
-    
+
     if game.started:
         status += (
             f"🍰 Ладненько, следующим ходит {game.player.user.mention_html()}."
         )
         markup = keyboards.TURN_MARKUP
     else:
-        status += (
-            f"{NOT_ENOUGH_PLAYERS}\n{messages.end_game_message(game)}"
-        )
+        status += messages.end_game_message(game)
         markup = None
         sm.remove(chat_id)
 

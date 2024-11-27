@@ -221,8 +221,9 @@ class UnoGame:
 
         if player == self.player:
             self.next_turn()
-            if self.state == GameState.SHOTGUN:
-                self.losers.append(player)
+
+        if len(player.hand) == 0:
+            self.winners.append(player)
         else:
             self.losers.append(player)
 
