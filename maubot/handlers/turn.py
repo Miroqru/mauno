@@ -90,7 +90,6 @@ def play_card(player: Player, card: BaseCard) -> str:
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
-        player.game.winners.append(player)
         player.game.remove_player(player.user.id)
 
         if not player.game.started:
@@ -139,18 +138,22 @@ async def process_card_handler(result: ChosenInlineResult,
         if game.rules.take_until_cover and game.take_counter == 0:
             game.take_counter = game.deck.count_until_cover()
             status_message += f"🍷 беру {game.take_counter} карт.\n"
-
-        if not game.rules.shotgun:
+        if not game.rules.shotgun and not game.rules.single_shotgun:
             status_message += take_card(player) or ""
         elif game.take_counter <= 2 or game.state == GameState.SHOTGUN:
             status_message += take_card(player) or ""
         else:
+            current = (
+                game.shotgun_current if game.rules.single_shotgun
+                else player.shotgun_current
+            )
+
             status_message = (
                 "🍷 У нас для Вас есть <b>деловое предложение</b>!\n\n"
                 f"Вы можете <b>взять {game.take_counter} карт</b> "
                 "или же <b>выстрелить из револьвера</b>.\n"
                 "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-                f"🔫 Из револьвера вы стреляли {player.shotgun_current} раз\n."
+                f"🔫 Из револьвера стреляли {current} / 8 раз\n."
             )
             markup = keyboards.SHOTGUN_REPLY
 
@@ -230,7 +233,6 @@ async def choose_color_call( # noqa
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
-        player.game.winners.append(player)
         player.game.remove_player(player.user.id)
 
         if not player.game.started:

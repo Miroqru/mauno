@@ -100,7 +100,7 @@ async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
 
     sm.remove(game.chat_id)
     await message.answer((
-        "🧹 Игра была добровольно-принудительно завершена.\n"
+        "🧹 Игра была добровольно-принудительно остановлена.\n"
         f"{messages.end_game_message(game)}"
     ))
 
@@ -195,7 +195,7 @@ async def kick_player(message: Message,
     else:
         sm.remove(message.chat.id)
         status_message += (
-            f"{NOT_ENOUGH_PLAYERS}\n{messages.end_game_message(game)}"
+            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
         )
         markup = None
 
