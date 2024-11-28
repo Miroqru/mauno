@@ -62,7 +62,7 @@ NORMAL = {
     "16": "CAADAgADSFgAAl_QGEraWQ-nxarmggI",
     "17": "CAADAgADYFUAAnKFGUonScuLHzE--QI",
     "18": "CAADAgADC1oAAp64GEpi306cxS87OAI",
-    "19": "CAADAgADCVMAAgNbaEnfZBZ5dy8B8QI",
+    "19": "CAADAgADumAAAmgfEEqBFVYfNbklPwI",
 
     # Green number cards
     "20": "CAADAgADsVsAAkmoGErG-B_sF6QOEQI",
