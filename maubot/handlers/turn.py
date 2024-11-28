@@ -86,7 +86,10 @@ def play_card(player: Player, card: BaseCard) -> str:
         and player.game.deck.top.cost == 0
         and len(player.hand) > 0
     ):
-        status_message += "🤝 Все игроки обменялись картами по кругу.\n"
+        status_message += (
+            "🤝 Все игроки обменялись картами по кругу.\n"
+            f"{messages.get_room_players(player.game)}\n"
+        )
 
     if len(player.hand) == 0:
         status_message += f"👑 {player.user.first_name} победил(а)!\n"
@@ -168,11 +171,14 @@ async def process_card_handler(result: ChosenInlineResult,
     if select_player is not None:
         other_player = game.players[int(select_player.groups()[0])]
         if game.state == GameState.TWIST_HAND:
-            player.twist_hand(other_player)
+            player_hand = len(player.hand)
+            other_hand = len(other_player.hand)
             status_message += (
-                f"🤝 {player.user.first_name} и {other_player.user.first_name} "
+                f"🤝 {player.user.first_name} ({player_hand} карт)"
+                f"и {other_player.user.first_name} ({other_hand} карт)"
                 "обменялись руками.\n"
             )
+            player.twist_hand(other_player)
         else:
             status_message += "🍻 Что-то пошло не так, но мы не знаем что."
 
