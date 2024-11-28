@@ -164,7 +164,7 @@ class UnoGame:
 
         if (self.rules.twist_hand
             and self.deck.top.cost == 2
-            and len(self.player.hand) > 1
+            and len(self.player.hand) > 0
         ):
             self.state = GameState.TWIST_HAND
         elif self.state == GameState.NEXT:
@@ -172,7 +172,7 @@ class UnoGame:
                 self.deck.top.color = CardColor(randint(0, 3))
             elif (self.rules.rotate_cards
                 and self.deck.top.cost == 0
-                and len(self.player.hand) > 1
+                and len(self.player.hand) > 0
             ):
                 self.rotate_cards()
             self.next_turn()
