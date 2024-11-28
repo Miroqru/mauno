@@ -166,7 +166,7 @@ class Player:
             is_fired = self.game.shotgun_current >= self.game.shotgun_lose
             if is_fired:
                 self.game.shotgun_lose = randint(1, 8)
-                self.shotgun_current = 0
+                self.game.shotgun_current = 0
             return is_fired
         self.shotgun_current += 1
         return self.shotgun_current >= self.shotgun_lose
