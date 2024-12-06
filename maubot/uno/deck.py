@@ -98,7 +98,7 @@ class Deck:
         for i, card in enumerate(reversed(self.cards)):
             if self.top.can_cover(card):
                 return i+1
-        return 0
+        return 1
 
     def put(self, card: BaseCard) -> None:
         """Возвращает использованную карту в колоду."""

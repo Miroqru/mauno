@@ -166,7 +166,7 @@ async def kick_player(message: Message,
     player = game.get_player(message.from_user.id)
     if player is None or not  player.is_owner:
         return await message.answer(
-            "👀 Только создатель комнаты может закрыть комнату."
+            "👀 Только создатель комнаты может выгнать участника."
         )
 
     if message.reply_to_message is None:
@@ -182,24 +182,22 @@ async def kick_player(message: Message,
             "👀 Указанный пользователь даже не играет с нами."
         )
 
-    status_message = (
+    game.journal.add((
         f"🧹 {game.start_player.mention_html()} выгнал "
         f"{kicked_user.mention_html()} из игры за плохое поведение.\n"
-    )
+    ))
     if game.started:
-        status_message += (
+        game.journal.add((
             "🍰 Ладненько, следующих ход за "
             f"{game.player.user.mention_html()}."
-        )
-        markup = keyboards.TURN_MARKUP
+        ))
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
     else:
-        sm.remove(message.chat.id)
-        status_message += (
+        await message.answer((
             f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
-        )
-        markup = None
-
-    await message.answer(status_message, reply_markup=markup)
+        ))
+        sm.remove(message.chat.id)
 
 @router.message(Command("skip"))
 async def skip_player(message: Message,
@@ -225,13 +223,14 @@ async def skip_player(message: Message,
     game.player.take_cards()
     skip_player = game.player
     game.next_turn()
-    await message.answer(text=(
-            f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
-            "Мы их нашли и дали игроку ещё немного карт от нас.\n"
-            "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
-        ), reply_markup=keyboards.TURN_MARKUP
-    )
+    game.journal.add((
+        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+        "Мы их нашли и дали игроку ещё немного карт от нас.\n"
+        "🍰 Ладненько, следующих ход за "
+        f"{game.player.user.mention_html()}."
+    ))
+    game.journal.set_markup(keyboards.TURN_MARKUP)
+    await game.journal.send_journal()
 
 
 # Обработчики событий
@@ -266,7 +265,7 @@ async def settings_menu(message: Message, game: UnoGame | None):
     """Отображает настройки для текущей комнаты."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
-    
+
     await message.answer(ROOM_SETTINGS,
         reply_markup=keyboards.get_settings_markup(game.rules)
     )
@@ -276,7 +275,7 @@ async def settings_menu_call(query: CallbackQuery, game: UnoGame | None):
     """Отображает настройки для текущей комнаты."""
     if game is None:
         return await query.message.answer(NO_ROOM_MESSAGE)
-    
+
     await query.message.answer(ROOM_SETTINGS,
         reply_markup=keyboards.get_settings_markup(game.rules)
     )

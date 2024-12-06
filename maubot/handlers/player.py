@@ -72,10 +72,11 @@ async def join_player(message: Message,
                 reply_markup=keyboards.get_room_markup(game)
             )
         else:
-            await message.answer(
+            game.journal.add(
                 "🍰 Добро пожаловать в игру, "
                 f"{message.from_user.mention_html()}!"
             )
+            await game.journal.send_journal()
 
 @router.message(Command("leave"))
 async def leave_player(message: Message,
@@ -93,19 +94,18 @@ async def leave_player(message: Message,
         return await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
 
     if game.started:
-        status_message = (
+        game.journal.add(text=(
             "🍰 Ладненько, следующих ход за "
             f"{game.player.user.mention_html()}."
-        )
-        markup = keyboards.TURN_MARKUP
+        ))
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
     else:
         status_message = (
             f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
         )
-        markup = None
         sm.remove(message.chat.id)
-
-    await message.answer(status_message, reply_markup=markup)
+        await message.answer(status_message)
 
 
 # Обработчики для кнопок
@@ -144,19 +144,12 @@ async def take_cards_call(query: CallbackQuery,
         return await query.answer("👀 Сейчас не ваша очередь ходить")
 
     take_counter = game.take_counter
-    current = (
-        game.shotgun_current if game.rules.single_shotgun
-        else player.shotgun_current
-    )
-    status = (
-        "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
-        f"Вы можете <b>взять {take_counter} карт</b> ..."
-        "🃏 Вы решили что будет проще <b>взять карты</b>.\n\n"
-        f"🔫 Из револьвера стреляли {current} / 8 раз\n"
-    )
+    game.journal.set_markup(None)
+    game.journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
     player.take_cards()
+
     if len(player.game.deck.cards) == 0:
-        status += "🃏 В колоде не осталось карт для игрока.\n"
+        game.journal.add("🃏 В колоде не осталось карт для игрока.",)
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
     if (isinstance(game.deck.top, (TakeCard, TakeFourCard))
@@ -164,9 +157,11 @@ async def take_cards_call(query: CallbackQuery,
     ):
         game.next_turn()
 
-    status += f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
-
-    await query.message.edit_text(status, reply_markup=keyboards.TURN_MARKUP)
+    game.journal.add(
+        f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+    )
+    game.journal.set_markup(keyboards.TURN_MARKUP)
+    await game.journal.send_journal()
 
 @router.callback_query(F.data=="shot")
 async def shotgun_call(query: CallbackQuery,
@@ -176,43 +171,38 @@ async def shotgun_call(query: CallbackQuery,
 ):
     """Игрок выбирает взять карты."""
     if (game is None or player is None or game.player != player):
-        return await query.answer("👀 Сейчас не ваша очередь ходить")
+        return await query.answer("👀 Сейчас не ваша очередь стрелять")
 
     res = player.shotgun()
-    current = (
-        game.shotgun_current if game.rules.single_shotgun
-        else player.shotgun_current
-    )
-    status = (
-        "🍷 У нас для есть <b>деловое предложение</b>!\n\n"
-        "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-        f"🔫 Из револьвера стреляли {current} / 8 раз.\n\n"
-    )
-    
+    game.journal.set_markup(None)
     if not res:
         game.take_counter = round(game.take_counter*1.5)
-        status += (
-            "✨ <b>Вам улыбнулась удача</b>, револьвер не выстрелил.\n"
-            f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n"
-        )    
+        game.journal.add(
+            "✨ На этот раз <b>вам повезло</b> и пистолет не выстрелил.",
+        )
+        game.journal.add(
+            f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n",
+        )
+        await game.journal.send_journal()
         game.next_turn()
         game.state = GameState.SHOTGUN
     else:
-        status += "😴 На этом ваша игра <b>заканчивается</b>.\n\n"
+        game.journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
+        await game.journal.send_journal()
         game.remove_player(query.from_user.id)
         chat_id = sm.user_to_chat.pop(query.from_user.id)
 
     if game.started:
-        status += (
+        game.journal.add(
             f"🍰 Ладненько, следующим ходит {game.player.user.mention_html()}."
         )
-        markup = keyboards.TURN_MARKUP
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
     else:
-        status += messages.end_game_message(game)
-        markup = None
+        status = messages.end_game_message(game)
         sm.remove(chat_id)
+        await query.message.edit_text(text=status)
 
-    await query.message.edit_text(text=status, reply_markup=markup)
 
 
 # Обработчики событий
@@ -234,13 +224,13 @@ async def on_user_leave(event: ChatMemberUpdated,
         pass
 
     if game.started:
-        status_message = (
-           f"🍰 Ладненько, следующих ход за {game.player.user.mention_html()}."
+        game.journal.add(
+           f"Ладненько, следующих ход за {game.player.user.mention_html()}."
         )
-        markup = keyboards.TURN_MARKUP
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
     else:
         status_message = NOT_ENOUGH_PLAYERS
-        markup = None
         sm.remove(event.chat.id)
+        await event.answer(status_message)
 
-    await event.answer(status_message, reply_markup=markup)

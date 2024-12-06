@@ -1,5 +1,6 @@
 """Хранилище игровых сессий."""
 
+from aiogram import Bot
 from loguru import logger
 
 from maubot.uno.exceptions import (
@@ -18,6 +19,7 @@ class SessionManager:
     """
 
     def __init__(self):
+        self.bot: Bot = None
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[int, int] = {}
 
@@ -72,7 +74,7 @@ class SessionManager:
     def create(self, chat_id: int) -> UnoGame:
         """Создает новую игру в чате."""
         logger.info("Create new session in chat {}", chat_id)
-        game = UnoGame(chat_id)
+        game = UnoGame(self.bot, chat_id)
         self.games[chat_id] = game
         return game
 
