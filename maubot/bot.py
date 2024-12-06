@@ -28,11 +28,8 @@ from maubot.uno.session import SessionManager
 # =========
 
 sm = SessionManager()
+dp = Dispatcher(sm=sm)
 
-dp = Dispatcher(
-    # Добавляем менеджер игровых сессия в бота
-    sm=sm
-)
 
 # Настраиваем формат отображения логов loguru
 # Обратите внимание что в проекте помимо loguru используется logging
@@ -100,7 +97,7 @@ async def main():
 
     logger.info("Check config")
     logger.debug("Token: {}", config.token)
-    logger.debug("Token: {}", config.db_url)
+    logger.debug("DB url: {}", config.db_url)
 
     logger.info("Setup bot ...")
     try:
@@ -108,6 +105,7 @@ async def main():
             token=config.token.get_secret_value(),
             default=default
         )
+        sm.bot = bot
     except TokenValidationError as e:
         logger.error(e)
         logger.info("Check your bot token in .env file.")

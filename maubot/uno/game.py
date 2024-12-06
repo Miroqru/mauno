@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
 
+from aiogram import Bot
 from loguru import logger
 
 from maubot.uno.card import BaseCard, CardColor
@@ -19,6 +20,7 @@ from maubot.uno.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
+from maubot.uno.journal import Journal
 from maubot.uno.player import Player
 
 
@@ -65,10 +67,11 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, chat_id: int):
+    def __init__(self, bot: Bot, chat_id: int):
         self.chat_id = chat_id
         self.rules = GameRules()
         self.deck = Deck()
+        self.journal = Journal(self, bot)
 
         # Игроки Uno
         self.current_player: int = 0
@@ -188,6 +191,7 @@ class UnoGame:
         self.state = GameState.NEXT
         self.take_flag = False
         self.turn_start = datetime.now()
+        self.journal.clear()
         self.skip_players()
 
 
