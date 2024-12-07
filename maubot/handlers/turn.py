@@ -11,7 +11,13 @@ from loguru import logger
 
 from maubot import keyboards, messages
 from maubot.stickers import from_str
-from maubot.uno.card import BaseCard, CardColor, TakeCard, TakeFourCard
+from maubot.uno.card import (
+    BaseCard,
+    CardColor,
+    CardType,
+    TakeCard,
+    TakeFourCard,
+)
 from maubot.uno.enums import GameState
 from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
@@ -71,9 +77,24 @@ def play_card(player: Player, card: BaseCard) -> str:
     logger.info("Push {} from {}", card, player.user.id)
     player.hand.remove(card)
     player.game.process_turn(card)
+    player.game.journal.set_markup(None)
 
     if len(player.hand) == 1:
         player.game.journal.add("🌟 UNO!\n")
+
+    elif card.cost == 2 and player.game.rules.twist_hand:
+        player.game.journal.add(
+            f"✨ {player.user.mention_html()} Задумывается c кем обменяться."
+        )
+        player.game.journal.set_markup(keyboards.SELECT_PLAYER_MARKUP)
+
+    if card.card_type in (
+        CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
+    ):
+        player.game.journal.add(
+            f"✨ {player.user.mention_html()} Задумывается о выборе цвета."
+        )
+        player.game.journal.set_markup(keyboards.COLOR_MARKUP)
 
     if (player.game.rules.random_color
         or player.game.rules.choose_random_color

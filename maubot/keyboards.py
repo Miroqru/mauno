@@ -139,23 +139,11 @@ def get_hand_cards(player) -> Iterator:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
-        if len(player.hand) == 0:
-            reply_markup = None
-        elif cover_card.card_type in (
-            CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
-            ):
-            reply_markup = COLOR_MARKUP
-        elif cover_card.cost == 2 and player.game.rules.twist_hand:
-            reply_markup = SELECT_PLAYER_MARKUP
-        else:
-            reply_markup = None
-
         yield InlineQueryResultCachedSticker(
             id=f"{stickers.to_str(cover_card)}:{i}",
             sticker_file_id=stickers.NORMAL[
                 stickers.to_sticker_id(cover_card)
-            ],
-            reply_markup=reply_markup
+            ]
         )
 
     for i, cover_card in enumerate(player_cards.uncover):
