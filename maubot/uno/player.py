@@ -74,6 +74,8 @@ class Player:
                     TurnCard(CardColor(x), 1),
                     ReverseCard(CardColor(x)),
                     NumberCard(CardColor(x), 7),
+                    NumberCard(CardColor(x), 2),
+                    NumberCard(CardColor(x), 0),
                 ))
             return
 
