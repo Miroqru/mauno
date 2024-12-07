@@ -28,14 +28,8 @@ TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
     )
 ]])
 
-SELECT_PLAYER_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(
-        text="🔪 Выбрать игрока", switch_inline_query_current_chat=""
-    )
-]])
-
 SHOTGUN_REPLY = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(text="🃏 Взять", callback_data="take"),
+    InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
     InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
 ]])
 
@@ -134,6 +128,19 @@ def select_player_query(player, add_pass_button: bool = False) -> list:
 
     return result
 
+def select_player_markup(player) -> InlineKeyboardMarkup:
+    """Клавиатура для выбора игрока."""
+    inline_keyboard = []
+
+    for i, pl in enumerate(player.game.players):
+        if i == player.game.current_player:
+            continue
+        inline_keyboard.append([InlineKeyboardButton(
+            text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+            callback_data=f"select_player:{i}",
+        )])
+
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
 def get_hand_cards(player) -> Iterator:
     """Возвращает карты пользователя из руки."""

@@ -86,7 +86,7 @@ def play_card(player: Player, card: BaseCard) -> str:
         player.game.journal.add(
             f"✨ {player.user.mention_html()} Задумывается c кем обменяться."
         )
-        player.game.journal.set_markup(keyboards.SELECT_PLAYER_MARKUP)
+        player.game.journal.set_markup(keyboards.select_player_markup(player))
 
     if card.card_type in (
         CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
@@ -252,3 +252,30 @@ async def choose_color_call( # noqa
         sm.remove(player.game.chat_id)
 
     return await query.answer(f"🎨 Вы выбрали {color}.")
+
+@router.callback_query(F.data.regexp(r"select_player:(\d)").as_("index"))
+async def select_player_call(query: CallbackQuery,
+    game: UnoGame | None,
+    player: Player | None,
+    index: re.Match[int]
+):
+    other_player = game.players[int(index.groups()[0])]
+    if game.state == GameState.TWIST_HAND:
+        player_hand = len(player.hand)
+        other_hand = len(other_player.hand)
+        game.journal.add((
+            f"🤝 {player.user.first_name} ({player_hand} карт) "
+            f"и {other_player.user.first_name} ({other_hand} карт) "
+            "обменялись руками.\n"
+        ))
+        game.journal.set_markup(None)
+        await game.journal.send_journal()
+        player.twist_hand(other_player)
+    else:
+        game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
+
+    game.journal.add(
+        f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+    )
+    game.journal.set_markup(keyboards.TURN_MARKUP)
+    await game.journal.send_journal()
