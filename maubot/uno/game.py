@@ -173,7 +173,7 @@ class UnoGame:
         elif self.state == GameState.NEXT:
             if self.rules.random_color:
                 self.deck.top.color = CardColor(randint(0, 3))
-            elif (self.rules.rotate_cards
+            if (self.rules.rotate_cards
                 and self.deck.top.cost == 0
                 and len(self.player.hand) > 0
             ):
