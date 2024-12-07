@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maubot"
-version = "1.5.0"
+version = "1.7.0"
 description = "Play Uno with your friends in Telegram chats."
 authors = ["Milinuri Nirvalen <pentergust@mail.ru>"]
 license = "AGPL-3.0-or-later"
