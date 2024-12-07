@@ -9,8 +9,10 @@ from maubot.uno.card import (
     BaseCard,
     CardColor,
     NumberCard,
+    ReverseCard,
     TakeCard,
     TakeFourCard,
+    TurnCard,
 )
 from maubot.uno.enums import GameState
 from maubot.uno.exceptions import DeckEmptyError
@@ -59,20 +61,20 @@ class Player:
 
     def take_first_hand(self):
         """Берёт начальный набор карт для игры."""
+        self.shotgun_lose = randint(1, 8)
         if self.game.rules.debug_cards:
             logger.debug("{} Draw debug first hand for player", self.user)
             self.hand = [
                 TakeFourCard(),
                 TakeFourCard(),
-                TakeCard(CardColor(0)),
-                TakeCard(CardColor(1)),
-                TakeCard(CardColor(2)),
-                TakeCard(CardColor(3)),
-                NumberCard(CardColor(0), 7),
-                NumberCard(CardColor(1), 7),
-                NumberCard(CardColor(2), 7),
-                NumberCard(CardColor(3), 7)
             ]
+            for x in (0, 1, 2, 3):
+                self.hand.extend((
+                    TakeCard(CardColor(x)),
+                    TurnCard(CardColor(x), 1),
+                    ReverseCard(CardColor(x)),
+                    NumberCard(CardColor(x), 7),
+                ))
             return
 
         logger.debug("{} Draw first hand for player", self.user)
@@ -83,7 +85,6 @@ class Player:
                 self.game.deck.put(card)
             logger.warning("There not enough cards in deck for player")
             raise DeckEmptyError()
-        self.shotgun_lose = randint(1, 8)
 
     def take_cards(self):
         """Игрок берёт заданное количество карт согласно счётчику."""
