@@ -70,8 +70,6 @@ def call_bluff(player: Player) -> str:
         if len(player.game.deck.cards) == 0:
             player.game.journal.add("🃏 В колоде не осталось свободных карт.")
 
-    player.game.next_turn()
-
 def play_card(player: Player, card: BaseCard) -> str:
     """Разыгрывает выброшенную карту."""
     logger.info("Push {} from {}", card, player.user.id)
@@ -182,6 +180,8 @@ async def process_card_handler(result: ChosenInlineResult,
 
     elif result.result_id == "bluff":
         call_bluff(player)
+        await game.journal.send_journal()
+        game.next_turn()
 
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
