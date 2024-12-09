@@ -234,7 +234,7 @@ async def choose_color_call( # noqa
         or game.state != GameState.CHOOSE_COLOR
         or game.player != player
     ):
-        return await query.answer("👀 Вы не играете или сейчас не ваш ход.")
+        return await query.answer("🍉 А вы точно сейчас ходите?")
 
     color = CardColor(int(color.groups()[0]))
     game.journal.add(f"🎨 Я выбираю цвет.. {color}\n")
@@ -259,6 +259,10 @@ async def select_player_call(query: CallbackQuery,
     player: Player | None,
     index: re.Match[int]
 ):
+    # Игнорируем нажатие на кнопку если это требуется
+    if game is None or player is None or game.player != player:
+        return await query.answer("🍉 А вы точно сейчас ходите?")
+
     other_player = game.players[int(index.groups()[0])]
     if game.state == GameState.TWIST_HAND:
         player_hand = len(player.hand)
