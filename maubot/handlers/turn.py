@@ -80,11 +80,28 @@ def play_card(player: Player, card: BaseCard) -> str:
     if len(player.hand) == 1:
         player.game.journal.add("🌟 UNO!\n")
 
+    if len(player.hand) == 0:
+        player.game.journal.add(f"👑 {player.user.first_name} победил(а)!\n")
+        player.game.winners.append(player)
+        player.game.remove_player(player.user.id)
+
+        if not player.game.started:
+            player.game.journal.add(messages.end_game_message(player.game))
+
     elif card.cost == 2 and player.game.rules.twist_hand:
         player.game.journal.add(
             f"✨ {player.user.mention_html()} Задумывается c кем обменяться."
         )
         player.game.journal.set_markup(keyboards.select_player_markup(player))
+
+    elif (player.game.rules.rotate_cards
+        and player.game.deck.top.cost == 0
+        and len(player.hand) > 0
+    ):
+        player.game.journal.add((
+            "🤝 Все игроки обменялись картами по кругу.\n"
+            f"{messages.get_room_players(player.game)}\n"
+        ))
 
     if card.card_type in (
         CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
@@ -101,23 +118,6 @@ def play_card(player: Player, card: BaseCard) -> str:
         player.game.journal.add(
             f"🎨 Я выбираю цвет.. {player.game.deck.top.color}"
         )
-
-    if (player.game.rules.rotate_cards
-        and player.game.deck.top.cost == 0
-        and len(player.hand) > 0
-    ):
-        player.game.journal.add((
-            "🤝 Все игроки обменялись картами по кругу.\n"
-            f"{messages.get_room_players(player.game)}\n"
-        ))
-
-    if len(player.hand) == 0:
-        player.game.journal.add(f"👑 {player.user.first_name} победил(а)!\n")
-        player.game.winners.append(player)
-        player.game.remove_player(player.user.id)
-
-        if not player.game.started:
-            player.game.journal.add(messages.end_game_message(player.game))
 
 
 # Обработчики
