@@ -140,8 +140,9 @@ async def take_cards_call(query: CallbackQuery,
     player: Player | None
 ):
     """Игрок выбирает взять карты."""
-    # Игнорируем нажатие на кнопку если это требуется
-    if game is None or player is None or game.player != player:
+    if game is None or player is None:
+        return await query.answer("🍉 А вы точно сейчас играете?")
+    if not game.rules.ahead_of_curve and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     take_counter = game.take_counter
@@ -171,8 +172,9 @@ async def shotgun_call(query: CallbackQuery,
     player: Player | None
 ):
     """Игрок выбирает взять карты."""
-    # Игнорируем нажатие на кнопку если это требуется
-    if game is None or player is None or game.player != player:
+    if game is None or player is None:
+        return await query.answer("🍉 А вы точно сейчас играете?")
+    if not game.rules.ahead_of_curve and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     res = player.shotgun()

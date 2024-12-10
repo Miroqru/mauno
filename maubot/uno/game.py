@@ -38,6 +38,7 @@ class GameRules:
     take_until_cover: bool = False
     shotgun: bool = False
     single_shotgun: bool = False
+    ahead_of_curve: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -47,16 +48,17 @@ class Rule:
     name: str
 
 RULES = (
-    Rule("wild", "🐉 Дикие карты"),
     Rule("twist_hand", "🤝 Обмен руками"),
     Rule("rotate_cards", "🧭 Обмен телами."),
     Rule("take_until_cover", "🍷 Беру до последнего."),
-    Rule("shotgun", "🔫 Рулетка."),
     Rule("single_shotgun", "🎲 Общий револьвер."),
+    Rule("shotgun", "🔫 Рулетка."),
+    Rule("wild", "🐉 Дикие карты"),
     Rule("auto_choose_color", "🃏 самоцвет"),
     Rule("choose_random_color", "🎨 Случайный цвет"),
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
+    Rule("ahead_of_curve", "🔪 На опережение"),
 )
 
 
