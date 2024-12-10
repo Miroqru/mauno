@@ -261,3 +261,9 @@ class UnoGame:
             self.players[i].hand = self.players[i - 1].hand.copy()
 
         self.players[0].hand = last_hand
+
+    def set_current_player(self, player: Player) -> None:
+        for i, pl in enumerate(self.players):
+            if player == pl:
+                self.current_player = i
+                return
