@@ -122,7 +122,7 @@ async def join_callback(query: CallbackQuery,
     except LobbyClosedError:
         await query.message.answer(get_closed_room_message(game))
     except AlreadyJoinedError:
-        await query.message.answer("🍰 Вы уже и без того с нами в комнате.")
+        await query.answer("🍰 Вы уже и без того с нами в комнате.")
     except DeckEmptyError:
         await query.message.answer(
             "👀 К сожалению у нас не осталось для вас карт."
