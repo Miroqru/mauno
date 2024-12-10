@@ -146,10 +146,15 @@ async def take_cards_call(query: CallbackQuery,
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     take_counter = game.take_counter
-    game.journal.set_markup(None)
-    game.journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
-    player.take_cards()
+    if game.player == player:
+        game.journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
+    else:
+        game.set_current_player(player)
+        game.journal.add(
+            f"🃏 Некто {player.user.mention_html()} решили <b>взять карты</b>."
+        )
 
+    player.take_cards()
     if len(player.game.deck.cards) == 0:
         game.journal.add("🃏 В колоде не осталось карт для игрока.",)
 
@@ -157,12 +162,17 @@ async def take_cards_call(query: CallbackQuery,
     if (isinstance(game.deck.top, (TakeCard, TakeFourCard))
         and take_counter
     ):
+        game.journal.set_markup(None)
         game.next_turn()
-
-    game.journal.add(
-        f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
-    )
-    game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.add(
+            f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+        )
+    else:
+        game.journal.add(
+            f"☕ {game.player.user.mention_html()} <b>продолжает</b>."
+        )
+        game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 @router.callback_query(F.data=="shot")
@@ -182,16 +192,22 @@ async def shotgun_call(query: CallbackQuery,
     if not res:
         game.take_counter = round(game.take_counter*1.5)
         game.journal.add(
-            "✨ На этот раз <b>вам повезло</b> и пистолет не выстрелил.",
+            "✨ На сей раз <b>вам повезло</b> и револьвер не выстрелил.",
         )
         game.journal.add(
             f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n",
         )
         await game.journal.send_journal()
+        if game.player != player:
+            game.set_current_player(player)
         game.next_turn()
         game.state = GameState.SHOTGUN
     else:
-        game.journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
+        if game.player == player:
+            game.journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
+        else:
+            game.journal.add(f"😴 {player.user.mention_html()} попал под пулю..\n")
+
         await game.journal.send_journal()
         game.remove_player(query.from_user.id)
         chat_id = sm.user_to_chat.pop(query.from_user.id)
