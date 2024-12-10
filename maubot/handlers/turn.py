@@ -100,7 +100,7 @@ def play_card(player: Player, card: BaseCard) -> str:
     ):
         player.game.journal.add((
             "🤝 Все игроки обменялись картами по кругу.\n"
-            f"{messages.get_room_players(player.game)}\n"
+            f"{messages.get_room_players(player.game)}"
         ))
 
     if card.card_type in (
@@ -228,12 +228,9 @@ async def choose_color_call( # noqa
     bot: Bot
 ):
     """Выбирает цвет по нажатию на кнопку."""
-    # Игнорируем нажатие на кнопку если это требуется
-    if (game is None
-        or player is None
-        or game.state != GameState.CHOOSE_COLOR
-        or game.player != player
-    ):
+    if game is None or player is None:
+        return await query.answer("🍉 А вы точно сейчас играете?")
+    if not game.rules.ahead_of_curve and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     color = CardColor(int(color.groups()[0]))
@@ -253,14 +250,15 @@ async def choose_color_call( # noqa
 
     return await query.answer(f"🎨 Вы выбрали {color}.")
 
-@router.callback_query(F.data.regexp(r"select_player:(\d)").as_("index"))
+@router.callback_query(F.data.regexp(r"select_player:(\d)").as_("index"),)
 async def select_player_call(query: CallbackQuery,
     game: UnoGame | None,
     player: Player | None,
     index: re.Match[int]
 ):
-    # Игнорируем нажатие на кнопку если это требуется
-    if game is None or player is None or game.player != player:
+    if game is None or player is None:
+        return await query.answer("🍉 А вы точно сейчас играете?")
+    if not game.rules.ahead_of_curve and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     other_player = game.players[int(index.groups()[0])]
