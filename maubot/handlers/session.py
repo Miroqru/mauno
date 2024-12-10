@@ -42,9 +42,14 @@ async def create_game(message: Message,
         return await message.answer("👀 Игры создаются в групповом чате.")
 
     # Если игра ещё не началась, получаем её
-    if game is None or game.started:
+    if game is None:
         game = sm.create(message.chat.id)
         game.start_player = message.from_user
+    elif game.started:
+        game.journal.add(
+            "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
+        )
+        await game.journal.send_journal()
 
     lobby_message = await message.answer(
         messages.get_room_status(game),
@@ -82,9 +87,9 @@ async def start_gama(message: Message, game: UnoGame | None):
             stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
         )
 
-        await message.answer(messages.get_new_game_message(game),
-            reply_markup=keyboards.TURN_MARKUP
-        )
+        game.journal.add(messages.get_new_game_message(game))
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
 
 @router.message(Command("stop"))
 async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
@@ -252,9 +257,9 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None):
         stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
     )
 
-    await query.message.answer(messages.get_new_game_message(game),
-        reply_markup=keyboards.TURN_MARKUP
-    )
+    game.journal.add(messages.get_new_game_message(game))
+    game.journal.set_markup(keyboards.TURN_MARKUP)
+    await game.journal.send_journal()
 
 
 # Настройки комнаты
