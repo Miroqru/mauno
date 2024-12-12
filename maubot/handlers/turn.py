@@ -90,7 +90,7 @@ def play_card(player: Player, card: BaseCard) -> str:
 
     elif card.cost == 2 and player.game.rules.twist_hand:
         player.game.journal.add(
-            f"✨ {player.user.mention_html()} Задумывается c кем обменяться."
+            f"✨ {player.name} Задумывается c кем обменяться."
         )
         player.game.journal.set_markup(keyboards.select_player_markup(player))
 
@@ -107,7 +107,7 @@ def play_card(player: Player, card: BaseCard) -> str:
         CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
     ):
         player.game.journal.add(
-            f"✨ {player.user.mention_html()} Задумывается о выборе цвета."
+            f"✨ {player.name} Задумывается о выборе цвета."
         )
         player.game.journal.set_markup(keyboards.COLOR_MARKUP)
 
@@ -124,9 +124,12 @@ def play_card(player: Player, card: BaseCard) -> str:
 # ===========
 
 @router.inline_query()
-async def inline_handler(query: InlineQuery, game: UnoGame | None):
+async def inline_handler(query: InlineQuery,
+    game: UnoGame | None,
+    player: Player | None
+):
     """Обработчик inline запросов к бот."""
-    if game is None:
+    if game is None or player is None:
         result = keyboards.NO_GAME_QUERY
     else:
         result = keyboards.get_hand_query(game.get_player(query.from_user.id))
@@ -208,7 +211,7 @@ async def process_card_handler(result: ChosenInlineResult,
 
     if game.state == GameState.NEXT:
         game.journal.add(
-            f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+            f"🍰 <b>Следующий ходит</b>: {game.player.name}"
         )
         if game.journal.reply_markup is None:
             game.journal.set_markup(keyboards.TURN_MARKUP)
@@ -241,7 +244,7 @@ async def choose_color_call( # noqa
 
     if game.started:
         game.journal.add(
-            f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+            f"🍰 <b>Следующий ходит</b>: {game.player.name}"
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -277,7 +280,7 @@ async def select_player_call(query: CallbackQuery,
         game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
     game.journal.add(
-        f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+        f"🍰 <b>Следующий ходит</b>: {game.player.name}"
     )
     game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
