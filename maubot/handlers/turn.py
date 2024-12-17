@@ -28,7 +28,7 @@ router = Router(name="Turn")
 # Дополнительные функции
 # ======================
 
-def take_card(player: Player) -> str | None:
+async def take_card(player: Player) -> str | None:
     """Действие при взятии карты пользователем."""
     logger.info("{} take cards", player)
     take_counter = player.game.take_counter
@@ -40,7 +40,7 @@ def take_card(player: Player) -> str | None:
     if (isinstance(player.game.deck.top, (TakeCard, TakeFourCard))
         and take_counter
     ):
-        player.game.next_turn()
+        await player.game.next_turn()
     else:
         player.game.state = GameState.NEXT
     return None
@@ -70,11 +70,11 @@ def call_bluff(player: Player) -> str:
         if len(player.game.deck.cards) == 0:
             player.game.journal.add("🃏 В колоде не осталось свободных карт.")
 
-def play_card(player: Player, card: BaseCard) -> str:
+async def play_card(player: Player, card: BaseCard) -> str:
     """Разыгрывает выброшенную карту."""
     logger.info("Push {} from {}", card, player.user.id)
     player.hand.remove(card)
-    player.game.process_turn(card)
+    await player.game.process_turn(card)
     player.game.journal.set_markup(None)
 
     if len(player.hand) == 1:
@@ -83,7 +83,7 @@ def play_card(player: Player, card: BaseCard) -> str:
     if len(player.hand) == 0:
         player.game.journal.add(f"👑 {player.user.first_name} победил(а)!\n")
         player.game.winners.append(player)
-        player.game.remove_player(player.user.id)
+        await player.game.remove_player(player.user.id)
 
         if not player.game.started:
             player.game.journal.add(messages.end_game_message(player.game))
@@ -157,16 +157,16 @@ async def process_card_handler(result: ChosenInlineResult,
     game.journal.set_markup(keyboards.TURN_MARKUP)
 
     if result.result_id == "pass":
-        game.next_turn()
+        await game.next_turn()
 
     elif result.result_id == "take":
         if game.rules.take_until_cover and game.take_counter == 0:
             game.take_counter = game.deck.count_until_cover()
             game.journal.add(f"🍷 беру {game.take_counter} карт.\n")
         if not game.rules.shotgun and not game.rules.single_shotgun:
-            take_card(player)
+            await take_card(player)
         elif game.take_counter <= 2 or game.state == GameState.SHOTGUN:
-            take_card(player)
+            await take_card(player)
         else:
             current = (
                 game.shotgun_current if game.rules.single_shotgun
@@ -184,11 +184,11 @@ async def process_card_handler(result: ChosenInlineResult,
     elif result.result_id == "bluff":
         call_bluff(player)
         await game.journal.send_journal()
-        game.next_turn()
+        await game.next_turn()
 
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
-        game.choose_color(CardColor(int(change_color.groups()[0])))
+        await game.choose_color(CardColor(int(change_color.groups()[0])))
 
     select_player = re.match(r"select_player:(\d)", result.result_id)
     if select_player is not None:
@@ -207,7 +207,7 @@ async def process_card_handler(result: ChosenInlineResult,
 
     card = from_str(result.result_id)
     if card is not None:
-        play_card(player, card)
+        await play_card(player, card)
 
     if game.state == GameState.NEXT:
         game.journal.add(
@@ -240,7 +240,7 @@ async def choose_color_call( # noqa
     game.journal.add(f"🎨 Я выбираю цвет.. {color}\n")
     game.journal.set_markup(None)
     await game.journal.send_journal()
-    game.choose_color(color)
+    await game.choose_color(color)
 
     if game.started:
         game.journal.add(

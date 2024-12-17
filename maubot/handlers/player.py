@@ -88,7 +88,7 @@ async def leave_player(message: Message,
         return await message.answer(NO_ROOM_MESSAGE)
 
     try:
-        game.remove_player(message.from_user.id)
+        await game.remove_player(message.from_user.id)
         sm.user_to_chat.pop(message.from_user.id)
     except NoGameInChatError:
         return await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
@@ -96,7 +96,7 @@ async def leave_player(message: Message,
     if game.started:
         game.journal.add(text=(
             "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
+            f"{game.player.name}."
         ))
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -151,7 +151,7 @@ async def take_cards_call(query: CallbackQuery,
     else:
         game.set_current_player(player)
         game.journal.add(
-            f"🃏 Некто {player.user.mention_html()} решили <b>взять карты</b>."
+            f"🃏 Некто {player.name} решили <b>взять карты</b>."
         )
 
     player.take_cards()
@@ -163,14 +163,14 @@ async def take_cards_call(query: CallbackQuery,
         and take_counter
     ):
         game.journal.set_markup(None)
-        game.next_turn()
+        await game.next_turn()
         game.journal.set_markup(keyboards.TURN_MARKUP)
         game.journal.add(
-            f"🍰 <b>Следующий ходит</b>: {game.player.user.mention_html()}"
+            f"🍰 <b>Следующий ходит</b>: {game.player.name}"
         )
     else:
         game.journal.add(
-            f"☕ {game.player.user.mention_html()} <b>продолжает</b>."
+            f"☕ {game.player.name} <b>продолжает</b>."
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
@@ -200,21 +200,21 @@ async def shotgun_call(query: CallbackQuery,
         await game.journal.send_journal()
         if game.player != player:
             game.set_current_player(player)
-        game.next_turn()
+        await game.next_turn()
         game.state = GameState.SHOTGUN
     else:
         if game.player == player:
             game.journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
-            game.journal.add(f"😴 {player.user.mention_html()} попал под пулю..\n")
+            game.journal.add(f"😴 {player.name} попал под пулю..\n")
 
         await game.journal.send_journal()
-        game.remove_player(query.from_user.id)
+        await game.remove_player(query.from_user.id)
         chat_id = sm.user_to_chat.pop(query.from_user.id)
 
     if game.started:
         game.journal.add(
-            f"🍰 Ладненько, следующим ходит {game.player.user.mention_html()}."
+            f"🍰 Ладненько, следующим ходит {game.player.name}."
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -238,14 +238,14 @@ async def on_user_leave(event: ChatMemberUpdated,
         return
 
     try:
-        game.remove_player(event.from_user.id)
+        await game.remove_player(event.from_user.id)
         sm.user_to_chat.pop(event.from_user.id)
     except NoGameInChatError:
         pass
 
     if game.started:
         game.journal.add(
-           f"Ладненько, следующих ход за {game.player.user.mention_html()}."
+           f"Ладненько, следующих ход за {game.player.name}."
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()

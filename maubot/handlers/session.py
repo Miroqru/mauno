@@ -17,6 +17,7 @@ from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
 from maubot.uno.exceptions import NoGameInChatError
 from maubot.uno.game import UnoGame
 from maubot.uno.session import SessionManager
+from maubot.uno.exceptions import LobbyClosedError, AlreadyJoinedError, DeckEmptyError
 
 router = Router(name="Sessions")
 
@@ -181,7 +182,7 @@ async def kick_player(message: Message,
 
     kicked_user = message.reply_to_message.from_user
     try:
-        game.remove_player(kicked_user.id)
+        await game.remove_player(kicked_user.id)
     except NoGameInChatError:
         return message.answer(
             "👀 Указанный пользователь даже не играет с нами."
@@ -194,7 +195,7 @@ async def kick_player(message: Message,
     if game.started:
         game.journal.add((
             "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
+            f"{game.player.name}."
         ))
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -227,12 +228,12 @@ async def skip_player(message: Message,
     game.take_counter += 1
     game.player.take_cards()
     skip_player = game.player
-    game.next_turn()
+    await game.next_turn()
     game.journal.add((
-        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+        f"☕ {skip_player.name} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
         "🍰 Ладненько, следующих ход за "
-        f"{game.player.user.mention_html()}."
+        f"{game.player.name}."
     ))
     game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
@@ -292,10 +293,57 @@ class SettingsCallback(CallbackData, prefix="set"):
     key: str
     value: bool
 
+
+async def join_automa(query: CallbackQuery,
+    sm: SessionManager,
+    game: UnoGame |  None
+):
+    """Добавляет игрока в текущую комнату."""
+    try:
+        sm.join_automa(query.message.chat.id, "Automa")
+    except LobbyClosedError:
+        await query.message.answer(messages.get_closed_room_message(game))
+    except AlreadyJoinedError:
+        await query.answer("🍰 Вы уже и без того с нами в комнате.")
+    except DeckEmptyError:
+        await query.message.answer(
+            "👀 К сожалению у нас не осталось для вас карт."
+        )
+    else:
+        await query.message.edit_text(
+            text=messages.get_room_status(game),
+            reply_markup=keyboards.get_room_markup(game)
+        )
+
+async def leave_automa(query: CallbackQuery,
+    sm: SessionManager,
+    game: UnoGame | None
+):
+    """Выход пользователя из игры."""
+    if game is None:
+        return await query.message.answer(NO_ROOM_MESSAGE)
+
+    game.remove_automa("Automa")
+    if game.started:
+        game.journal.add(text=(
+            "🍰 Ладненько, следующих ход за "
+            f"{game.player.name}."
+        ))
+        game.journal.set_markup(keyboards.TURN_MARKUP)
+        await game.journal.send_journal()
+    else:
+        status_message = (
+            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
+        )
+        sm.remove(query.message.chat.id)
+        await query.message.answer(status_message)
+
+
 @router.callback_query(SettingsCallback.filter())
 async def edit_room_settings_call(query: CallbackQuery,
     callback_data: SettingsCallback,
-    game: UnoGame | None
+    game: UnoGame | None,
+    sm: SessionManager
 ):
     """Изменяет настройки для текущей комнаты."""
     if game is None:
@@ -305,3 +353,9 @@ async def edit_room_settings_call(query: CallbackQuery,
     await query.message.edit_text(ROOM_SETTINGS,
         reply_markup=keyboards.get_settings_markup(game.rules)
     )
+
+    if callback_data.key == "automa":
+        if callback_data.value:
+            await join_automa(query, sm, game)
+        else:
+            await leave_automa(query, sm, game)

@@ -12,6 +12,7 @@ from random import randint, shuffle
 from aiogram import Bot
 from loguru import logger
 
+from maubot.uno.automa import Automa
 from maubot.uno.card import BaseCard, CardColor
 from maubot.uno.deck import Deck
 from maubot.uno.enums import GameState
@@ -39,6 +40,7 @@ class GameRules:
     shotgun: bool = False
     single_shotgun: bool = False
     ahead_of_curve: bool = False
+    automa: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -59,6 +61,7 @@ RULES = (
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("ahead_of_curve", "🔪 На опережение"),
+    Rule("automa", "Аутома"),
 )
 
 
@@ -116,7 +119,20 @@ class UnoGame:
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
+            if isinstance(player, Automa):
+                continue
+
             if player.user.id == user_id:
+                return player
+        return None
+
+    def get_automa(self, name: str) -> Automa | None:
+        """Получает игрока среди списка игроков по его ID."""
+        for player in self.players:
+            if not isinstance(player, Automa):
+                continue
+
+            if player.name == name:
                 return player
         return None
 
@@ -131,6 +147,11 @@ class UnoGame:
         self.losers.clear()
         self.started = True
         shuffle(self.players)
+        while True:
+            if isinstance(self.player, Automa):
+                self.skip_players()
+            else:
+                break
 
         if self.rules.wild:
             self.deck.fill_wild()
@@ -161,7 +182,7 @@ class UnoGame:
 
         self.deck.top(self)
 
-    def process_turn(self, card: BaseCard) -> None:
+    async def process_turn(self, card: BaseCard) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
         card(self)
@@ -180,14 +201,14 @@ class UnoGame:
                 and len(self.player.hand) > 0
             ):
                 self.rotate_cards()
-            self.next_turn()
+            await self.next_turn()
 
-    def choose_color(self, color: CardColor):
+    async def choose_color(self, color: CardColor):
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
-        self.next_turn()
+        await self.next_turn()
 
-    def next_turn(self) -> None:
+    async def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player")
         self.state = GameState.NEXT
@@ -195,6 +216,10 @@ class UnoGame:
         self.turn_start = datetime.now()
         self.journal.clear()
         self.skip_players()
+
+        if isinstance(self.player, Automa):
+            await self.player.auto_turn()
+
 
 
     # Управление списком игроков
@@ -217,7 +242,23 @@ class UnoGame:
 
         self.players.append(player)
 
-    def remove_player(self, user_id: int) -> None:
+    def add_automa(self, name: str):
+        logger.info("Joining {} in game with id {}", name, self.chat_id)
+        if not self.open:
+            raise LobbyClosedError()
+
+        automa = self.get_automa(name)
+        if automa is not None:
+            raise AlreadyJoinedError()
+
+        automa = Automa(self, name)
+        automa.on_leave()
+        if self.started:
+            automa.take_first_hand()
+
+        self.players.append(automa)
+
+    async def remove_player(self, user_id: int) -> None:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", user_id, self.chat_id)
 
@@ -226,7 +267,7 @@ class UnoGame:
             raise NoGameInChatError()
 
         if player == self.player:
-            self.next_turn()
+            await self.next_turn()
 
         if len(player.hand) == 0:
             self.winners.append(player)
@@ -239,6 +280,27 @@ class UnoGame:
         if len(self.players) <= 1:
             self.winners.extend(self.players)
             self.end()
+
+    def remove_automa(self, name: str) -> None:
+        """Удаляет пользователя из игры."""
+        logger.info("Leaving {} game with id {}", name, self.chat_id)
+
+        automa = self.get_automa(name)
+        if automa is None:
+            raise NoGameInChatError()
+
+        if len(automa.hand) == 0:
+            self.winners.append(automa)
+        else:
+            self.losers.append(automa)
+
+        automa.on_leave()
+        self.players.remove(automa)
+
+        if len(self.players) <= 1:
+            self.winners.extend(self.players)
+            self.end()
+
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.

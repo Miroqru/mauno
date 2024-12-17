@@ -40,25 +40,15 @@ class SessionManager:
 
         game.add_player(user)
         self.user_to_chat[user.id] = chat_id
-        logger.debug(self.user_to_chat)
 
-    def leave(self, player: Player) -> None:
-        """Убирает игрока из игры."""
-        chat_id = self.user_to_chat.get(player.user.id)
-        if chat_id is None:
+    def join_automa(self, chat_id: int, name: str):
+        game = self.games.get(chat_id)
+        if game is None:
             raise NoGameInChatError()
+        if not game.open:
+            raise  LobbyClosedError()
 
-        game = self.games[chat_id]
-
-        if player is game.player:
-            game.next_turn()
-
-        player.on_leave()
-        game.players.remove(player)
-        self.user_to_chat.pop(player.user.id)
-
-        if len(game.players) <= 1:
-            game.end()
+        game.add_automa(name)
 
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока по его id."""

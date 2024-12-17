@@ -50,6 +50,11 @@ class Player:
         self.shotgun_lose = 0
 
     @property
+    def name(self) -> str:
+        """Отображает имя игрока."""
+        return self.user.mention_html()
+
+    @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
@@ -97,11 +102,6 @@ class Player:
             self.hand.append(card)
         self.game.take_counter = 0
         self.game.take_flag = True
-
-    def put_card(self, card_index: int):
-        """Разыгрывает одну из карт из своей руки."""
-        card = self.hand.pop(card_index)
-        self.game.process_turn(card)
 
     def get_cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.

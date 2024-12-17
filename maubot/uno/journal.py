@@ -5,7 +5,6 @@
 """
 
 from datetime import datetime
-from enum import IntEnum
 from typing import TYPE_CHECKING, NamedTuple
 
 from aiogram import Bot

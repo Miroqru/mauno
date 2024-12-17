@@ -16,7 +16,7 @@ from aiogram.types import (
 from maubot import stickers
 from maubot.config import config
 from maubot.messages import get_room_status, plural_form
-from maubot.uno.card import CardType, TakeFourCard
+from maubot.uno.card import TakeFourCard
 from maubot.uno.enums import GameState
 from maubot.uno.game import RULES, GameRules, UnoGame
 

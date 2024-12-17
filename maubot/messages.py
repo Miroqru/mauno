@@ -114,7 +114,7 @@ def get_all_room_players(game: UnoGame) -> str:
         return "✨ В комнате пока никого нету.\n"
     players_list = f"✨ всего игроков {len(game.players)}:\n"
     for player in game.players:
-        players_list += f"- {player.user.mention_html()}\n"
+        players_list += f"- {player.name}\n"
     return players_list
 
 def get_room_players(game: UnoGame) -> str:
@@ -129,12 +129,12 @@ def get_room_players(game: UnoGame) -> str:
 
         if i == game.current_player:
             players_list += (
-                f"- <b>{player.user.mention_html()}</b> "
+                f"- <b>{player.name}</b> "
                 f"({len(player.hand)} карт{shotgun_stat})\n"
             )
         else:
             players_list += (
-                f"- {player.user.mention_html()} "
+                f"- {player.name} "
                 f"({len(player.hand)} карт{shotgun_stat})\n"
             )
     return players_list
@@ -144,7 +144,7 @@ def get_new_game_message(game: UnoGame) -> str:
     """Сообщение о начале новой игры в комнате."""
     return (
         "🍰 Да начнётся <b>Новая игра!</b>!\n"
-        f"И первым у нас ходит {game.player.user.mention_html()}\n"
+        f"И первым у нас ходит {game.player.name}\n"
         "/close чтобы закрыть комнату от посторонних.\n\n"
         f"{get_room_players(game)}\n"
         f"{get_room_rules(game)}"
@@ -186,10 +186,10 @@ def end_game_message(game: UnoGame) -> str:
     """Сообщение об окончании игры."""
     res = "✨ <b>Игра завершена</b>!\n"
     for i, winner in enumerate(game.winners):
-        res += f"{i+1}. {winner.user.mention_html()}\n"
+        res += f"{i+1}. {winner.name}\n"
     res += "\n🗑️ Проигравшие:\n"
     for i, loser in enumerate(game.losers):
-        res += f"{i+1}. {loser.user.mention_html()}\n"
+        res += f"{i+1}. {loser.name}\n"
 
     return res
 
