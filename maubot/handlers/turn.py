@@ -88,9 +88,6 @@ def play_card(player: Player, card: BaseCard) -> str:
         if not player.game.started:
             player.game.journal.add(messages.end_game_message(player.game))
 
-    if card.cost == 1 and player.game.rules.side_effect:
-        player.game.journal.add("🌀 Продолжаем ход.")
-
     elif card.cost == 2 and player.game.rules.twist_hand:
         player.game.journal.add(
             f"✨ {player.name} Задумывается c кем обменяться."
@@ -213,9 +210,14 @@ async def process_card_handler(result: ChosenInlineResult,
         play_card(player, card)
 
     if game.started and game.state == GameState.NEXT:
-        game.journal.add(
-            f"🍰 <b>Следующий ходит</b>: {game.player.name}"
-        )
+        if game.player == player:
+            game.journal.add(
+                f"🌀 Продолжаем ход"
+            )
+        else:
+            game.journal.add(
+                f"🍰 <b>Следующий ходит</b>: {game.player.name}"
+            )
         if game.journal.reply_markup is None:
             game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
