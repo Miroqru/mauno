@@ -39,6 +39,7 @@ class GameRules:
     shotgun: bool = False
     single_shotgun: bool = False
     ahead_of_curve: bool = False
+    side_effect: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -59,6 +60,7 @@ RULES = (
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("ahead_of_curve", "🔪 На опережение"),
+    Rule("side_effect", "🌀 Побочный выброс"),
 )
 
 
@@ -180,7 +182,11 @@ class UnoGame:
                 and len(self.player.hand) > 0
             ):
                 self.rotate_cards()
-            self.next_turn()
+            
+            if self.deck.top.cost == 1 and self.rules.side_effect:
+                logger.info("Player continue turn")
+            else:
+                self.next_turn()
 
     def choose_color(self, color: CardColor):
         """Устанавливаем цвет для последней карты."""
