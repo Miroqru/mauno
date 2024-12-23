@@ -50,6 +50,10 @@ class Player:
         self.shotgun_lose = 0
 
     @property
+    def name(self) -> str:
+        return self.user.mention_html()
+
+    @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
