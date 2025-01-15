@@ -40,7 +40,7 @@ class Player:
 
     def __init__(self, game: 'UnoGame', user):
         self.hand: BaseCard = []
-        self.game: 'UnoGame' = game
+        self.game: UnoGame = game
         self.user = user
 
         self.bluffing = False

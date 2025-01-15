@@ -5,7 +5,6 @@
 """
 
 from datetime import datetime
-from enum import IntEnum
 from typing import TYPE_CHECKING, NamedTuple
 
 from aiogram import Bot
@@ -78,7 +77,7 @@ class Journal:
     """
 
     def __init__(self, game: 'UnoGame', bot: Bot):
-        self.game: 'UnoGame' = game
+        self.game: UnoGame = game
         self.bot: Bot = bot
         self.events: list[Event] = []
         self.reply_markup: InlineKeyboardMarkup | None = None

@@ -50,22 +50,22 @@ def call_bluff(player: Player) -> str:
     logger.info("{} call bluff", player)
     bluff_player = player.game.bluff_player
     if bluff_player.bluffing:
-        player.game.journal.add((
+        player.game.journal.add(
             "🔎 <b>Замечен блеф</b>!\n"
             f"{bluff_player.user.first_name} получает "
             f"{player.game.take_counter} карт."
-        ))
+        )
         bluff_player.take_cards()
 
         if len(player.game.deck.cards) == 0:
             player.game.journal.add("🃏 В колоде не осталось свободных карт.")
     else:
         player.game.take_counter += 2
-        player.game.journal.add((
+        player.game.journal.add(
             f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
             f"{player.user.first_name} получает "
             f"{player.game.take_counter} карт.\n"
-        ))
+        )
         player.take_cards()
         if len(player.game.deck.cards) == 0:
             player.game.journal.add("🃏 В колоде не осталось свободных карт.")
@@ -98,10 +98,10 @@ def play_card(player: Player, card: BaseCard) -> str:
         and player.game.deck.top.cost == 0
         and len(player.hand) > 0
     ):
-        player.game.journal.add((
+        player.game.journal.add(
             "🤝 Все игроки обменялись картами по кругу.\n"
             f"{messages.get_room_players(player.game)}"
-        ))
+        )
 
     if card.card_type in (
         CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
@@ -172,13 +172,13 @@ async def process_card_handler(result: ChosenInlineResult,
                 game.shotgun_current if game.rules.single_shotgun
                 else player.shotgun_current
             )
-            game.journal.add((
+            game.journal.add(
                 "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
                 f"Вы можете <b>взять свои карты</b> "
                 "или же попробовать <b>выстрелить из револьвера</b>.\n"
                 "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
                 f"🔫 Из револьвера стреляли {current} / 8 раз\n."
-            ))
+            )
             game.journal.set_markup(keyboards.SHOTGUN_REPLY)
 
     elif result.result_id == "bluff":
@@ -196,11 +196,11 @@ async def process_card_handler(result: ChosenInlineResult,
         if game.state == GameState.TWIST_HAND:
             player_hand = len(player.hand)
             other_hand = len(other_player.hand)
-            game.journal.add((
+            game.journal.add(
                 f"🤝 {player.user.first_name} ({player_hand} карт) "
                 f"и {other_player.user.first_name} ({other_hand} карт) "
                 "обменялись руками.\n"
-            ))
+            )
             player.twist_hand(other_player)
         else:
             game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
@@ -212,7 +212,7 @@ async def process_card_handler(result: ChosenInlineResult,
     if game.started and game.state == GameState.NEXT:
         if game.player == player:
             game.journal.add(
-                f"🌀 Продолжаем ход"
+                "🌀 Продолжаем ход"
             )
         else:
             game.journal.add(
@@ -273,11 +273,11 @@ async def select_player_call(query: CallbackQuery,
     if game.state == GameState.TWIST_HAND:
         player_hand = len(player.hand)
         other_hand = len(other_player.hand)
-        game.journal.add((
+        game.journal.add(
             f"🤝 {player.user.first_name} ({player_hand} карт) "
             f"и {other_player.user.first_name} ({other_hand} карт) "
             "обменялись руками.\n"
-        ))
+        )
         game.journal.set_markup(None)
         await game.journal.send_journal()
         player.twist_hand(other_player)

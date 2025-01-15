@@ -9,9 +9,10 @@
 - Дать 4 карты.
 """
 
+from collections.abc import Iterable, Iterator
 from enum import IntEnum
 from random import randint
-from typing import Any, Iterable, Iterator, Self
+from typing import Any, Self
 
 from loguru import logger
 
