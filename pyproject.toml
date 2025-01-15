@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maubot"
-version = "1.7.0"
+version = "1.8"
 description = "Play Uno with your friends in Telegram chats."
 authors = ["Milinuri Nirvalen <pentergust@mail.ru>"]
 license = "AGPL-3.0-or-later"
@@ -35,7 +35,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "D", "N", "PL", "UP", "ANN", "W", "ASYNC"]
-ignore = ["D407", "D107", "D213", "D203"]
+ignore = ["D407", "D107", "D213", "D203", "ANN101"]
 
 
 # Configure build ------------------------------------------------------
