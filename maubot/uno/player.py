@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from maubot.uno.game import UnoGame
 
 
+_MIN_SHOTGUN_TAKE_COUNTER = 3
+
 # Дополнительные типы данных
 # ==========================
 
@@ -262,7 +264,7 @@ class Player:
             self.game.take_counter = self.game.deck.count_until_cover()
             self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
 
-        if any(self.game.take_counter > 3,
+        if any(self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
             self.game.rules.shotgun,
             self.game.rules.single_shotgun
         ):
