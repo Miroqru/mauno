@@ -29,7 +29,7 @@ OPTIONS = ["bluff", "next", "status", "take"]
 
 # Read config fire
 # Create this config file by copying the example file
-with open(ROOT_DIR / "sticker_config.json", "r", encoding="utf-8") as f:
+with open(ROOT_DIR / "sticker_config.json", encoding="utf-8") as f:
     config = json.load(f)
 
 NORMAL_DIR = ROOT_DIR / config["normal_dir"]
@@ -39,7 +39,7 @@ OPTION_DIR = ROOT_DIR / config["option_dir"]
 # Configure telegram client
 # You must get your own api_id and api_hash from https://my.telegram.org,
 # under API Development, and put them into a file called "api_auth.json"
-with open(ROOT_DIR / "api_auth.json", "r", encoding="utf-8") as f:
+with open(ROOT_DIR / "api_auth.json", encoding="utf-8") as f:
     api_auth = json.load(f)
 
 # Load the session from disk, or create a new one if it doesn't exist
@@ -56,7 +56,8 @@ client.start()
 # Functions
 # =========
 
-async def delete_if_existing(stickers_bot):
+async def delete_if_existing(stickers_bot: int) -> None:
+    """Удаляет стикер пак, если он уже существует, затем создаёт новый."""
     sticker_sets = await client(GetAllStickersRequest(0))
     for s in sticker_sets.sets:
         if s.short_name == config["pack_name"]:
@@ -65,12 +66,12 @@ async def delete_if_existing(stickers_bot):
             await client.send_message(stickers_bot, s.short_name)
             break
 
-async def create_sticker_set(stickers_bot):
+async def create_sticker_set(stickers_bot: int) -> None:
     """Create a new sticker set by conversing with @Stickers."""
     await client.send_message(stickers_bot, "/newpack")
     await client.send_message(stickers_bot, config["pack_name"])
 
-async def get_sticker_set():
+async def get_sticker_set() -> int:
     """Get the sticker set that we just created."""
     sticker_sets = await client(GetAllStickersRequest(0))
     for s in sticker_sets.sets:
@@ -91,7 +92,7 @@ async def get_sticker_set():
     )
     return sticker_set
 
-async def get_sticker_ids(sticker_set):
+async def get_sticker_ids(sticker_set: int) -> dict[str, dict]:
     """Get the sticker file IDs of the stickers in the given sticker set."""
     sticker_iterator = iter(sticker_set.documents)
     stickers = {"normal": {}, "not_playable": {}, "options": {}}
@@ -103,7 +104,9 @@ async def get_sticker_ids(sticker_set):
 
         for color in COLORS:
             for number in NUMBERS:
-                stickers[group][f"{color}_{number}"] = pack_bot_file_id(next(sticker_iterator))
+                stickers[group][f"{color}_{number}"] = pack_bot_file_id(
+                    next(sticker_iterator)
+                )
 
     # Option stickers
     for option in OPTIONS:
@@ -111,16 +114,17 @@ async def get_sticker_ids(sticker_set):
 
     return stickers
 
-async def save_sticker_ids():
+async def save_sticker_ids() -> None:
+    """Сохраняет словарь ID стикеров в JSON файл."""
     # Get the sticker ids
     sticker_set = await get_sticker_set()
     stickers = await get_sticker_ids(sticker_set)
 
     # Save the stickers to a file
-    with open(ROOT_DIR / f"sticker_ids_{config['pack_name']}.json", "w") as f:
+    with (ROOT_DIR / f"sticker_ids_{config['pack_name']}.json").open("w") as f:
         json.dump(stickers, f, indent=4)
 
-async def upload_sticker(stickers_bot, sticker_path):
+async def upload_sticker(stickers_bot: int, sticker_path: Path) -> None:
     """Upload a sticker to the current conversation."""
     message = await client.send_file(
         stickers_bot,
@@ -130,18 +134,21 @@ async def upload_sticker(stickers_bot, sticker_path):
     await client.send_message(stickers_bot, config["sticker_emoji"])
     return message
 
-async def upload_sticker_group(stickers_bot, not_playable: bool = False):
-    imagedir = NOT_PLAYABLE_DIR if not_playable else NORMAL_DIR
+async def upload_sticker_group(
+    stickers_bot: int, not_playable: bool = False
+) -> None:
+    """Отправляет группу стикеров в набор."""
+    image_path = NOT_PLAYABLE_DIR if not_playable else NORMAL_DIR
 
     for special in SPECIALS:
-        await upload_sticker(stickers_bot, imagedir / f"{special}.png")
+        await upload_sticker(stickers_bot, image_path / f"{special}.png")
         await asyncio.sleep(1)
 
     for color in COLORS:
         for number in NUMBERS:
             await upload_sticker(
                 stickers_bot,
-                imagedir / f"{color}_{number}.png"
+                image_path / f"{color}_{number}.png"
             )
             await asyncio.sleep(1)
 
@@ -149,7 +156,8 @@ async def upload_sticker_group(stickers_bot, not_playable: bool = False):
 # Main function
 # =============
 
-async def main():
+async def main() -> None:
+    """Простой скрипт для автоматического создания стикер пака для игры."""
     # Greeting
     stickers_bot = await client.get_entity("Stickers")
     me = await client.get_me()
