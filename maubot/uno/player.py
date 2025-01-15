@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, NamedTuple, Self
 from aiogram.types import User
 from loguru import logger
 
+from maubot import keyboards
 from maubot.uno.card import (
     BaseCard,
     CardColor,
@@ -179,6 +180,89 @@ class Player:
             return is_fired
         self.shotgun_current += 1
         return self.shotgun_current >= self.shotgun_lose
+
+
+    # Обработка игровых действий
+    # ==========================
+
+    async def call_bluff(self) -> None:
+        """Проверка предыдущего игрока на блеф.
+
+        По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
+        Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
+        """
+        logger.info("{} call bluff {}", self, self.game.prev)
+        bluff_player = self.game.bluff_player
+        if bluff_player.bluffing:
+            self.game.journal.add(
+                "🔎 <b>Замечен блеф</b>!\n"
+                f"{bluff_player.user.first_name} получает "
+                f"{self.game.take_counter} карт."
+            )
+            bluff_player.take_cards()
+
+            if len(self.game.deck.cards) == 0:
+                self.game.journal.add("🃏 В колоде не осталось свободных карт.")
+        else:
+            self.game.take_counter += 2
+            self.game.journal.add(
+                f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
+                f"{self.user.first_name} получает "
+                f"{self.game.take_counter} карт.\n"
+            )
+            self.take_cards()
+            if len(self.game.deck.cards) == 0:
+                self.game.journal.add("🃏 В колоде не осталось свободных карт.")
+
+        # Завершаем текущий ход
+        await self.game.journal.send_journal()
+        self.game.next_turn()
+
+    async def call_take_cards(self) -> None:
+        """Действия игрока при взятии карты.
+
+        В зависимости от правил, можно взять не одну карту, а сразу
+        несколько.
+        Если включен револьвер, то при взятии нескольких карт будет
+        выбор:
+
+        - Брать карты сейчас.
+        - Выстрелить, чтобы взял следующий игрок.
+        """
+        if self.game.rules.take_until_cover and self.game.take_counter == 0:
+            self.game.take_counter = self.game.deck.count_until_cover()
+            self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
+
+        if any(self.game.take_counter > 3,
+            self.game.rules.shotgun,
+            self.game.rules.single_shotgun
+        ):
+            current = (
+                self.game.shotgun_current if self.game.rules.single_shotgun
+                else self.shotgun_current
+            )
+            self.game.journal.add(
+                "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
+                f"Вы можете <b>взять свои карты</b> "
+                "или же попробовать <b>выстрелить из револьвера</b>.\n"
+                "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+                f"🔫 Из револьвера стреляли {current} / 8 раз\n."
+            )
+            self.game.journal.set_markup(keyboards.SHOTGUN_REPLY)
+
+        logger.info("{} take cards", self)
+        take_counter = self.game.take_counter
+        self.take_cards()
+        if len(self.game.deck.cards) == 0:
+            self.game.journal.add("🃏 В колоде не осталось карт для игрока.")
+
+        # Если пользователь выбрал взять карты, то он пропускает свой ход
+        if (isinstance(self.game.deck.top, TakeCard | TakeFourCard)
+            and take_counter
+        ):
+            self.game.next_turn()
+        else:
+            self.game.state = GameState.NEXT
 
 
     # Магические методы
