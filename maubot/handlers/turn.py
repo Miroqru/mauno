@@ -82,7 +82,6 @@ def play_card(player: Player, card: BaseCard) -> str:
 
     if len(player.hand) == 0:
         player.game.journal.add(f"👑 {player.user.first_name} победил(а)!\n")
-        player.game.winners.append(player)
         player.game.remove_player(player.user.id)
 
         if not player.game.started:
