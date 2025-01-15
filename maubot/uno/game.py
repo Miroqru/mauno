@@ -264,6 +264,8 @@ class UnoGame:
             raise NoGameInChatError()
 
         if player == self.player:
+            # Скорее всего игрок застрелился, больше карты не берём
+            self.take_counter = 0
             self.next_turn()
 
         if len(player.hand) == 0:
