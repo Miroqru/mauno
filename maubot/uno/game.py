@@ -182,7 +182,7 @@ class UnoGame:
                 and len(self.player.hand) > 0
             ):
                 self.rotate_cards()
-            
+
             if self.deck.top.cost == 1 and self.rules.side_effect:
                 logger.info("Player continue turn")
             else:

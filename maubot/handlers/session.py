@@ -104,10 +104,10 @@ async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
         )
 
     sm.remove(game.chat_id)
-    await message.answer((
+    await message.answer(
         "🧹 Игра была добровольно-принудительно остановлена.\n"
         f"{messages.end_game_message(game)}"
-    ))
+    )
 
 
 # Управление настройками комнаты
@@ -187,21 +187,21 @@ async def kick_player(message: Message,
             "👀 Указанный пользователь даже не играет с нами."
         )
 
-    game.journal.add((
+    game.journal.add(
         f"🧹 {game.start_player.mention_html()} выгнал "
         f"{kicked_user.mention_html()} из игры за плохое поведение.\n"
-    ))
+    )
     if game.started:
-        game.journal.add((
+        game.journal.add(
             "🍰 Ладненько, следующих ход за "
             f"{game.player.user.mention_html()}."
-        ))
+        )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
-        await message.answer((
+        await message.answer(
             f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
-        ))
+        )
         sm.remove(message.chat.id)
 
 @router.message(Command("skip"))
@@ -228,12 +228,12 @@ async def skip_player(message: Message,
     game.player.take_cards()
     skip_player = game.player
     game.next_turn()
-    game.journal.add((
+    game.journal.add(
         f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
         "🍰 Ладненько, следующих ход за "
         f"{game.player.user.mention_html()}."
-    ))
+    )
     game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 

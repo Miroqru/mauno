@@ -5,8 +5,8 @@
 Также хранит информацию о текущей верхней карте колоды.
 """
 
+from collections.abc import Iterator
 from random import shuffle
-from typing import Iterator
 
 from loguru import logger
 
