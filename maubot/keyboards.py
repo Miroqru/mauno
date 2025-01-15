@@ -25,7 +25,7 @@ from maubot.uno.player import Player
 # Будет прикрепляться к игровым сообщениям
 TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
     InlineKeyboardButton(
-        text="🎮 Сделать ход", switch_inline_query_current_chat=""
+        text="🎮 Разыграть 🃏", switch_inline_query_current_chat=""
     )
 ]])
 
@@ -51,7 +51,7 @@ def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="☕ Зайти", callback_data="join")
     ]]
     if len(game.players) >= config.min_players:
-        buttons.append([InlineKeyboardButton(text="🎮 Начать",
+        buttons.append([InlineKeyboardButton(text="🎮 Начать игру",
             callback_data="start_game"
         )])
 
@@ -61,7 +61,7 @@ def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
 NO_GAME_QUERY = [
     InlineQueryResultArticle(
         id="nogame",
-        title="В чате ещё нет комнаты",
+        title="В чате ещё нет игровой комнаты",
         input_message_content=InputTextMessageContent(message_text=(
             "☕ Сейчас никто не играет.\n\n"
             "Используйте /game для создания новой комнаты.\n"
