@@ -158,7 +158,7 @@ class Player:
 
         for card in self.hand:
             self.game.deck.put(card)
-        self.hand = []
+        self.hand.clear()
 
     def twist_hand(self, other_player: Self) -> None:
         """Меняет местами руки для двух игроков."""
