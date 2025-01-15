@@ -52,9 +52,9 @@ async def game_middleware(
     handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
     event: Update,
     data: dict[str, Any]
-):
+) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    if isinstance(event, (Message, ChatMemberUpdated)):
+    if isinstance(event, Message | ChatMemberUpdated):
         game = sm.games.get(event.chat.id)
     elif isinstance(event, CallbackQuery):
         if event.message is None:
@@ -62,7 +62,7 @@ async def game_middleware(
             game = None if chat_id is None else sm.games.get(chat_id)
         else:
             game = sm.games.get(event.message.chat.id)
-    elif isinstance(event, (InlineQuery, ChosenInlineResult)):
+    elif isinstance(event, InlineQuery | ChosenInlineResult):
         chat_id = sm.user_to_chat.get(event.from_user.id)
         game = None if chat_id is None else sm.games.get(chat_id)
 
@@ -73,7 +73,7 @@ async def game_middleware(
     return await handler(event, data)
 
 @dp.errors()
-async def catch_errors(event: ErrorEvent):
+async def catch_errors(event: ErrorEvent) -> None:
     """Простой обработчик для ошибок."""
     logger.warning(event)
     logger.exception(event.exception)
@@ -83,12 +83,12 @@ async def catch_errors(event: ErrorEvent):
 # Главная функция запуска бота
 # ============================
 
-async def main():
+async def main() -> None:
     """Запускает бота.
 
-    Настраивает логгирование.
+    Настраивает журнал действий.
     Загружает все необходимые обработчики.
-    После запускает лонг поллинг.
+    После запускает обработку событий бота.
     """
     logger.remove()
     logger.add(

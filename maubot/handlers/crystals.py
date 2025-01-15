@@ -18,7 +18,7 @@ router = Router(name="Crystals")
 # ===========
 
 @router.message(Command("dayreward"))
-async def user_info(message: Message):
+async def user_info(message: Message) -> None:
     """Получает награду за ежедневный вход."""
     user = message.from_user
     us, _ = await User.get_or_create(id=user.id)

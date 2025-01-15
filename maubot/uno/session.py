@@ -1,6 +1,7 @@
 """Хранилище игровых сессий."""
 
 from aiogram import Bot
+from aiogram.types import User
 from loguru import logger
 
 from maubot.uno.exceptions import (
@@ -18,7 +19,7 @@ class SessionManager:
     Предоставляет методы для создания и завершения сессий.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.bot: Bot = None
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[int, int] = {}
@@ -27,7 +28,7 @@ class SessionManager:
     # Управление игроками в сессии
     # ============================
 
-    def join(self, chat_id: int, user) -> None:
+    def join(self, chat_id: int, user: User) -> None:
         """Добавляет нового игрока в игру.
 
         Более высокоуровневая функция, совершает больше проверок.
@@ -78,7 +79,7 @@ class SessionManager:
         self.games[chat_id] = game
         return game
 
-    def remove(self, chat_id: int):
+    def remove(self, chat_id: int) -> None:
         """Полностью завершает игру в конкретном чате.
 
         Если вы хотите завершить текущий кон - воспользуйтесь методов

@@ -29,7 +29,7 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.cards: list[BaseCard] = []
         self.used_cards: list[BaseCard] = []
         self.top: BaseCard | None = None

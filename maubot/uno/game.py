@@ -10,6 +10,7 @@ from datetime import datetime
 from random import randint, shuffle
 
 from aiogram import Bot
+from aiogram.types import User
 from loguru import logger
 
 from maubot.uno.card import BaseCard, CardColor
@@ -71,7 +72,7 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, bot: Bot, chat_id: int):
+    def __init__(self, bot: Bot, chat_id: int) -> None:
         self.chat_id = chat_id
         self.rules = GameRules()
         self.deck = Deck()
@@ -152,7 +153,7 @@ class UnoGame:
         self.players.clear()
         self.started = False
 
-    def take_first_card(self):
+    def take_first_card(self) -> None:
         """Берёт первую карту для начали игры."""
         while self.deck.top is None or self.deck.top.color == CardColor.BLACK:
             card = self.deck.take_one()
@@ -188,7 +189,7 @@ class UnoGame:
             else:
                 self.next_turn()
 
-    def choose_color(self, color: CardColor):
+    def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
         self.next_turn()
@@ -206,7 +207,7 @@ class UnoGame:
     # Управление списком игроков
     # ==========================
 
-    def add_player(self, user) -> None:
+    def add_player(self, user: User) -> None:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.chat_id)
         if not self.open:
@@ -260,7 +261,7 @@ class UnoGame:
         else:
             self.current_player = (self.current_player + n) % len(self.players)
 
-    def rotate_cards(self):
+    def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
         last_hand = self.players[-1].hand.copy()
         for i in range(len(self.players) - 1, 0, -1):
@@ -269,6 +270,7 @@ class UnoGame:
         self.players[0].hand = last_hand
 
     def set_current_player(self, player: Player) -> None:
+        """Устанавливает курсор текущего игрока на переданного."""
         for i, pl in enumerate(self.players):
             if player == pl:
                 self.current_player = i

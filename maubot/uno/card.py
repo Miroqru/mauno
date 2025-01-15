@@ -12,11 +12,14 @@
 from collections.abc import Iterable, Iterator
 from enum import IntEnum
 from random import randint
-from typing import Any, Self
+from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
 from maubot.uno.enums import GameState
+
+if TYPE_CHECKING:
+    from maubot.uno.game import UnoGame
 
 # Дополнительные перечисления
 # ===========================
@@ -71,7 +74,7 @@ class BaseCard:
     Предоставляет общий функционал для всех карт.
     """
 
-    def __init__(self, color: CardColor, card_type: CardType):
+    def __init__(self, color: CardColor, card_type: CardType) -> None:
         self.color: CardColor = color
         self.card_type: CardType = card_type
         self.value: int = 0
@@ -125,7 +128,7 @@ class BaseCard:
         for card in hand:
             yield (card, self.can_cover(card))
 
-    def use_card(self, game) -> Any:
+    def use_card(self, game: UnoGame) -> None:
         """Выполняет способность карты.
 
         У каждой карты есть свой способность.
@@ -141,7 +144,7 @@ class BaseCard:
         logger.debug("Used card {} in chat {}", self, game.chat_id)
 
 
-    def __call__(self, game) -> None:
+    def __call__(self, game: UnoGame) -> None:
         """Синтаксический сахар для вызова действия карты.
 
         Позволяет использовать способность этой карты.
@@ -182,7 +185,7 @@ class NumberCard(BaseCard):
     Просто карта с определённым число от 0 до 9.
     """
 
-    def __init__(self, color: CardColor, value: int):
+    def __init__(self, color: CardColor, value: int) -> None:
         super().__init__(color, CardType.NUMBER)
         self.value = value
         self.cost = value
@@ -198,12 +201,12 @@ class TurnCard(BaseCard):
     Позволяет пропустить ход для следующих игроков.
     """
 
-    def __init__(self, color: CardColor, value: int):
+    def __init__(self, color: CardColor, value: int) -> None:
         super().__init__(color, CardType.TURN)
         self.value = value
         self.cost = 20
 
-    def use_card(self, game) -> None:
+    def use_card(self, game: UnoGame) -> None:
         """Пропускает ход для следующего игрока.
 
         Args:
@@ -213,7 +216,7 @@ class TurnCard(BaseCard):
         logger.info("Skip {} players", self.value)
         game.skip_players(self.value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Представление карты в строковое виде."""
         return f"{self.color} skip {self.value if self.value != 1 else ''}"
 
@@ -224,11 +227,11 @@ class ReverseCard(BaseCard):
     Разворачивает очередь ходов.
     """
 
-    def __init__(self, color: CardColor):
+    def __init__(self, color: CardColor) -> None:
         super().__init__(color, CardType.REVERSE)
         self.cost = 20
 
-    def use_card(self, game) -> None:
+    def use_card(self, game: UnoGame) -> None:
         """Разворачивает очерёдность ходов для игры.
 
         Args:
@@ -242,7 +245,7 @@ class ReverseCard(BaseCard):
             game.reverse = not game.reverse
             logger.info("Reverse flag now {}", game.reverse)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Представление карты в строковое виде."""
         return f"{self.color} reverse"
 
@@ -254,12 +257,12 @@ class TakeCard(BaseCard):
     Следующий игрок должен будет взять несколько карт.
     """
 
-    def __init__(self, color: CardColor, value: int = 2):
+    def __init__(self, color: CardColor, value: int = 2) -> None:
         super().__init__(color, CardType.TAKE)
         self.value = value
         self.cost = 20
 
-    def use_card(self, game):
+    def use_card(self, game: UnoGame) -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -271,7 +274,7 @@ class TakeCard(BaseCard):
             self.value, game.take_counter
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Представление карты в строковое виде."""
         return f"{self.color} +{self.value}"
 
@@ -282,11 +285,11 @@ class ChooseColorCard(BaseCard):
     Позволяет изменить цвет текущей карты.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(CardColor.BLACK, CardType.CHOOSE_COLOR)
         self.cost = 50
 
-    def use_card(self, game):
+    def use_card(self, game: UnoGame) -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -306,7 +309,7 @@ class ChooseColorCard(BaseCard):
             logger.info("Set choose color flag to True")
             game.state = GameState.CHOOSE_COLOR
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Представление карты в строковое виде."""
         return f"{self.card_type} {self.color}"
 
@@ -325,12 +328,12 @@ class TakeFourCard(BaseCard):
     Особая карта, меняющая цвет и выдающая следующему игроку 4 карты.
     """
 
-    def __init__(self, value: int = 4):
+    def __init__(self, value: int = 4) -> None:
         super().__init__(CardColor.BLACK, CardType.TAKE_FOUR)
         self.value = value
         self.cost = 50
 
-    def use_card(self, game):
+    def use_card(self, game: UnoGame) -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:

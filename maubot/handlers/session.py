@@ -32,11 +32,9 @@ ROOM_SETTINGS = (
 # ===========
 
 @router.message(Command("game"))
-async def create_game(message: Message,
-    sm: SessionManager,
-    game: UnoGame | None,
-    bot: Bot
-):
+async def create_game(
+    message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
+) -> None:
     """Создаёт новую комнату."""
     if message.chat.type == "private":
         return await message.answer("👀 Игры создаются в групповом чате.")
@@ -59,7 +57,9 @@ async def create_game(message: Message,
     game.lobby_message = lobby_message.message_id
 
 @router.message(Command("start"))
-async def start_gama(message: Message, game: UnoGame | None):
+async def start_gama(
+    message: Message, game: UnoGame | None
+) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
         return await message.answer(HELP_MESSAGE)
@@ -92,7 +92,9 @@ async def start_gama(message: Message, game: UnoGame | None):
         await game.journal.send_journal()
 
 @router.message(Command("stop"))
-async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
+async def stop_gama(
+    message: Message, game: UnoGame | None, sm: SessionManager
+) -> None:
     """Принудительно завершает текущую игру."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -114,7 +116,9 @@ async def stop_gama(message: Message, game: UnoGame | None, sm: SessionManager):
 # ==============================
 
 @router.message(Command("open"))
-async def open_gama(message: Message, game: UnoGame | None, sm: SessionManager):
+async def open_gama(
+    message: Message, game: UnoGame | None, sm: SessionManager
+) -> None:
     """Открывает игровую комнату для всех участников чата."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -131,10 +135,9 @@ async def open_gama(message: Message, game: UnoGame | None, sm: SessionManager):
     )
 
 @router.message(Command("close"))
-async def close_gama(message: Message,
-    game: UnoGame | None,
-    sm: SessionManager
-):
+async def close_gama(
+    message: Message, game: UnoGame | None, sm: SessionManager
+) -> None:
     """Закрывает игровую комнату для всех участников чата."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -155,10 +158,9 @@ async def close_gama(message: Message,
 # ================================
 
 @router.message(Command("kick"))
-async def kick_player(message: Message,
-    game: UnoGame | None,
-    sm: SessionManager
-):
+async def kick_player(
+    message: Message, game: UnoGame | None, sm: SessionManager
+) -> None:
     """Выкидывает участника из комнаты."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -205,10 +207,9 @@ async def kick_player(message: Message,
         sm.remove(message.chat.id)
 
 @router.message(Command("skip"))
-async def skip_player(message: Message,
-    game: UnoGame | None,
-    sm: SessionManager
-):
+async def skip_player(
+    message: Message, game: UnoGame | None, sm: SessionManager
+) -> None:
     """пропускает участника за долгое бездействие."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -242,7 +243,7 @@ async def skip_player(message: Message,
 # ===================
 
 @router.callback_query(F.data=="start_game")
-async def start_game_call(query: CallbackQuery, game: UnoGame | None):
+async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
     try:
         await query.message.delete()
@@ -266,7 +267,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None):
 # =================
 
 @router.message(Command("settings"))
-async def settings_menu(message: Message, game: UnoGame | None):
+async def settings_menu(message: Message, game: UnoGame | None) -> None:
     """Отображает настройки для текущей комнаты."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -276,7 +277,9 @@ async def settings_menu(message: Message, game: UnoGame | None):
     )
 
 @router.callback_query(F.data=="room_settings")
-async def settings_menu_call(query: CallbackQuery, game: UnoGame | None):
+async def settings_menu_call(
+    query: CallbackQuery, game: UnoGame | None
+) -> None:
     """Отображает настройки для текущей комнаты."""
     if game is None:
         return await query.message.answer(NO_ROOM_MESSAGE)
@@ -293,10 +296,9 @@ class SettingsCallback(CallbackData, prefix="set"):
     value: bool
 
 @router.callback_query(SettingsCallback.filter())
-async def edit_room_settings_call(query: CallbackQuery,
-    callback_data: SettingsCallback,
-    game: UnoGame | None
-):
+async def edit_room_settings_call(
+    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame | None
+) -> None:
     """Изменяет настройки для текущей комнаты."""
     if game is None:
         return await query.message.answer(NO_ROOM_MESSAGE)

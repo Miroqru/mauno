@@ -2,6 +2,8 @@
 
 Игровой журнал используется чтобы отслеживать состояние игры и отправлять его
 в чат.
+
+TODO: Что за суета происходит тут в журнале?
 """
 
 from datetime import datetime
@@ -76,7 +78,7 @@ class Journal:
     зависимости от действий участников.
     """
 
-    def __init__(self, game: 'UnoGame', bot: Bot):
+    def __init__(self, game: 'UnoGame', bot: Bot) -> None:
         self.game: UnoGame = game
         self.bot: Bot = bot
         self.events: list[Event] = []
@@ -111,9 +113,11 @@ class Journal:
     def set_markup(self,
         reply_markup: InlineKeyboardMarkup | None = None
     ) -> None:
+        """Устанавливает клавиатуру для бота при отправку журнала."""
         self.reply_markup = reply_markup
 
-    def get_journal_message(self):
+    def get_journal_message(self) -> str:
+        """Собирает сообщение журнала из всех событий."""
         res = ""
         for event in self.events:
             res += str(event)
@@ -129,7 +133,14 @@ class Journal:
 
     #     await self.message.delete()
 
-    async def send_journal(self):
+    async def send_journal(self) -> None:
+        """Отправляет журнал в чат.
+
+        Если до этого журнал не отправлялся, будет создано отправлено
+        новое сообщение с журналом.
+        Если же журнал привязан, то изменится текст сообщения.
+        По умолчанию журнал очищается при каждом новом ходе игрока.
+        """
         journal_message = self.get_journal_message()
         if self.message is None:
             self.message = await self.bot.send_message(
