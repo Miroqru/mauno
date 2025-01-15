@@ -16,7 +16,7 @@ router = Router(name="user")
 # ===========
 
 @router.message(Command("user"))
-async def user_info(message: Message):
+async def user_info(message: Message) -> None:
     """Общая информация о пользователе."""
     if message.reply_to_message is not None:
         user = message.reply_to_message.from_user
@@ -26,7 +26,7 @@ async def user_info(message: Message):
     member = await message.chat.get_member(user.id)
     us, _ = await User.get_or_create(id=user.id)
 
-    if isinstance(member, (ChatMemberOwner, ChatMemberAdministrator)):
+    if isinstance(member, ChatMemberOwner | ChatMemberAdministrator):
         chat_status = f"{member.status}: {member.custom_title}"
     else:
         chat_status = ""

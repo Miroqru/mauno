@@ -14,7 +14,7 @@ router = Router(name="simple commands")
 # ===========
 
 @router.message(Command("help"))
-async def get_help(message: Message, bot: Bot):
+async def get_help(message: Message, bot: Bot) -> None:
     """Помогает пользователю начать работать с ботом."""
     if message.chat.type == "private":
         return await message.answer(HELP_MESSAGE)
@@ -35,6 +35,6 @@ async def get_help(message: Message, bot: Bot):
         await message.answer("👀 Я не могу написать вам первым.")
 
 @router.message(Command("status"))
-async def get_bot_status(message: Message):
+async def get_bot_status(message: Message) -> None:
     """Полезная информация о боте."""
     await message.answer(STATUS_MESSAGE)

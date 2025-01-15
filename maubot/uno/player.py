@@ -3,6 +3,7 @@
 from random import randint
 from typing import TYPE_CHECKING, NamedTuple, Self
 
+from aiogram.types import User
 from loguru import logger
 
 from maubot.uno.card import (
@@ -38,7 +39,7 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    def __init__(self, game: 'UnoGame', user):
+    def __init__(self, game: 'UnoGame', user: User) -> None:
         self.hand: BaseCard = []
         self.game: UnoGame = game
         self.user = user
@@ -51,6 +52,7 @@ class Player:
 
     @property
     def name(self) -> str:
+        """Возвращает имя игрока с упоминанием пользователя ядл бота."""
         return self.user.mention_html()
 
     @property
@@ -63,7 +65,7 @@ class Player:
         """Является ли текущий пользователь автором комнаты."""
         return self.user.id == self.game.start_player.id
 
-    def take_first_hand(self):
+    def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
         if self.game.rules.debug_cards:
@@ -92,7 +94,7 @@ class Player:
             logger.warning("There not enough cards in deck for player")
             raise DeckEmptyError()
 
-    def take_cards(self):
+    def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
         take_counter = self.game.take_counter or 1
         logger.debug("{} Draw {} cards", self.user, take_counter)
@@ -102,7 +104,7 @@ class Player:
         self.game.take_counter = 0
         self.game.take_flag = True
 
-    def put_card(self, card_index: int):
+    def put_card(self, card_index: int) -> None:
         """Разыгрывает одну из карт из своей руки."""
         card = self.hand.pop(card_index)
         self.game.process_turn(card)
@@ -147,7 +149,7 @@ class Player:
     # Обработка событий
     # =================
 
-    def on_leave(self):
+    def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
         logger.debug("{} Leave from game", self.user)
         # Если он последний игрок, подчищать за собой не приходится
@@ -182,11 +184,11 @@ class Player:
     # Магические методы
     # =================
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Представление игрока при отладке."""
         return repr(self.user)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Представление игрока в строковом виде."""
         return str(self.user)
 

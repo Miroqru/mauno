@@ -37,7 +37,7 @@ def take_card(player: Player) -> str | None:
         player.game.journal.add("🃏 В колоде не осталось карт для игрока.")
 
     # Если пользователь выбрал взять карты, то он пропускает свой ход
-    if (isinstance(player.game.deck.top, (TakeCard, TakeFourCard))
+    if (isinstance(player.game.deck.top, TakeCard | TakeFourCard)
         and take_counter
     ):
         player.game.next_turn()
@@ -127,8 +127,11 @@ def play_card(player: Player, card: BaseCard) -> str:
 async def inline_handler(query: InlineQuery,
     game: UnoGame | None,
     player: Player | None
-):
-    """Обработчик inline запросов к бот."""
+) -> None:
+    """Обработчик inline запросов к боту.
+
+    Здесь предоставляется клавиатура со всеми вашими картами.
+    """
     if game is None or player is None:
         result = keyboards.NO_GAME_QUERY
     else:
@@ -142,7 +145,7 @@ async def process_card_handler(result: ChosenInlineResult,
     player: Player | None,
     bot: Bot,
     sm: SessionManager
-):
+) -> None:
     """Обрабатывает все выбранные события от бота."""
     logger.info("Process result {} in game {}", result, game)
     # Пропускаем если нам передали не действительные значения игрока и игры
@@ -234,7 +237,7 @@ async def choose_color_call( # noqa
     color: re.Match[str],
     sm: SessionManager,
     bot: Bot
-):
+) -> None:
     """Выбирает цвет по нажатию на кнопку."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
@@ -263,7 +266,8 @@ async def select_player_call(query: CallbackQuery,
     game: UnoGame | None,
     player: Player | None,
     index: re.Match[int]
-):
+) -> None:
+    """Действие при выборе игрока для обмена картами."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
     if not game.rules.ahead_of_curve and game.player != player:

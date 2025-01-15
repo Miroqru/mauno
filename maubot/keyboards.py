@@ -19,6 +19,7 @@ from maubot.messages import get_room_status, plural_form
 from maubot.uno.card import TakeFourCard
 from maubot.uno.enums import GameState
 from maubot.uno.game import RULES, GameRules, UnoGame
+from maubot.uno.player import Player
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
@@ -79,7 +80,7 @@ _COLOR_INFO = (
     (3, "Синий", "💙"),
 )
 
-def get_color_query(player) -> list:
+def get_color_query(player: Player) -> list[InlineQueryResultArticle]:
     """Клавиатура для выбора следующего цвета."""
     result = [
         InlineQueryResultArticle(
@@ -101,7 +102,9 @@ def get_color_query(player) -> list:
     ))
     return result
 
-def select_player_query(player, add_pass_button: bool = False) -> list:
+def select_player_query(
+    player: Player, add_pass_button: bool = False
+) -> list[InlineQueryResultArticle]:
     """Клавиатура для выбора игрока."""
     result = []
 
@@ -128,7 +131,7 @@ def select_player_query(player, add_pass_button: bool = False) -> list:
 
     return result
 
-def select_player_markup(player) -> InlineKeyboardMarkup:
+def select_player_markup(player: Player) -> InlineKeyboardMarkup:
     """Клавиатура для выбора игрока."""
     inline_keyboard = []
 
@@ -142,7 +145,7 @@ def select_player_markup(player) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
-def get_hand_cards(player) -> Iterator:
+def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
@@ -164,7 +167,9 @@ def get_hand_cards(player) -> Iterator:
             )
         )
 
-def get_all_hand_cards(player):
+def get_all_hand_cards(
+    player: Player
+) -> Iterator[InlineQueryResultCachedSticker]:
     """Получает все карты пользователя."""
     for i, cover_card in enumerate(player.hand):
         yield InlineQueryResultCachedSticker(
@@ -178,7 +183,7 @@ def get_all_hand_cards(player):
         )
 
 
-def get_hand_query(player) -> list:
+def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
     if not player.is_current:

@@ -38,11 +38,9 @@ router = Router(name="Player")
 # ===========
 
 @router.message(Command("join"))
-async def join_player(message: Message,
-    sm: SessionManager,
-    game: UnoGame | None,
-    bot: Bot
-):
+async def join_player(
+    message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
+) -> None:
     """Подключает пользователя к игре."""
     try:
         sm.join(message.chat.id, message.from_user)
@@ -79,10 +77,9 @@ async def join_player(message: Message,
             await game.journal.send_journal()
 
 @router.message(Command("leave"))
-async def leave_player(message: Message,
-    sm: SessionManager,
-    game: UnoGame | None
-):
+async def leave_player(
+    message: Message, sm: SessionManager, game: UnoGame | None
+) -> None:
     """Выход пользователя из игры."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
@@ -112,10 +109,9 @@ async def leave_player(message: Message,
 # ======================
 
 @router.callback_query(F.data=="join")
-async def join_callback(query: CallbackQuery,
-    sm: SessionManager,
-    game: UnoGame |  None
-):
+async def join_callback(
+    query: CallbackQuery, sm: SessionManager, game: UnoGame |  None
+) -> None:
     """Добавляет игрока в текущую комнату."""
     try:
         sm.join(query.message.chat.id, query.from_user)
@@ -138,7 +134,7 @@ async def take_cards_call(query: CallbackQuery,
     sm: SessionManager,
     game: UnoGame |  None,
     player: Player | None
-):
+) -> None:
     """Игрок выбирает взять карты."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
@@ -159,7 +155,7 @@ async def take_cards_call(query: CallbackQuery,
         game.journal.add("🃏 В колоде не осталось карт для игрока.",)
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
-    if (isinstance(game.deck.top, (TakeCard, TakeFourCard))
+    if (isinstance(game.deck.top, TakeCard | TakeFourCard)
         and take_counter
     ):
         game.journal.set_markup(None)
@@ -180,7 +176,7 @@ async def shotgun_call(query: CallbackQuery,
     sm: SessionManager,
     game: UnoGame |  None,
     player: Player | None
-):
+) -> None:
     """Игрок выбирает взять карты."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
@@ -206,7 +202,9 @@ async def shotgun_call(query: CallbackQuery,
         if game.player == player:
             game.journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
-            game.journal.add(f"😴 {player.user.mention_html()} попал под пулю..\n")
+            game.journal.add(
+                f"😴 {player.user.mention_html()} попал под пулю..\n"
+            )
 
         await game.journal.send_journal()
         game.remove_player(query.from_user.id)
@@ -229,10 +227,9 @@ async def shotgun_call(query: CallbackQuery,
 # ===================
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_leave(event: ChatMemberUpdated,
-    game: UnoGame | None,
-    sm: SessionManager
-):
+async def on_user_leave(
+    event: ChatMemberUpdated, game: UnoGame | None, sm: SessionManager
+) -> None:
     """Исключаем пользователя, если тот осмелился выйти из чата."""
     if game is None:
         return

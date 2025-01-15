@@ -163,9 +163,9 @@ def get_room_status(game: UnoGame) -> str:
         )
 
     if game.rules.single_shotgun:
-        shothun_stats = f"🔫 <b>Стреляли</b>: {game.shotgun_current} / 8"
+        shotgun_stats = f"🔫 <b>Стреляли</b>: {game.shotgun_current} / 8"
     else:
-        shothun_stats = ""
+        shotgun_stats = ""
 
     now = datetime.now()
     game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
@@ -179,7 +179,7 @@ def get_room_status(game: UnoGame) -> str:
         f"{get_room_rules(game)}\n"
         f"⏳ <b>Игра длится</b> {game_delta}\n"
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
-        f"{len(game.deck.used_cards)} использовано.\n{shothun_stats}"
+        f"{len(game.deck.used_cards)} использовано.\n{shotgun_stats}"
     )
 
 def end_game_message(game: UnoGame) -> str:
