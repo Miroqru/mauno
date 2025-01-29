@@ -110,20 +110,7 @@ class Player:
         card = self.hand.pop(card_index)
         self.game.process_turn(card)
 
-    def get_cover_cards(self) -> SortedCards:
-        """Возвращает отсортированный список карт из руки пользователя.
-
-        Карты делятся на те, которыми он может покрыть и которыми не может
-        покрыть текущую верхнюю карту.
-        """
-        top = self.game.deck.top
-        logger.debug("Last card was {}", top)
-        self.bluffing = False
-        if isinstance(top, TakeFourCard) and self.game.take_counter:
-            return SortedCards([], self.hand)
-        if self.game.state == GameState.SHOTGUN:
-            return SortedCards([], self.hand)
-
+    def _sort_hand_cards(self, top) -> SortedCards:
         cover = []
         uncover = []
         for card, can_cover in top.get_cover_cards(self.hand):
@@ -145,6 +132,48 @@ class Player:
             )
 
         return SortedCards(sorted(cover), sorted(uncover))
+
+    def _get_equal_cards(self, top) -> SortedCards:
+        cover = []
+        uncover = []
+        for card in self.hand:
+            if card != top:
+                uncover.append(card)
+                continue
+            if (
+                isinstance(top, TakeCard)
+                and self.game.take_counter
+                and not isinstance(card, TakeCard)
+            ):
+                uncover.append(card)
+                continue
+
+            cover.append(card)
+            self.bluffing = (
+                self.bluffing
+                or card.color == self.game.deck.top.color
+            )
+
+        return SortedCards(sorted(cover), sorted(uncover))
+
+
+    def get_cover_cards(self) -> SortedCards:
+        """Возвращает отсортированный список карт из руки пользователя.
+
+        Карты делятся на те, которыми он может покрыть и которыми не может
+        покрыть текущую верхнюю карту.
+        """
+        top = self.game.deck.top
+        logger.debug("Last card was {}", top)
+        self.bluffing = False
+        if isinstance(top, TakeFourCard) and self.game.take_counter:
+            return SortedCards([], self.hand)
+        if self.game.state == GameState.SHOTGUN:
+            return SortedCards([], self.hand)
+
+        if self.game.rules.intervention and self.game.player != self:
+            return self._get_equal_cards(top)
+        return self._sort_hand_cards(top)
 
 
     # Обработка событий

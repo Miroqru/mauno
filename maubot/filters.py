@@ -13,6 +13,7 @@ from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
 
 
+# TODO: Возможно он ладе не работает нормально, да вот только почему??
 class NowPlaying(Filter):
     """Фильтр текущего игрока.
 
