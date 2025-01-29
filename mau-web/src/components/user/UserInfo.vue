@@ -12,7 +12,7 @@ import { RouterLink } from 'vue-router';
       <div class="font-bold text-xl m-2">Milinuri</div>
       <div class="flex text-center gap-4 justify-center text-stone-400">
         <div class="flex gap-1">100 <Gem /></div>
-        <RouterLink to="/leaders">3 место</RouterLink>
+        <RouterLink to="/top">3 место</RouterLink>
       </div>
     </div>
   </section>

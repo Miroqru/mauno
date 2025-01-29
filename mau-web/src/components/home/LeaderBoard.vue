@@ -5,7 +5,7 @@ import UserStatus from './UserStatus.vue';
 
 <template>
   <section class="bg-stone-800 p-2 m-2 rounded-lg">
-    <CardHeader name="Лучшие игроки" to="/lobby" />
+    <CardHeader name="Лучшие игроки" to="/top" />
 
     <UserStatus name="Qq Uwu" :gems="3578" />
     <UserStatus name="Miroq" :gems="1724" />
