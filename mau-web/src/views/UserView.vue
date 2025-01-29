@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import UserInfo from '@/components/user/UserInfo.vue';
+import HomeButton from '../components/buttons/HomeButton.vue';
+import UserStats from '../components/user/UserStats.vue';
+
+</script>
+
 <template>
-  <h1>User</h1>
+  <UserInfo />
+  <UserStats />
+
+  <HomeButton />
 </template>
