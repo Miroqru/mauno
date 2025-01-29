@@ -77,8 +77,19 @@ async def catch_errors(event: ErrorEvent) -> None:
     """Простой обработчик для ошибок."""
     logger.warning(event)
     logger.exception(event.exception)
-    # await event.update.message.answer("Что-то явно пошло не по плану.")
 
+    if event.update.callback_query:
+        message = event.update.callback_query.message
+    elif event.update.message:
+        message = event.update.message
+    else:
+        message = None
+
+    if message is not None:
+        await message.answer(text=(
+            "❌ <b>Что-то явно пошло не по плану...</b>\n\n"
+            f"{event.exception}"
+        ))
 
 # Главная функция запуска бота
 # ============================
