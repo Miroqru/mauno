@@ -42,6 +42,7 @@ class GameRules:
     single_shotgun: bool = False
     ahead_of_curve: bool = False
     side_effect: bool = False
+    intervention: bool = False
 
 @dataclass(frozen=True, slots=True)
 class Rule:
@@ -61,8 +62,9 @@ RULES = (
     Rule("choose_random_color", "🎨 Случайный цвет"),
     Rule("random_color", "🎨 Какой цвет дальше?"),
     Rule("debug_cards", "🦝 Отладочные карты!"),
-    Rule("ahead_of_curve", "🔪 На опережение"),
     Rule("side_effect", "🌀 Побочный выброс"),
+    Rule("ahead_of_curve", "🔪 На опережение 🔧"),
+    Rule("intervention", "😈 Вмешательство 🔧")
 )
 
 TWIST_HAND_NUM = 2

@@ -128,7 +128,7 @@ class BaseCard:
         for card in hand:
             yield (card, self.can_cover(card))
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Выполняет способность карты.
 
         У каждой карты есть свой способность.
@@ -144,7 +144,7 @@ class BaseCard:
         logger.debug("Used card {} in chat {}", self, game.chat_id)
 
 
-    def __call__(self, game: UnoGame) -> None:
+    def __call__(self, game: 'UnoGame') -> None:
         """Синтаксический сахар для вызова действия карты.
 
         Позволяет использовать способность этой карты.
@@ -206,7 +206,7 @@ class TurnCard(BaseCard):
         self.value = value
         self.cost = 20
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Пропускает ход для следующего игрока.
 
         Args:
@@ -231,7 +231,7 @@ class ReverseCard(BaseCard):
         super().__init__(color, CardType.REVERSE)
         self.cost = 20
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Разворачивает очерёдность ходов для игры.
 
         Args:
@@ -262,7 +262,7 @@ class TakeCard(BaseCard):
         self.value = value
         self.cost = 20
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -289,7 +289,7 @@ class ChooseColorCard(BaseCard):
         super().__init__(CardColor.BLACK, CardType.CHOOSE_COLOR)
         self.cost = 50
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -333,7 +333,7 @@ class TakeFourCard(BaseCard):
         self.value = value
         self.cost = 50
 
-    def use_card(self, game: UnoGame) -> None:
+    def use_card(self, game: 'UnoGame') -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:

@@ -49,12 +49,17 @@ async def process_card_handler(result: ChosenInlineResult,
     logger.info("Process result {} in game {}", result, game)
     # Пропускаем если нам передали не действительные значения игрока и игры
     # Нам не нужно повторно отправлять сообщения если это статус игры
-    if (player is None
-        or game is None
-        or result.result_id in ("status", "nogame")
-        or re.match(r"status:\d", result.result_id)
+    if any(
+        player is None,
+        game is None,
+        result.result_id in ("status", "nogame"),
+        re.match(r"status:\d", result.result_id)
     ):
         return
+
+    if player != game.player:
+        game.journal.add(f"😈 {player.user.mention_html()} вмешался в игру.")
+        game.set_current_player(player)
 
     if result.result_id == "pass":
         game.next_turn()

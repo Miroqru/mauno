@@ -186,7 +186,7 @@ def get_all_hand_cards(
 def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
-    if not player.is_current:
+    if not player.is_current and not player.game.rules.intervention:
         return get_all_hand_cards(player)
 
     elif player.game.state == GameState.CHOOSE_COLOR:
@@ -203,7 +203,7 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
                 "🃏 Пропускаю."
             )))
         ]
-    else:
+    elif player.is_current:
         if player.game.take_counter:
             take_message = (
                 f"🃏 Беру {player.game.take_counter} "
@@ -219,6 +219,8 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
                 take_message
             )))
         ]
+    else:
+        result = []
 
     if (isinstance(player.game.deck.top, TakeFourCard)
         and player.game.take_counter
