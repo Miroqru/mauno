@@ -2,10 +2,10 @@
 
 import type { User } from './types'
 
-function getMe(): User {
+export function getMe(): User {
   return {
     name: 'Milinuri',
-    avatar: 'https://placewaifu.com/image/200',
+    avatar: 'https://yt3.googleusercontent.com/T1ktOCyx03sO3RztTkblKrgmP2AWB9S4MHp4uvJyzJihXDtOJ5112pXDcb--tisSt5Gub6pC=s900-c-k-c0x00ffffff-no-rj',
     gems: 3720,
     playCount: 312,
     winCount: 112,

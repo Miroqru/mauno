@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CardHeader from '@/components/CardHeader.vue'
+import CardHeader from '@/components/home/CardHeader.vue'
 import UserStatus from './UserStatus.vue'
 </script>
 
