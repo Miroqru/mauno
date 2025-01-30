@@ -15,9 +15,9 @@ const router = createRouter({
       component: () => import("@/views/UserView.vue")
     },
     {
-      path: '/lobby',
-      name: 'lobby',
-      component: () => import("@/views/LobbyListView.vue")
+      path: '/rooms',
+      name: 'rooms',
+      component: () => import("@/views/RoomListView.vue")
     },
     {
       path: '/challenges',
@@ -35,11 +35,10 @@ const router = createRouter({
       component: () => import("@/views/LeaderboardView.vue")
     },
     {
-      path: '/lobby/:id',
-      name: 'lobby',
-      component: () => import("@/views/LobbyView.vue")
+      path: '/room/:id',
+      name: 'room',
+      component: () => import("@/views/RoomView.vue")
     },
-
   ],
 })
 

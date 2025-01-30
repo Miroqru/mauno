@@ -5,7 +5,7 @@ import LobbyCard from './LobbyCard.vue';
 
 <template>
   <section class="bg-stone-800 p-2 m-2 rounded-lg">
-    <CardHeader name="Сейчас играют" to="/lobby" />
+    <CardHeader name="Сейчас играют" to="/rooms" />
 
     <LobbyCard />
     <LobbyCard />
