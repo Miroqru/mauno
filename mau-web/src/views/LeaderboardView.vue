@@ -16,13 +16,15 @@ import TopRecord from '../components/leaderboard/TopRecord.vue';
     <h2 class="text-xl mb-2 font-bold">Таблица лидеров</h2>
     <div class="text-stone-3003">Все эти игроки добились успеха упорным трудом. И вы можете быть среди них.</div>
   </section>
-  <Filters />
 
   <section class="h-[60vh] overflow-auto mb-4">
     <TopRecord v-for="record in records" :key="record.index" :index="record.index" :name="record.name" :value="record.value"/>
   </section>
 
-  <TopRecord :index="172" name="Milinuri" :value="100" class="border-2 border-stone-700 bg-linear-160 from-amber-300/30" />
+  <RouterLink to="/me">
+    <TopRecord :index="172" name="Milinuri" :value="100" class="border-2 border-stone-700 bg-linear-160 from-amber-300/30" />
+  </RouterLink>
+  <Filters />
 
   <HomeButton />
 </template>
