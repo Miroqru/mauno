@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import CardHeader from '@/components/CardHeader.vue';
-import UserStatus from './UserStatus.vue';
+import CardHeader from '@/components/CardHeader.vue'
+import UserStatus from './UserStatus.vue'
 </script>
 
 <template>

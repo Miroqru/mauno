@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import UnoCard from './UnoCard.vue';
-
+import UnoCard from './UnoCard.vue'
 </script>
 
 <template>

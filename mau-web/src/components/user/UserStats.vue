@@ -16,7 +16,5 @@
       <div>Разыграно карт</div>
       <div>1832</div>
     </div>
-
-
-</section>
+  </section>
 </template>

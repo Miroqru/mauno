@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { Circle, CheckCircle } from 'lucide-vue-next';
+import { Circle, CheckCircle } from 'lucide-vue-next'
 
-import RangeSelector from './RangeSelector.vue';
-import { ref } from 'vue';
+import RangeSelector from './RangeSelector.vue'
+import { ref } from 'vue'
 
-const isPrivate = ref(true);
-const maxPlayers = ref(5);
-const minPlayers = ref(2);
-
+const isPrivate = ref(true)
+const maxPlayers = ref(5)
+const minPlayers = ref(2)
 </script>
 
 <template>
@@ -26,7 +25,6 @@ const minPlayers = ref(2);
       <div>Максимум игроков</div>
       <RangeSelector :value="maxPlayers" />
     </div>
-
 
     <div class="mb-2 justify-between flex">
       <div>Минимум игроков</div>

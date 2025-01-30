@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import HomeButton from '@/components/buttons/HomeButton.vue';
-import RoomButtons from '../components/roomlist/RoomButtons.vue';
-import GameRooms from '../components/roomlist/GameRooms.vue';
-
+import HomeButton from '@/components/buttons/HomeButton.vue'
+import RoomButtons from '../components/roomlist/RoomButtons.vue'
+import GameRooms from '../components/roomlist/GameRooms.vue'
 </script>
 
 <template>

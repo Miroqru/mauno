@@ -1,16 +1,16 @@
 <script setup lang="ts">
-  const props = defineProps<{
-    name: string
-    image: string
-    active?: boolean
-  }>()
+const props = defineProps<{
+  name: string
+  image: string
+  active?: boolean
+}>()
 
-  let imgSrc = '';
-  if (props.active) {
-    imgSrc = `/progressive/${props.image}.png`
-  } else {
-    imgSrc = `/progressive_lowsat/${props.image}.png`
-  }
+let imgSrc = ''
+if (props.active) {
+  imgSrc = `/progressive/${props.image}.png`
+} else {
+  imgSrc = `/progressive_lowsat/${props.image}.png`
+}
 </script>
 
 <template>

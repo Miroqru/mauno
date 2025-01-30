@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { Shuffle } from 'lucide-vue-next';
+import { Shuffle } from 'lucide-vue-next'
 </script>
 
 <template>

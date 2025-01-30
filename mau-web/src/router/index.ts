@@ -12,32 +12,32 @@ const router = createRouter({
     {
       path: '/me',
       name: 'user',
-      component: () => import("@/views/UserView.vue")
+      component: () => import('@/views/UserView.vue'),
     },
     {
       path: '/rooms',
       name: 'rooms',
-      component: () => import("@/views/RoomListView.vue")
+      component: () => import('@/views/RoomListView.vue'),
     },
     {
       path: '/challenges',
       name: 'challenges',
-      component: () => import("@/views/ChallengesView.vue")
+      component: () => import('@/views/ChallengesView.vue'),
     },
     {
       path: '/game/:id',
       name: 'game',
-      component: () => import("@/views/GameView.vue")
+      component: () => import('@/views/GameView.vue'),
     },
     {
       path: '/top',
       name: 'leaderboard',
-      component: () => import("@/views/LeaderboardView.vue")
+      component: () => import('@/views/LeaderboardView.vue'),
     },
     {
       path: '/room/:id',
       name: 'room',
-      component: () => import("@/views/RoomView.vue")
+      component: () => import('@/views/RoomView.vue'),
     },
   ],
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ChevronRightCircle } from 'lucide-vue-next';
+import { ChevronRightCircle } from 'lucide-vue-next'
 </script>
 
 <template>

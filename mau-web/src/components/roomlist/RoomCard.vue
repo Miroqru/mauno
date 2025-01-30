@@ -19,6 +19,8 @@ const props = defineProps<{
     <div class="mr-4 h-[24px] m-auto text-stone-300">
       {{ props.players }}/{{ props.maxPlayers }}
     </div>
-    <div class="inline-flex gap-1 mr-2 text-middle m-auto text-teal-200">{{ props.crystals }} <Gem :size="24" /></div>
+    <div class="inline-flex gap-1 mr-2 text-middle m-auto text-teal-200">
+      {{ props.crystals }} <Gem :size="24" />
+    </div>
   </div>
 </template>

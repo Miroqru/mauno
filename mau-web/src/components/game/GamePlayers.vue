@@ -19,7 +19,6 @@ const players = [
     active: true,
     cards: 5,
   },
-
 ]
 </script>
 

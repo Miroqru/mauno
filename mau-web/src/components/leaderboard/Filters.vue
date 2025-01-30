@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import FilterButton from './FilterButton.vue';
-
+import FilterButton from './FilterButton.vue'
 </script>
 
 <template>

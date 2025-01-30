@@ -1,10 +1,10 @@
 <script setup lang="ts">
-  import { ChevronRight } from 'lucide-vue-next';
+import { ChevronRight } from 'lucide-vue-next'
 
-  const props = defineProps<{
-    name: string
-    to: string
-  }>()
+const props = defineProps<{
+  name: string
+  to: string
+}>()
 </script>
 
 <template>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import RoomRule from "./RoomRule.vue";
-  const rules = [
-    {name: "Дикие карты", status: false},
-    {name: "Общий револьвер", status: true},
-    {name: "На опережение", status: false},
-    {name: "Вмешательство", status: false},
-    {name: "Побочный выброс", status: false}
-  ]
+import RoomRule from './RoomRule.vue'
+const rules = [
+  { name: 'Дикие карты', status: false },
+  { name: 'Общий револьвер', status: true },
+  { name: 'На опережение', status: false },
+  { name: 'Вмешательство', status: false },
+  { name: 'Побочный выброс', status: false },
+]
 </script>
 
 <template>

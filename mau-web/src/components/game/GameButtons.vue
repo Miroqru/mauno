@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import GameSettings from './buttons/GameSettings.vue';
-import NextTurn from './buttons/NextTurn.vue';
-import TakeCards from './buttons/TakeCards.vue';
-
+import GameSettings from './buttons/GameSettings.vue'
+import NextTurn from './buttons/NextTurn.vue'
+import TakeCards from './buttons/TakeCards.vue'
 </script>
 
 <template>

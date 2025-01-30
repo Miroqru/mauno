@@ -1,6 +1,6 @@
 <script setup lang="ts">
-  import CardHeader from '@/components/CardHeader.vue';
-import LobbyCard from './LobbyCard.vue';
+import CardHeader from '@/components/CardHeader.vue'
+import LobbyCard from './LobbyCard.vue'
 </script>
 
 <template>

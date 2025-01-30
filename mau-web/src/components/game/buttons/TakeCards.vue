@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { BookDown } from 'lucide-vue-next';
+import { BookDown } from 'lucide-vue-next'
 </script>
 
 <template>

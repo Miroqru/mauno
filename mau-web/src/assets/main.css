@@ -1,11 +1,10 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 body {
   min-height: 100vh;
   color: var(--color-stone-100);
   background: var(--color-stone-900);
 }
-
 
 #app {
   max-width: 1280px;
