@@ -12,7 +12,7 @@ const {user} = defineProps<{
 <template>
   <RouterLink
     to="/me"
-    class="p-2 flex justify-between gap-2 my-4 bg-linear-160 from-pink-400/50 rounded-xl"
+    class="p-2 flex justify-between gap-2 my-4 bg-linear-160 from-pink-400/50 rounded-xl transition border-2 border-stone-800 hover:border-stone-600"
   >
     <div class="text-middle my-auto">
       <h2 class="color-stone-800 font-bold text-lg">{{user.name}}</h2>

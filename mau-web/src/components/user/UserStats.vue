@@ -7,7 +7,7 @@ const {user} = defineProps<{
 </script>
 
 <template>
-  <section class="p-2 border-2 rounded-md border-stone-700">
+  <section class="p-2 rounded-md bg-stone-800">
     <h2 class="font-bold text-xl text-center">Статистика пользователя</h2>
 
     <div class="flex justify-between p-2">
