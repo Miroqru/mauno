@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
 import { Gem, Sparkle } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
@@ -9,6 +10,8 @@ import LogOutButton from '../buttons/LogOutButton.vue'
 const { user } = defineProps<{
   user: User
 }>()
+
+const userStore = useUserStore()
 </script>
 
 <template>
@@ -17,7 +20,9 @@ const { user } = defineProps<{
   >
     <img :src="user.avatar" class="w-[128px] h-[128px] rounded-full p-2" />
     <div class="text-middle m-auto">
-      <div class="inline-flex gap-2 font-bold text-xl m-2">{{ user.name }}<LogOutButton /></div>
+      <div class="inline-flex gap-2 font-bold text-xl m-2">
+        {{ user.name }}<LogOutButton v-if="user.id == userStore.userId" />
+      </div>
       <div class="flex text-center gap-4 justify-center text-stone-400">
         <div class="flex gap-1">{{ user.gems }} <Gem /></div>
         <RouterLink class="flex gap-1" to="/top">3 место <Sparkle /></RouterLink>
