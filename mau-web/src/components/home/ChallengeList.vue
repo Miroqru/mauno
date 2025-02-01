@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { getChallenges } from '@/api'
 import CardHeader from '@/components/home/CardHeader.vue'
-import ChallengeCard from './ChallengeCard.vue'
+import { ref } from 'vue'
+import ChallengeCard from './ChallengeCard.vue' /* PartiallyEnd: #3632/scriptSetup.vue */
+
+const challenges = ref(getChallenges())
 </script>
 
 <template>
-  <section class="bg-stone-800 p-2 m-2 rounded-lg">
+  <section class="bg-stone-800 p-2 my-2 mb-20 rounded-lg md:align-start md:mb-auto">
     <CardHeader name="Задания дня" to="/challenges" />
 
-    <ChallengeCard desc="Сыграть 5 раз" :now="2" :total="5" :reward="15" />
-    <ChallengeCard desc="Сыграть 70 карт" :now="38" :total="70" :reward="50" />
-    <ChallengeCard desc="Выбросить пару +2 подряд" :now="2" :total="7" :reward="120" />
+    <ChallengeCard v-for="challenge in challenges" :key="challenge.name" :challenge="challenge" />
   </section>
 </template>

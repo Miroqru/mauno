@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { User } from '@/types';
+import type { User } from '@/types'
 
-const {user} = defineProps<{
+const { user } = defineProps<{
   user: User
 }>()
 </script>

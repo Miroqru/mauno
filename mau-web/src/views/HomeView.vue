@@ -1,25 +1,37 @@
 <script setup lang="ts">
-import UserCard from '@/components/user/UserCard.vue'
-import NewGame from '../components/buttons/NewGame.vue'
-import RandomGame from '../components/buttons/RandomGame.vue'
-import LobbyList from '../components/home/LobbyList.vue'
-import ChallengeList from '../components/home/ChallengeList.vue'
-import LeaderBoard from '../components/home/LeaderBoard.vue'
-import { ref } from 'vue'
 import { getMe } from '@/api'
+import NewGame from '@/components/buttons/NewGame.vue'
+import RandomGame from '@/components/buttons/RandomGame.vue'
+import ChallengeList from '@/components/home/ChallengeList.vue'
+import LeaderBoard from '@/components/home/LeaderBoard.vue'
+import RoomList from '@/components/home/RoomList.vue'
+import UserCard from '@/components/user/UserCard.vue'
+
+import { ref } from 'vue'
 
 const me = ref(getMe())
+
+const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>
 
 <template>
   <UserCard :user="me" />
 
-  <LobbyList />
+  <div class="flex gap-2">
+    <section v-if="!isMobile" class="p-2 m-2">
+      <NewGame :show-name="true" />
+      <RandomGame :show-name="true" />
+    </section>
+    <LeaderBoard class="flex-1" />
+  </div>
+
   <div class="md:flex md:justify-around md:gap-2">
-    <LeaderBoard class="flex-1"/>
+    <RoomList class="flex-1" />
     <ChallengeList />
   </div>
 
-  <NewGame />
-  <RandomGame />
+  <section v-if="isMobile" class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
+    <RandomGame />
+    <NewGame />
+  </section>
 </template>
