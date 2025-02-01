@@ -1,41 +1,29 @@
 <script setup lang="ts">
+import { getRooms } from '@/api'
+import { useSettingsStore } from '@/stores/settings'
+import type { Room } from '@/types'
+import { computed, ref } from 'vue'
 import RoomCard from './RoomCard.vue'
+import RoomFilters from './RoomFilters.vue'
 
-const rooms = [
-  {
-    name: 'Qq Uwu',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    players: 1,
-    maxPlayers: 2,
-    crystals: 75,
-  },
-  {
-    name: 'Miroq',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    players: 2,
-    maxPlayers: 5,
-    crystals: 20,
-  },
-  {
-    name: 'Rumia',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    players: 1,
-    maxPlayers: 3,
-    crystals: 250,
-  },
-]
+const settingState = useSettingsStore()
+const rooms = ref(getRooms())
+
+const sortedRooms = computed(() => {
+  let res: Room[] = []
+  if (settingState.roomFilter.sortBy == 'gems') {
+    res = rooms.value.sort((a, b) => b.gems - a.gems)
+  } else if (settingState.roomFilter.sortBy == 'players') {
+    res = rooms.value.sort((a, b) => b.players.length - a.players.length)
+  }
+
+  return settingState.roomFilter.invert ? res.slice().reverse() : res
+})
 </script>
 
 <template>
   <section class="my-4">
-    <RoomCard
-      v-for="[index, room] in rooms.entries()"
-      :key="index"
-      :name="room.name"
-      :avatar-url="room.avatarUrl"
-      :players="room.players"
-      :max-players="room.maxPlayers"
-      :crystals="room.crystals"
-    />
+    <RoomFilters />
+    <RoomCard v-for="room in sortedRooms" :key="room.id" :room="room" />
   </section>
 </template>

@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { Plus, Shuffle } from 'lucide-vue-next'
+import HomeButton from '../buttons/HomeButton.vue'
+import NewGame from '../buttons/NewGame.vue'
+import RandomGame from '../buttons/RandomGame.vue'
+
+const { mobile } = defineProps<{ mobile: boolean }>()
 </script>
 
 <template>
-  <section class="flex justify-around my-4">
-    <button class="bg-stone-700 p-4 rounded-full flex gap-2"><Plus :size="24" /> Создать</button>
-
-    <button class="bg-stone-700 p-4 rounded-full flex gap-2">
-      <Shuffle :size="24" /> Случайная
-    </button>
+  <section v-if="mobile" class="flex justify-around my-4">
+    <NewGame :show-name="true" />
+    <RandomGame :show-name="true" />
+  </section>
+  <section v-else class="p-2 border-2 border-stone-700 rounded-md">
+    <HomeButton />
+    <NewGame :show-name="true" />
+    <RandomGame :show-name="true" />
   </section>
 </template>
