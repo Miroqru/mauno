@@ -107,7 +107,7 @@ const rooms: Room[] = [
   {
     id: 'r2',
     owner: 'a5',
-    players: ['a5'],
+    players: ['a5', 'm1'],
     minPlayers: 2,
     maxPlayers: 2,
     gems: 25,
@@ -161,6 +161,14 @@ export function getRooms() {
     }
   }
   return res
+}
+
+export function createRoom() {
+  return 'r0'
+}
+
+export function getRandomRoom() {
+  return 'r2'
 }
 
 // Таблица лидеров -----------------------------------------------------
