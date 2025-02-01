@@ -1,8 +1,8 @@
-import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { ref, type Ref } from 'vue'
 
-export const useSettingsState = defineStore('settings', () => {
-  const topFilter = ref('crystals')
+export const useSettingsStore = defineStore('settings', () => {
+  const topFilter: Ref<string, string> = ref('gems')
 
   return { topFilter }
 })

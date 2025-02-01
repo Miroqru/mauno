@@ -177,6 +177,39 @@ export function getTopGems() {
   return users.sort((a, b) => b.gems - a.gems)
 }
 
+export function getTopGames() {
+  return users.sort((a, b) => b.playCount - a.playCount)
+}
+
+export function getTopCards() {
+  return users.sort((a, b) => b.cardsCount - a.cardsCount)
+}
+
+export function getTopWins() {
+  return users.sort((a, b) => b.winCount - a.winCount)
+}
+
+export function getUserTopIndex(userid: string, mode: string) {
+  let leaders = []
+  if (mode == 'gems') {
+    leaders = getTopGems()
+  } else if (mode == 'games') {
+    leaders = getTopGames()
+  } else if (mode == 'wind') {
+    leaders = getTopWins()
+  } else {
+    leaders = getTopCards()
+  }
+
+  for (const [index, user] of leaders.entries()) {
+    if (user.id === userid) {
+      return index + 1
+    }
+  }
+
+  return 0
+}
+
 // Задания -------------------------------------------------------------
 
 export function getChallenges() {

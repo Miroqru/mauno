@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getUserTopIndex } from '@/api'
 import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
 import { Gem, Sparkle } from 'lucide-vue-next'
@@ -12,6 +13,7 @@ const { user } = defineProps<{
 }>()
 
 const userStore = useUserStore()
+const userTop = getUserTopIndex(user.id, 'gems')
 </script>
 
 <template>
@@ -25,7 +27,7 @@ const userStore = useUserStore()
       </div>
       <div class="flex text-center gap-4 justify-center text-stone-400">
         <div class="flex gap-1">{{ user.gems }} <Gem /></div>
-        <RouterLink class="flex gap-1" to="/top">3 место <Sparkle /></RouterLink>
+        <RouterLink class="flex gap-1" to="/top">{{ userTop }} место <Sparkle /></RouterLink>
       </div>
     </div>
   </section>

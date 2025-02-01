@@ -6,30 +6,29 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
+      name: 'lending',
       component: MainVew,
     },
     {
       path: '/home/',
-      name: 'Home',
+      name: 'home',
       component: () => import('@/views/HomeView.vue'),
     },
     {
       path: '/login',
-      name: 'Login',
+      name: 'login',
       component: () => import('@/views/LoginView.vue'),
-    },
-    {
-      path: '/me',
-      name: 'user',
-      component: () => import('@/views/UserView.vue'),
     },
     {
       path: '/user/:id',
       name: 'user',
       component: () => import('@/views/UserView.vue'),
     },
-
+    {
+      path: '/me',
+      name: 'self',
+      component: () => import('@/views/UserView.vue'),
+    },
     {
       path: '/rooms',
       name: 'rooms',

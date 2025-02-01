@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getUserTopIndex } from '@/api'
 import type { User } from '@/types'
 import { Gem, Sparkle } from 'lucide-vue-next'
 
@@ -6,7 +7,7 @@ const { user } = defineProps<{
   user: User
 }>()
 
-// TODO: Подгрузка информации о месте пользователя
+const userTop = getUserTopIndex(user.id, 'gems')
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const { user } = defineProps<{
       <h2 class="color-stone-800 font-bold text-lg">{{ user.name }}</h2>
       <div class="flex gap-2">
         <div class="flex text-stone-400 gap-1">{{ user.gems }} <Gem /></div>
-        <div class="flex text-stone-400 gap-1">3 место <Sparkle /></div>
+        <div class="flex text-stone-400 gap-1">{{ userTop }} место <Sparkle /></div>
       </div>
     </div>
     <img :src="user.avatar" class="w-[64px] h-[64px] rounded-full" />
