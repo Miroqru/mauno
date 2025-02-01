@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { getMe } from '@/api'
 import NewGame from '@/components/buttons/NewGame.vue'
 import RandomGame from '@/components/buttons/RandomGame.vue'
 import ChallengeList from '@/components/home/ChallengeList.vue'
 import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
+import { useUserStore } from '@/stores/user'
 
 import { ref } from 'vue'
 
-const me = ref(getMe())
+const userStore = useUserStore()
+const me = ref(userStore.getMe())
 
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { getMe } from '@/api'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
+import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
 import HomeButton from '../components/buttons/HomeButton.vue'
 import GetGems from '../components/user/GetGems.vue'
 import UserStats from '../components/user/UserStats.vue'
 
-const me = ref(getMe())
+const userStore = useUserStore()
+const me = ref(userStore.getMe())
 </script>
 
 <template>
