@@ -9,6 +9,7 @@ import UserCards from '@/components/game/UserCards.vue' /* PartiallyEnd: #3632/s
 <template>
   <GamePlayers />
   <GameTable />
+
   <GameChat />
   <GameButtons />
   <UserCards />
