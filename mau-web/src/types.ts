@@ -9,6 +9,7 @@
 // cardCount - сколько карт разыграно
 export interface User {
   id: string
+  username: string
   name: string
   avatar: string
   gems: number
