@@ -50,6 +50,6 @@ const topIndex = computed(() => getUserTopIndex(me.id, settingState.topFilter))
   <Filters />
 
   <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
-    <HomeButton />
+    <HomeButton :show-name="true" />
   </section>
 </template>

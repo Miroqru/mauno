@@ -163,6 +163,14 @@ export function getRooms() {
   return res
 }
 
+export function getRoomById(roomID: string) {
+  for (const room of rooms) {
+    if (room.id == roomID) {
+      return room
+    }
+  }
+}
+
 export function createRoom() {
   return 'r0'
 }

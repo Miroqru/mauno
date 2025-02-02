@@ -1,10 +1,11 @@
-import { getUserById } from '@/api'
+import { getRoomById, getUserById } from '@/api'
 import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   const userId: Ref<string | null, string | null> = ref(localStorage.getItem('userId'))
   const userToken: Ref<string | null, string | null> = ref(localStorage.getItem('userToken'))
+  const roomId: Ref<string | null, string | null> = ref(localStorage.getItem('roomId'))
 
   function logIn(id: string, token: string) {
     localStorage.setItem('userId', id)
@@ -18,6 +19,7 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('userToken')
     userId.value = null
     userToken.value = null
+    leaveRoom()
   }
 
   function getMe() {
@@ -31,5 +33,37 @@ export const useUserStore = defineStore('user', () => {
     return userData
   }
 
-  return { userId, userToken, logIn, logOut, getMe }
+  function joinRoom(room: string) {
+    localStorage.setItem('roomId', room)
+    roomId.value = room
+  }
+
+  function leaveRoom() {
+    localStorage.removeItem('roomId')
+    roomId.value = null
+  }
+
+  function getRoom() {
+    if (!roomId.value) {
+      return null
+    }
+    const room = getRoomById(roomId.value)
+    console.log(room)
+    if (!room) {
+      leaveRoom()
+    }
+    return room
+  }
+
+  return {
+    userId,
+    userToken,
+    roomId,
+    logIn,
+    logOut,
+    getMe,
+    joinRoom,
+    leaveRoom,
+    getRoom,
+  }
 })

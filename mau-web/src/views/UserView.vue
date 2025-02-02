@@ -28,5 +28,5 @@ if (!route.params.id) {
     <GetGems />
   </div>
 
-  <HomeButton />
+  <HomeButton :show-name="true" />
 </template>

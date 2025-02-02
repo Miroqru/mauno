@@ -10,7 +10,7 @@ const rules = [
 </script>
 
 <template>
-  <section class="my-4">
+  <section class="my-4 md:p-2 md:border-2 md:border-stone-700 rounded-md">
     <h2 class="text-xl font-bold mb-2">Игровые правила</h2>
     <RoomRule v-for="rule in rules" :key="rule.name" :name="rule.name" :status="rule.status" />
   </section>

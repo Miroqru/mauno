@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { Circle, CheckCircle } from 'lucide-vue-next'
+import { Check, CheckCircle, Circle } from 'lucide-vue-next'
 
-import RangeSelector from './RangeSelector.vue'
+import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
+import GemSelector from './GemSelector.vue'
+import RangeSelector from './RangeSelector.vue'
 
-const isPrivate = ref(true)
-const maxPlayers = ref(5)
-const minPlayers = ref(2)
+const userstate = useUserStore()
+const room = ref(userstate.getRoom())
+
+const isPrivate = ref(room.value?.private)
+const maxPlayers = ref(room.value?.maxPlayers)
+const minPlayers = ref(room.value?.minPlayers)
+const gems = ref(room.value?.gems)
 </script>
 
 <template>
-  <section class="my-4">
+  <section class="my-4 md:border-2 md:border-stone-700 rounded-md md:p-2">
     <h2 class="text-xl font-bold mb-2">Настройки комнаты</h2>
 
     <div class="flex gap-2 mb-2">
@@ -21,14 +27,23 @@ const minPlayers = ref(2)
       <div>Приватная комната</div>
     </div>
 
-    <div class="mb-2 justify-between flex">
+    <div class="mb-2 justify-between flex gap-4">
       <div>Максимум игроков</div>
-      <RangeSelector :value="maxPlayers" />
+      <RangeSelector :value="maxPlayers" @update="(newValue) => (maxPlayers = newValue)" />
     </div>
 
-    <div class="mb-2 justify-between flex">
+    <div class="mb-2 justify-between flex gap-4">
       <div>Минимум игроков</div>
-      <RangeSelector :value="minPlayers" />
+      <RangeSelector :value="minPlayers" @update="(newValue) => (minPlayers = newValue)" />
     </div>
+
+    <div class="mb-2 justify-between flex gap-4">
+      <div>Ставка</div>
+      <GemSelector :value="gems" @update="(newValue) => (gems = newValue)" />
+    </div>
+
+    <button class="p-1 bg-stone-700 rounded-lg transition hover:bg-teal-600 flex gao-4">
+      <Check /> Применить
+    </button>
   </section>
 </template>
