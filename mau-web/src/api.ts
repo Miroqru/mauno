@@ -182,17 +182,17 @@ export async function getUser(token: string) {
   })
 }
 
-export function getMyId() {
-  return users[0].username
-}
-
-export function getUserById(username: string): User | null {
-  for (const user of users) {
-    if (user.username == username) {
-      return user
+export function getUserById(username: string) {
+  return useApi('/users/' + username, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then((res) => {
+    if (res.error) {
+      return null
     }
-  }
-  return null
+    return res.data as User
+  })
 }
 
 // Комнаты -------------------------------------------------------------

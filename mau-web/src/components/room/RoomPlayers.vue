@@ -6,10 +6,10 @@ import UserStatus from '../home/UserStatus.vue'
 
 const { players } = defineProps<{ players: string[] }>()
 
-const roomPlayers = computed(() => {
+const roomPlayers = computed(async () => {
   const res = []
   for (const userId of players) {
-    const player = getUserById(userId)
+    const player = await getUserById(userId)
     if (player) {
       res.push(player)
     }

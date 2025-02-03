@@ -3,7 +3,7 @@ import { getUserById } from '@/api'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
-import { ref, type Ref } from 'vue'
+import { onMounted, ref, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 import HomeButton from '../components/buttons/HomeButton.vue'
 import GetGems from '../components/user/GetGems.vue'
@@ -14,11 +14,16 @@ const route = useRoute()
 const userStore = useUserStore()
 
 let user: Ref<User | null, User | null> = ref(null)
+
 if (!route.params.id) {
   user = ref(userStore.getMe())
-} else {
-  user = ref(getUserById(route.params.id as string))
 }
+
+onMounted(async () => {
+  if (route.params.id) {
+    user.value = await getUserById(route.params.id as string)
+  }
+})
 </script>
 
 <template>

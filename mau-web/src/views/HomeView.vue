@@ -8,14 +8,19 @@ import UserCard from '@/components/user/UserCard.vue'
 import { useUserStore } from '@/stores/user'
 
 import { getUserById } from '@/api'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
 import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
 
 const userStore = useUserStore()
 const me = userStore.getMe()
 const room = ref(userStore.getRoom())
-const owner = ref(room.value ? getUserById(room.value?.owner) : null)
+const owner = computed(async () => {
+  if (!room.value) {
+    return null
+  }
+  return await getUserById(room.value?.owner)
+})
 
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>

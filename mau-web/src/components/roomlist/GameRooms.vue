@@ -22,9 +22,9 @@ const sortedRooms = computed(() => {
   return settingState.roomFilter.invert ? res.slice().reverse() : res
 })
 
-function* roomIter(rooms: Room[]) {
+async function* roomIter(rooms: Room[]) {
   for (const room of rooms) {
-    const owner = getUserById(room.owner)
+    const owner = await getUserById(room.owner)
     if (!owner) {
       continue
     }

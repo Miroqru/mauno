@@ -12,12 +12,12 @@ import { useRoute } from 'vue-router'
 const userState = useUserStore()
 const route = useRoute()
 const room = ref(getRoomById(route.params.id as string))
-const owner = computed(() => {
+const owner = computed(async () => {
   if (!room.value) {
     return null
   }
 
-  return getUserById(room.value.owner)
+  return await getUserById(room.value.owner)
 })
 </script>
 

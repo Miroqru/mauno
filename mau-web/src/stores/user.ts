@@ -51,7 +51,6 @@ export const useUserStore = defineStore('user', () => {
       return null
     }
     const room = getRoomById(roomId.value)
-    console.log(room)
     if (!room) {
       leaveRoom()
       return null

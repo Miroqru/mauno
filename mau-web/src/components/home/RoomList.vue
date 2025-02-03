@@ -7,9 +7,9 @@ import CardHeader from './CardHeader.vue'
 
 const rooms = ref(getRooms())
 
-function* roomIter(rooms: Room[]) {
+async function* roomIter(rooms: Room[]) {
   for (const room of rooms) {
-    const owner = getUserById(room.owner)
+    const owner = await getUserById(room.owner)
     if (!owner) {
       continue
     }
