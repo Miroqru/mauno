@@ -8,6 +8,8 @@
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings
 
+from mauserve.users.token import SimpleTokenManager
+
 
 class Config(BaseSettings):
     """Хранит все настройки сервера.
@@ -30,3 +32,5 @@ class Config(BaseSettings):
 
 # Создаём экземпляр настроек
 config = Config(_env_file=".env")
+
+stm = SimpleTokenManager(config.jwt_key, ttl=86_400)

@@ -8,19 +8,17 @@ TortoiseORM предоставляет удобный API для управле�
 Поскольку так будет куда удобнее, чем собирать модели по всему проекту.
 """
 
-import uuid
-
 from tortoise import Model, fields
 
 
-class UserMode(Model):
+class UserModel(Model):
     """Пользователь уно."""
 
-    id = fields.TextField(primary_key=True, default=uuid.uuid4())
-    username = fields.CharField(max_length=16)
+    id = fields.UUIDField(primary_key=True)
+    username = fields.CharField(max_length=16, unique=True)
     name = fields.CharField(max_length=64)
     password_hash = fields.TextField()
-    avatar_url = fields.TextField()
+    avatar_url = fields.TextField(default="")
     gems = fields.IntField(default=100)
     play_count = fields.IntField(default=0)
     win_count = fields.IntField(default=0)
