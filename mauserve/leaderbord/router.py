@@ -1,0 +1,37 @@
+"""Таблица лидеров."""
+
+from enum import StrEnum
+
+from fastapi import APIRouter, Depends
+
+from mauserve.config import stm
+from mauserve.models import UserModel
+from mauserve.schemes import UserData
+
+router = APIRouter(prefix="/leaderboard", tags=["rating"])
+
+
+class CategoryEnum(StrEnum):
+    """Все используемые категории в таблице лидеров."""
+
+    gems = "gems"
+    play_count = "games"
+    win_count = "wins"
+    cards_count = "cards"
+
+
+@router.get("/me/{category}")
+async def get_my_leaderboard_index(
+    category: CategoryEnum, user: UserModel = Depends(stm.read_token)
+) -> int:
+    """Получает таблицу лидеров из базы данных."""
+    position = (await UserModel.filter(gems__gt=user.gems).count()) + 1
+    return position
+
+
+@router.get("/{category}")
+async def get_leaderboard_by_category(category: CategoryEnum) -> list[UserData]:
+    """Получает таблицу лидеров из базы данных."""
+    return await UserData.from_queryset(
+        UserModel.all().order_by("-" + category.name).limit(100)
+    )

@@ -14,6 +14,7 @@ from tortoise import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise
 
 from mauserve.config import config
+from mauserve.leaderbord.router import router as leaderbord_router
 from mauserve.users.router import router as user_router
 
 # Жизненный цикл базы данных
@@ -72,3 +73,4 @@ app = FastAPI(
 
 # Подключает сторонние роутеры
 app.include_router(user_router)
+app.include_router(leaderbord_router)
