@@ -13,7 +13,7 @@ const gemsTop = ref(getTopGems())
     <div class="md:grid md:grid-cols-2 lg:grid-cols-3 md:justify-stretch">
       <UserStatus
         v-for="[index, user] in gemsTop.slice(0, 5).entries()"
-        :key="user.id"
+        :key="user.username"
         :user="user"
         :index="index + 1"
       />

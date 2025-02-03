@@ -1,5 +1,10 @@
 // Общие типы, используемые на сайте
 
+export type UserDataIn = {
+  username: string
+  password: string
+}
+
 // id - Уникальный строковый id пользователя
 // name - имя пользователя
 // avatar - ссылка на аватар
@@ -8,14 +13,13 @@
 // winCount - сколько было побед
 // cardCount - сколько карт разыграно
 export interface User {
-  id: string
   username: string
   name: string
-  avatar: string
+  avatar_url: string
   gems: number
-  playCount: number
-  winCount: number
-  cardsCount: number
+  play_count: number
+  win_count: number
+  cards_count: number
 }
 
 // комнатки, в которых собираются игроки уно

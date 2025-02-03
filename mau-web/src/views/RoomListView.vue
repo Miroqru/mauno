@@ -1,13 +1,22 @@
 <script setup lang="ts">
+import { getUserById } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
+import RoomCard from '@/components/room/RoomCard.vue'
 import GameRooms from '@/components/roomlist/GameRooms.vue'
+import RoomButtons from '@/components/roomlist/RoomButtons.vue'
 import { useUserStore } from '@/stores/user'
+import { computed } from 'vue'
 import { ref } from 'vue'
-import RoomCard from '../components/room/RoomCard.vue' /* PartiallyEnd: #3632/scriptSetup.vue */
-import RoomButtons from '../components/roomlist/RoomButtons.vue'
 
 const userState = useUserStore()
 const room = ref(userState.getRoom())
+const owner = computed(() => {
+  if (!room.value) {
+    return null
+  }
+
+  return getUserById(room.value.owner)
+})
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>
 
@@ -22,7 +31,7 @@ const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
   <div class="md:flex md:gap-2">
     <div>
       <RoomButtons :mobile="isMobile" />
-      <RoomCard v-if="room" :room="room" />
+      <RoomCard v-if="room && owner" :room="room" :owner="owner" />
     </div>
     <GameRooms class="flex-1" />
   </div>

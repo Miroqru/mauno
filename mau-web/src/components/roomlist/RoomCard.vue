@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { getUserById } from '@/api'
-import type { Room } from '@/types'
-import { Gem, User } from 'lucide-vue-next'
+import type { Room, User } from '@/types'
+import { Gem, User2 } from 'lucide-vue-next'
 import UserAvatar from '../user/UserAvatar.vue'
 
-const { room } = defineProps<{ room: Room }>()
-const owner = getUserById(room.owner)
+const { room, owner } = defineProps<{ room: Room; owner: User }>()
 </script>
 
 <template>
@@ -18,7 +16,7 @@ const owner = getUserById(room.owner)
       <div class="text-middle m-auto flex-1 font-bold">{{ owner.name }}</div>
     </div>
     <div class="flex gap-1 mr-4 h-[24px] m-auto text-stone-300">
-      {{ room.players.length }}/{{ room.maxPlayers }}<User />
+      {{ room.players.length }}/{{ room.maxPlayers }}<User2 />
     </div>
     <div class="inline-flex gap-1 mr-2 text-middle m-auto text-teal-200">
       {{ room.gems }} <Gem :size="24" />

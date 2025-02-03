@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { getUserTopIndex } from '@/api'
 import type { User } from '@/types'
-import { Gem, Sparkle } from 'lucide-vue-next'
+import { Gem, Sparkle, User2 } from 'lucide-vue-next'
 
-const { user } = defineProps<{
-  user: User
-}>()
-
-const userTop = getUserTopIndex(user.id, 'gems')
+const { user } = defineProps<{ user: User }>()
+const userTop = getUserTopIndex(user.username, 'gems')
 </script>
 
 <template>
@@ -22,6 +19,7 @@ const userTop = getUserTopIndex(user.id, 'gems')
         <div class="flex text-stone-400 gap-1">{{ userTop }} место <Sparkle /></div>
       </div>
     </div>
-    <img :src="user.avatar" class="w-[64px] h-[64px] rounded-full" />
+    <img v-if="user.avatar_url" :src="user.avatar_url" class="w-[64px] h-[64px] rounded-full" />
+    <User2 v-else class="w-[64px] h-[64px] rounded-full text-stone-300" />
   </RouterLink>
 </template>

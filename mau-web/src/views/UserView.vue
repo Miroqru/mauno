@@ -12,21 +12,34 @@ import UserStats from '../components/user/UserStats.vue'
 const route = useRoute()
 
 const userStore = useUserStore()
-const user: Ref<User | null, User | null> = ref(null)
 
+let user: Ref<User | null, User | null> = ref(null)
 if (!route.params.id) {
-  user.value = userStore.getMe()
+  user = ref(userStore.getMe())
 } else {
-  user.value = getUserById(route.params.id)
+  user = ref(getUserById(route.params.id as string))
 }
 </script>
 
 <template>
-  <UserProfileCard :user="user" />
-  <div class="md:flex md:gap-2">
-    <UserStats :user="user" class="md:flex-1" />
-    <GetGems />
+  <div v-if="user">
+    <UserProfileCard :user="user" />
+    <div class="md:flex md:gap-2">
+      <UserStats :user="user" class="md:flex-1" />
+      <GetGems />
+    </div>
   </div>
 
-  <HomeButton :show-name="true" />
+  <!-- Пока пользователь не успел загрузиться -->
+  <section
+    v-else
+    class="text-center justify-between bg-linear-160 from-violet-400/40 rounded-xl p-2 mb-4"
+  >
+    <h2 class="text-xl mb-2 font-bold">Профиль пользователя</h2>
+    <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
+  </section>
+
+  <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
+    <HomeButton :show-name="true" />
+  </section>
 </template>

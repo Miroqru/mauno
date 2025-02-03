@@ -2,17 +2,18 @@
 import { Check, CheckCircle, Circle } from 'lucide-vue-next'
 
 import { useUserStore } from '@/stores/user'
+import type { Room } from '@/types'
 import { ref } from 'vue'
 import GemSelector from './GemSelector.vue'
 import RangeSelector from './RangeSelector.vue'
 
 const userstate = useUserStore()
-const room = ref(userstate.getRoom())
+const { room } = defineProps<{ room: Room }>()
 
-const isPrivate = ref(room.value?.private)
-const maxPlayers = ref(room.value?.maxPlayers)
-const minPlayers = ref(room.value?.minPlayers)
-const gems = ref(room.value?.gems)
+const isPrivate = ref(room.private)
+const maxPlayers = ref(room.maxPlayers)
+const minPlayers = ref(room.minPlayers)
+const gems = ref(room.gems)
 </script>
 
 <template>

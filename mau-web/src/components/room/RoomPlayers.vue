@@ -22,7 +22,7 @@ const roomPlayers = computed(() => {
   <section class="my-4">
     <h2 class="text-xl font-bold">Игроки</h2>
 
-    <div v-for="player in roomPlayers" :key="player.id" class="flex md:inline-flex gap-2">
+    <div v-for="player in roomPlayers" :key="player.username" class="flex md:inline-flex gap-2">
       <UserStatus class="flex-1" :user="player" />
       <button>
         <CircleX class="text-stone-600 transition hover:text-pink-600" />

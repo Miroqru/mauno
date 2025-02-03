@@ -8,7 +8,7 @@ const { index, user } = defineProps<{ index?: number; user: User }>()
 
 <template>
   <RouterLink
-    :to="'/user/' + user.id"
+    :to="'/user/' + user.username"
     class="flex gap-2 justify-around m-2 bg-stone-800 p-1 rounded-md transition hover:bg-stone-700"
   >
     <div v-if="index" class="text-amber-50 text-middle my-auto">{{ index }}</div>

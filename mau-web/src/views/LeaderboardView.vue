@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { getTopCards, getTopGames, getTopGems, getTopWins, getUserTopIndex } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
+import UserStatus from '@/components/home/UserStatus.vue'
+import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+import type { User } from '@/types'
 import { computed } from 'vue'
-import UserStatus from '../components/home/UserStatus.vue'
-import Filters from '../components/leaderboard/Filters.vue'
 
 const settingState = useSettingsStore()
 const userState = useUserStore()
 
 const records = computed(() => {
-  let leaders = []
+  let leaders: User[] = []
   if (settingState.topFilter == 'gems') {
     leaders = getTopGems()
   } else if (settingState.topFilter == 'games') {
@@ -26,7 +27,13 @@ const records = computed(() => {
 })
 
 const me = userState.getMe()
-const topIndex = computed(() => getUserTopIndex(me.id, settingState.topFilter))
+const topIndex = computed(() => {
+  if (!me.value) {
+    return 0
+  }
+
+  return getUserTopIndex(me.value.username, settingState.topFilter)
+})
 </script>
 
 <template>
@@ -46,8 +53,8 @@ const topIndex = computed(() => getUserTopIndex(me.id, settingState.topFilter))
     />
   </section>
 
-  <UserStatus :user="me" :index="topIndex" class="bg-linear-150 from-amber-700/40" />
-  <Filters />
+  <UserStatus v-if="me" :user="me" :index="topIndex" class="bg-linear-150 from-amber-700/40" />
+  <LeaderboardFilters />
 
   <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
     <HomeButton :show-name="true" />

@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { User } from '@/types'
 
-const { user } = defineProps<{
-  user: User
-}>()
+const { user } = defineProps<{ user: User }>()
 </script>
 
 <template>
@@ -12,17 +10,17 @@ const { user } = defineProps<{
 
     <div class="flex justify-between p-2">
       <div>Всего игр</div>
-      <div>{{ user.playCount }}</div>
+      <div>{{ user.play_count }}</div>
     </div>
 
     <div class="flex justify-between p-2">
       <div>Побед</div>
-      <div>{{ user.winCount }}</div>
+      <div>{{ user.win_count }}</div>
     </div>
 
     <div class="flex justify-between p-2">
       <div>Разыграно карт</div>
-      <div>{{ user.cardsCount }}</div>
+      <div>{{ user.cards_count }}</div>
     </div>
   </section>
 </template>

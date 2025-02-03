@@ -11,7 +11,11 @@ const userState = useUserStore()
 const me = userState.getMe()
 
 const canJoin = computed(
-  () => !userState.roomId && room.players.length < room.maxPlayers && me.gems >= room.gems,
+  () =>
+    !userState.roomId &&
+    room.players.length < room.maxPlayers &&
+    me.value != null &&
+    me.value.gems >= room.gems,
 )
 const canLeave = computed(() => userState.roomId != null && room.id == userState.roomId)
 const canStart = computed(
