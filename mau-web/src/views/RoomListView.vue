@@ -1,19 +1,21 @@
 <script setup lang="ts">
+import { getUserById } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomCard from '@/components/room/RoomCard.vue'
 import GameRooms from '@/components/roomlist/GameRooms.vue'
 import RoomButtons from '@/components/roomlist/RoomButtons.vue'
 import { useUserStore } from '@/stores/user'
-import { computed, ref } from 'vue'
+import type { User } from '@/types'
+import { onMounted, ref, type Ref } from 'vue'
 
 const userState = useUserStore()
 const room = ref(userState.getRoom())
-const owner = computed(async () => {
-  if (!room.value) {
-    return null
-  }
+const owner: Ref<User | null> = ref(null)
 
-  return await etUserById(room.value.owner)
+onMounted(async () => {
+  if (room.value) {
+    owner.value = await getUserById(room.value.owner)
+  }
 })
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>

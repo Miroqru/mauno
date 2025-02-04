@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { getUserTopIndex } from '@/api'
+import { getLeaderboardIndex } from '@/api'
 import type { User } from '@/types'
 import { Gem, Sparkle, User2 } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
 
 const { user } = defineProps<{ user: User }>()
-const userTop = getUserTopIndex(user.username, 'gems')
+const userTop = ref(0)
+
+onMounted(async () => {
+  userTop.value = await getLeaderboardIndex(user.username, 'gems')
+})
 </script>
 
 <template>

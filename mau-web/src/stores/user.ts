@@ -4,9 +4,9 @@ import { defineStore } from 'pinia'
 import { ref, type Ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const userId: Ref<string | null, string | null> = ref(localStorage.getItem('userId'))
-  const userToken: Ref<string | null, string | null> = ref(localStorage.getItem('userToken'))
-  const roomId: Ref<string | null, string | null> = ref(localStorage.getItem('roomId'))
+  const userId: Ref<string | null> = ref(localStorage.getItem('userId'))
+  const userToken: Ref<string | null> = ref(localStorage.getItem('userToken'))
+  const roomId: Ref<string | null> = ref(localStorage.getItem('roomId'))
 
   function logIn(username: string, token: string) {
     localStorage.setItem('userId', username)

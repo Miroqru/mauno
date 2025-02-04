@@ -1,30 +1,32 @@
 <script setup lang="ts">
 import { getRoomById, getUserById } from '@/api'
+import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomButtons from '@/components/room/RoomButtons.vue'
 import RoomModes from '@/components/room/RoomModes.vue'
 import RoomOwner from '@/components/room/RoomOwner.vue'
 import RoomPlayers from '@/components/room/RoomPlayers.vue'
 import RoomSettings from '@/components/room/RoomSettings.vue'
 import { useUserStore } from '@/stores/user'
-import { computed, ref } from 'vue'
+import type { User } from '@/types'
+import { onMounted, ref, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const userState = useUserStore()
 const route = useRoute()
 const room = ref(getRoomById(route.params.id as string))
-const owner = computed(async () => {
-  if (!room.value) {
-    return null
-  }
+const owner: Ref<User | null> = ref(null)
 
-  return await getUserById(room.value.owner)
+onMounted(async () => {
+  if (room.value) {
+    owner.value = await getUserById(room.value.owner)
+  }
 })
 </script>
 
 <template>
   <div v-if="room && owner">
     <RoomOwner :room="room" :owner="owner" />
-    <RoomPlayers :players="room?.players" />
+    <RoomPlayers :players="room?.players" :is-owner="userState.userId == room.owner" />
 
     <div class="md:flex justify-around gap-4">
       <RoomSettings v-if="userState.userId == room.owner" :room="room" />

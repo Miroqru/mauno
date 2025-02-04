@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { getRooms, getUserById } from '@/api'
+import { getPlayersForRooms, getRooms } from '@/api'
 import { useSettingsStore } from '@/stores/settings'
-import type { Room } from '@/types'
-import { computed, ref } from 'vue'
+import type { Room, User } from '@/types'
+import { computed, ref, watchEffect, type Ref } from 'vue'
 import RoomCard from './RoomCard.vue'
 import RoomFilters from './RoomFilters.vue'
 
@@ -22,25 +22,13 @@ const sortedRooms = computed(() => {
   return settingState.roomFilter.invert ? res.slice().reverse() : res
 })
 
-async function* roomIter(rooms: Room[]) {
-  for (const room of rooms) {
-    const owner = await getUserById(room.owner)
-    if (!owner) {
-      continue
-    }
-    yield { room, owner }
-  }
-}
+const roomAndOwners: Ref<[Room, User][]> = ref([])
+watchEffect(async () => (roomAndOwners.value = await getPlayersForRooms(sortedRooms.value)))
 </script>
 
 <template>
   <section class="my-4">
     <RoomFilters />
-    <RoomCard
-      v-for="{ room, owner } in roomIter(sortedRooms)"
-      :key="room.id"
-      :room="room"
-      :owner="owner"
-    />
+    <RoomCard v-for="[room, owner] in roomAndOwners" :key="room.id" :room="room" :owner="owner" />
   </section>
 </template>

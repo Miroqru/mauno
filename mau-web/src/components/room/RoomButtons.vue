@@ -26,15 +26,6 @@ const canStart = computed(
     room.players.length <= room.maxPlayers,
 )
 
-console.debug(
-  userState.roomId != null,
-  room.owner == userState.userId,
-  room.players.length >= room.minPlayers,
-  room.players.length,
-  room.minPlayers,
-  room.players.length <= room.maxPlayers,
-)
-
 async function shareLink() {
   await navigator.clipboard.writeText(window.location.href)
 }

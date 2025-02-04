@@ -14,7 +14,7 @@ const route = useRoute()
 
 const userStore = useUserStore()
 
-let user: Ref<User | null, User | null> = ref(null)
+let user: Ref<User | null> = ref(null)
 
 if (!route.params.id) {
   user = ref(userStore.getMe())

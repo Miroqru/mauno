@@ -1,38 +1,24 @@
 <script setup lang="ts">
-import { getTopCards, getTopGames, getTopGems, getTopWins, getUserTopIndex } from '@/api'
+import { getLeaderboardIndex, getLeaders } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
-import { computed } from 'vue'
+import { ref, watchEffect, type Ref } from 'vue'
 
 const settingState = useSettingsStore()
 const userState = useUserStore()
 
-const records = computed(() => {
-  let leaders: User[] = []
-  if (settingState.topFilter == 'gems') {
-    leaders = getTopGems()
-  } else if (settingState.topFilter == 'games') {
-    leaders = getTopGames()
-  } else if (settingState.topFilter == 'wins') {
-    leaders = getTopWins()
-  } else if (settingState.topFilter == 'cards') {
-    leaders = getTopCards()
-  }
-
-  return leaders
-})
-
 const me = userState.getMe()
-const topIndex = computed(() => {
-  if (!me.value) {
-    return 0
-  }
+const records: Ref<User[]> = ref([])
+const topIndex = ref(0)
 
-  return getUserTopIndex(me.value.username, settingState.topFilter)
+watchEffect(async () => {
+  records.value = (await getLeaders(settingState.topFilter)) || []
+  // FIXME: Почему не обновляемся в карточке пользователя
+  topIndex.value = await getLeaderboardIndex(userState.userId as string, settingState.topFilter)
 })
 </script>
 
@@ -44,16 +30,24 @@ const topIndex = computed(() => {
     </div>
   </section>
 
-  <section class="h-[60vh] overflow-auto mb-4">
+  <section class="h-[60vh] overflow-auto mb-4" v-if="records.length">
     <UserStatus
       v-for="[index, user] in records.entries()"
       :key="index"
       :user="user"
       :index="index + 1"
+      :display-param="settingState.topFilter"
     />
   </section>
+  <div v-else class="my-4 text-center text-lg">А где рекорды?</div>
 
-  <UserStatus v-if="me" :user="me" :index="topIndex" class="bg-linear-150 from-amber-700/40" />
+  <UserStatus
+    v-if="me"
+    :user="me"
+    :index="topIndex"
+    class="bg-linear-150 from-amber-700/40"
+    :display-param="settingState.topFilter"
+  />
   <LeaderboardFilters />
 
   <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">

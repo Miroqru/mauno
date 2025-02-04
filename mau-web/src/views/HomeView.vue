@@ -8,18 +8,21 @@ import UserCard from '@/components/user/UserCard.vue'
 import { useUserStore } from '@/stores/user'
 
 import { getUserById } from '@/api'
-import { computed, ref } from 'vue'
+import type { User } from '@/types'
+import { onMounted, ref, type Ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
 import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
 
 const userStore = useUserStore()
 const me = userStore.getMe()
 const room = ref(userStore.getRoom())
-const owner = computed(async () => {
-  if (!room.value) {
-    return null
+
+const owner: Ref<User | null> = ref(null)
+
+onMounted(async () => {
+  if (room.value) {
+    owner.value = await getUserById(room.value.owner)
   }
-  return await getUserById(room.value?.owner)
 })
 
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
