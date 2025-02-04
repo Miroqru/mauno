@@ -2,9 +2,8 @@
 
 from enum import StrEnum
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, HTTPException
 
-from mauserve.config import stm
 from mauserve.models import UserModel
 from mauserve.schemes import UserData
 
@@ -20,11 +19,14 @@ class CategoryEnum(StrEnum):
     cards_count = "cards"
 
 
-@router.get("/me/{category}")
+@router.get("/{username}/{category}")
 async def get_my_leaderboard_index(
-    category: CategoryEnum, user: UserModel = Depends(stm.read_token)
+    username: str, category: CategoryEnum
 ) -> int:
     """Получает таблицу лидеров из базы данных."""
+    user = await UserModel.get_or_none(username=username)
+    if user is None:
+        raise HTTPException(404, "User not found")
     position = (await UserModel.filter(gems__gt=user.gems).count()) + 1
     return position
 
