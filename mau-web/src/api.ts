@@ -182,6 +182,31 @@ export async function getUser(token: string) {
   })
 }
 
+export async function updateUser(token: string, profile: { name: string; avatar_url: string }) {
+  return await useApi('/users', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'PUT',
+    body: JSON.stringify(profile),
+  })
+}
+
+export async function changeUserPassword(
+  token: string,
+  password: { old_password: string; new_password: string },
+) {
+  return await useApi('/users/change-password', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+    body: JSON.stringify(password),
+  })
+}
+
 export function getUserById(username: string) {
   return useApi('/users/' + username, {
     headers: {

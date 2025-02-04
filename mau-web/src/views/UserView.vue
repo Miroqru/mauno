@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getUserById } from '@/api'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
+import UserSettings from '@/components/user/UserSettings.vue'
 import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
 import { onMounted, ref, type Ref } from 'vue'
@@ -30,7 +31,11 @@ onMounted(async () => {
   <div v-if="user">
     <UserProfileCard :user="user" />
     <div class="md:flex md:gap-2">
-      <UserStats :user="user" class="md:flex-1" />
+      <div class="md:flex-1">
+        <UserStats :user="user" />
+        <UserSettings :user="user" />
+      </div>
+
       <GetGems />
     </div>
   </div>

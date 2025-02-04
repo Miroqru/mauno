@@ -13,7 +13,7 @@ function logOut() {
 </script>
 
 <template>
-  <button class="flex gap-2 transition hover:bg-stone-600" @click="logOut()">
+  <button class="flex gap-2 transition hover:text-stone-400" @click="logOut()">
     <LogOut :size="18" />
   </button>
 </template>
