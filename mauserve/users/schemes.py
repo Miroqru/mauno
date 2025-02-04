@@ -1,6 +1,6 @@
 """Схемы, характерные для пользователя."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserDataIn(BaseModel):
@@ -11,15 +11,15 @@ class UserDataIn(BaseModel):
     самостоятельно после в разделе профиля.
     """
 
-    username: str
-    password: str
+    username: str = Field(min_length=4, max_length=16)
+    password: str = Field(min_length=8)
 
 
 class ChangePasswordDataIn(BaseModel):
     """Схема смены пароля пользователя."""
 
-    old_password: str
-    new_password: str
+    old_password: str = Field(min_length=8)
+    new_password: str = Field(min_length=8)
 
 
 class EditUserDataIn(BaseModel):
@@ -32,6 +32,6 @@ class EditUserDataIn(BaseModel):
     отдельная процедура.
     """
 
-    username: str = None
-    name: str = None
+    username: str = Field(default=None, max_length=16)
+    name: str = Field(default=None, min_length=4, max_length=64)
     avatar_url: str | None = None

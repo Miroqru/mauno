@@ -131,6 +131,9 @@ async def get_user_by_username(username: str) -> UserData:
 
     Если такого пользователя не существует, то вернёт 404.
     """
+    if len(username) > 16:  # noqa: PLR2004
+        raise HTTPException(404, "User not found")
+
     user = await UserModel.get_or_none(username=username)
     if user is None:
         raise HTTPException(404, "User not found")
