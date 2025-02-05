@@ -23,3 +23,5 @@ class UserModel(Model):
     play_count = fields.IntField(default=0)
     win_count = fields.IntField(default=0)
     cards_count = fields.IntField(default=0)
+    create_date = fields.DatetimeField(auto_now_add=True)
+    supporter = fields.BooleanField(default=False)
