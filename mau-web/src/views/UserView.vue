@@ -49,7 +49,7 @@ onMounted(async () => {
     <h2 class="text-xl mb-2 font-bold">Профиль пользователя</h2>
     <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
   </section>
-  <ErrorLoadingCard :block="true" />
+  <ErrorLoadingCard v-else :block="true" />
 
   <section class="p-2 m-2 absolute bottom-0 right-0 flex gap-2">
     <HomeButton :show-name="true" />

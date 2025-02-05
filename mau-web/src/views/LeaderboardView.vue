@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getLeaderboardIndex, getLeaders } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
+import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
 import { useSettingsStore } from '@/stores/settings'
@@ -39,7 +40,9 @@ watchEffect(async () => {
       :display-param="settingState.topFilter"
     />
   </section>
-  <div v-else class="my-4 text-center text-lg">А где рекорды?</div>
+  <ErrorLoadingCard />
+
+  <!-- <div v-else class="my-4 text-center text-lg">А где рекорды?</div> -->
 
   <UserStatus
     v-if="me"
