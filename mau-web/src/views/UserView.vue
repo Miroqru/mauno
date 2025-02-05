@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getUserById } from '@/api'
+import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
 import { useUserStore } from '@/stores/user'
@@ -48,6 +49,7 @@ onMounted(async () => {
     <h2 class="text-xl mb-2 font-bold">Профиль пользователя</h2>
     <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
   </section>
+  <ErrorLoadingCard :block="true" />
 
   <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
     <HomeButton :show-name="true" />

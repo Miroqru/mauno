@@ -3,7 +3,8 @@ import { Gem, Sparkle, User2 } from 'lucide-vue-next'
 </script>
 
 <template>
-  <div
+  <RouterLink
+    to="/me"
     class="p-2 flex justify-between gap-2 my-4 bg-linear-160 from-pink-400/50 rounded-xl transition border-2 border-stone-800 hover:border-stone-600"
   >
     <div class="text-middle my-auto">
@@ -14,5 +15,5 @@ import { Gem, Sparkle, User2 } from 'lucide-vue-next'
       </div>
     </div>
     <User2 class="w-[64px] h-[64px] rounded-full" />
-  </div>
+  </RouterLink>
 </template>

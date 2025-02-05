@@ -8,6 +8,7 @@ import RoomPlayers from '@/components/room/RoomPlayers.vue'
 import RoomSettings from '@/components/room/RoomSettings.vue'
 import { useUserStore } from '@/stores/user'
 import type { User } from '@/types'
+import { Squirrel } from 'lucide-vue-next'
 import { onMounted, ref, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -35,10 +36,17 @@ onMounted(async () => {
 
     <RoomButtons :room="room" />
   </div>
+
+  <!-- На случай если не удалось загрузить комнату -->
   <div v-else>
-    <section class="text-center justify-between bg-linear-160 from-rose-400/40 rounded-xl p-2 mb-4">
-      <h2 class="text-xl mb-2 font-bold">А где комната?</h2>
-      <div class="text-stone-300">Не удалось получить данные о ней.</div>
+    <section
+      class="text-center flex justify-center gap-4 bg-linear-160 from-rose-400/40 rounded-xl p-2 mb-4"
+    >
+      <Squirrel :size="64" />
+      <div>
+        <h2 class="text-xl mb-2 font-bold">А где комната?</h2>
+        <div class="text-stone-300">Кажется что-то пошло не так.</div>
+      </div>
     </section>
 
     <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
