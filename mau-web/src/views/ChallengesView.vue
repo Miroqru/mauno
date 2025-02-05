@@ -16,7 +16,7 @@ const challenges = getChallenges()
     <ChallengeCard v-for="challenge in challenges" :key="challenge.name" :challenge="challenge" />
   </section>
 
-  <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
+  <section class="p-2 m-2 absolute bottom-0 right-0 flex gap-2">
     <HomeButton :show-name="true" />
   </section>
 </template>

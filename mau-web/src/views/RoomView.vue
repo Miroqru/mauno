@@ -49,7 +49,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <section class="p-2 m-2 fixed bottom-0 right-0 flex gap-2">
+    <section class="p-2 m-2 absolute bottom-0 right-0 flex gap-2">
       <HomeButton :show-name="true" />
     </section>
   </div>
