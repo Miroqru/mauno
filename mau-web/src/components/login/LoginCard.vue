@@ -2,6 +2,7 @@
 import { loginUser, registerUser } from '@/api'
 import { useUserStore } from '@/stores/user'
 import type { UserDataIn } from '@/types'
+import { User2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LoginButton from './LoginButton.vue'
@@ -25,7 +26,11 @@ const isRegisterActive = computed(() => {
 })
 
 const isLoginActive = computed(() => {
-  return username.value != '' && password.value != ''
+  return username.value.length > 3 && username.value.length < 16 && password.value.length >= 8
+})
+
+const isConfirmActive = computed(() => {
+  return password.value.length >= 8
 })
 
 async function register(user: UserDataIn) {
@@ -55,38 +60,37 @@ async function login(user: UserDataIn) {
 </script>
 
 <template>
-  <section class="border-2 border-stone-600 p-2 max-w-[400px] mx-auto text-center">
+  <section class="border-2 border-stone-600 p-2 max-w-[400px] mx-auto text-center rounded-xl">
+    <h2 class="text-xl mb-4 font-bold">Регистрация / вход</h2>
+
+    <User2 :size="96" class="align-center mx-auto mb-4 text-stone-100" />
+
     <div v-if="errorBadge" class="bg-pink-800 p-2 border-2 border-pink-600 rounded-md mv-2">
       {{ errorBadge }}
     </div>
 
     <form class="mb-2">
-      <div>
-        <input
-          class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
-          v-model="username"
-          type="text"
-          placeholder="Имя пользователя"
-        />
-      </div>
+      <input
+        v-model="username"
+        type="text"
+        class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
+        placeholder="Имя пользователя"
+      />
 
-      <div>
-        <input
-          class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
-          v-model="password"
-          type="password"
-          placeholder="пароль"
-        />
-      </div>
+      <input
+        v-model="password"
+        type="password"
+        class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
+        placeholder="Пароль"
+      />
 
-      <div>
-        <input
-          class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
-          v-model="confirmPassword"
-          type="password"
-          placeholder="Повторить пароль"
-        />
-      </div>
+      <input
+        v-model="confirmPassword"
+        v-if="isConfirmActive"
+        type="password"
+        class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
+        placeholder="ешё разок пароль?"
+      />
     </form>
 
     <div class="flex gap-2 justify-center mb-2">
@@ -100,6 +104,10 @@ async function login(user: UserDataIn) {
         :user="{ username: username, password: password }"
         @submit="login"
       />
+    </div>
+
+    <div class="text-sm text-stone-400">
+      Заходя на сайт вы принимаете политику конфиденциальности и условия использования.
     </div>
   </section>
 </template>

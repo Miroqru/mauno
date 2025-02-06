@@ -8,10 +8,10 @@ const emit = defineEmits<{ submit: [UserDataIn] }>()
 <template>
   <button
     v-if="active"
-    class="bg-stone-700 p-2 rounded-md transition hover:bg-stone-600"
+    class="bg-teal-700 p-2 rounded-md transition hover:bg-teal-600 flex-1"
     @click="emit('submit', user)"
   >
     Войти
   </button>
-  <div v-else class="bg-stone-800 p-2 rounded-md">Войти</div>
+  <div v-else class="bg-stone-800 p-2 rounded-md flex-1">Войти</div>
 </template>

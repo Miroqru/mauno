@@ -13,5 +13,4 @@ const emit = defineEmits<{ submit: [UserDataIn] }>()
   >
     Регистрация
   </button>
-  <div v-else class="bg-stone-800 p-2 rounded-md">Регистрация</div>
 </template>
