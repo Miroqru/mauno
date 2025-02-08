@@ -9,9 +9,15 @@ from pydantic import BaseModel
 class RoomMode(BaseModel):
     """Режим игры, изменяющий правила."""
 
-    name: str
-    desc: str | None
+    key: str
+    name: str | None
     status: bool
+
+
+class RoomModeIn(BaseModel):
+    """Настройка списка активных режимов."""
+
+    rules: list[str]
 
 
 class RoomDataIn(BaseModel):

@@ -6,9 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from tortoise.queryset import QuerySet
 
-from mauserve.config import stm
+from mauserve.config import redis, stm
+from mauserve.mau.rules import RULES
 from mauserve.models import RoomModel, UserModel
-from mauserve.roomlist.schemes import RoomDataIn, RoomMode
+from mauserve.roomlist.schemes import RoomDataIn, RoomMode, RoomModeIn
 from mauserve.schemes import RoomData
 
 router = APIRouter(prefix="/rooms", tags=["room list"])
@@ -118,13 +119,40 @@ async def delete_room(
 @router.get("/{room_id}/modes")
 async def get_room_modes(room_id: str) -> list[RoomMode]:
     """Получает информацию о выбранных режимах."""
-    return []
+    active_modes = await redis.lrange(f"room:{room_id}:rules", 0, -1)
+    res = []
+    for rule in RULES:
+        res.append(
+            RoomMode(
+                key=rule.key, name=rule.name, status=rule.key in active_modes
+            )
+        )
+    return res
 
 
 @router.put("/{room_id}/modes")
-async def update_room_modes(room_id: str) -> list[RoomMode]:
+async def update_room_modes(
+    room_id: str,
+    rules: RoomModeIn,
+    user: UserModel = Depends(stm.read_token),
+) -> list[RoomMode]:
     """Обновляет список игровых режимов для комнаты."""
-    return []
+    room: RoomModel = await RoomModel.get_or_none(id=room_id)
+    if room is None:
+        raise HTTPException(404, "Room not found")
+    if room.owner_id != user.id:
+        raise HTTPException(401, "User is not room owner")
+
+    await redis.delete(f"room:{room_id}:rules")
+    await redis.rpush(f"room:{room_id}:rules", *rules.rules)
+    res = []
+    for rule in RULES:
+        res.append(
+            RoomMode(
+                key=rule.name, name=rule.name, status=rule.key in rules.rules
+            )
+        )
+    return res
 
 
 # Участники комнаты
