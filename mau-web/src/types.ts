@@ -1,17 +1,42 @@
 // Общие типы, используемые на сайте
 
+// Данные пользователя для регистрации / входа
 export type UserDataIn = {
   username: string
   password: string
 }
 
-// id - Уникальный строковый id пользователя
-// name - имя пользователя
+// Данные комнаты, которые можно изменить
+export type RoomDataIn = {
+  name: string
+  private: boolean
+  room_password: string
+  gems: number
+  max_players: number
+  min_players: number
+}
+
+export type RoomOrder = 'create_time' | 'gems' | 'players'
+export type RoomStatus = 'idle' | 'game' | 'ended'
+
+export type RoomFilter = {
+  reverse: boolean
+  orderBy: RoomOrder
+}
+
+export type RoomRuleData = {
+  key: string
+  name: string
+  status: boolean
+}
+
+// username - Уникальное имя пользователя
+// name - Отображаемое имя пользователя
 // avatar - ссылка на аватар
 // gem - количество кристаллов
-// playCount - сколько сыграно игр всего
-// winCount - сколько было побед
-// cardCount - сколько карт разыграно
+// play_count - сколько сыграно игр всего
+// win_count- сколько было побед
+// card_count - сколько карт разыграно
 export interface User {
   username: string
   name: string
@@ -33,12 +58,17 @@ export interface User {
 // private - является ли комнатка приватной
 export interface Room {
   id: string
-  owner: string
-  players: string[]
-  minPlayers: number
-  maxPlayers: number
-  gems: number
+  name: string
+  create_time: string
   private: boolean
+  room_password: string
+  owner: User
+  players: User[]
+  min_players: number
+  max_players: number
+  gems: number
+  status: RoomStatus
+  status_updates: string
 }
 
 // Игровые задания, за которые можно получить награду

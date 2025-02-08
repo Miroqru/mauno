@@ -1,34 +1,37 @@
 <script setup lang="ts">
-import { getPlayersForRooms, getRooms } from '@/api'
+import { getRooms } from '@/api'
 import { useSettingsStore } from '@/stores/settings'
-import type { Room, User } from '@/types'
-import { computed, ref, watchEffect, type Ref } from 'vue'
+import type { Room } from '@/types'
+import { Squirrel } from 'lucide-vue-next'
+import { ref, watchEffect, type Ref } from 'vue'
+import NewGame from '../buttons/NewGame.vue'
 import RoomCard from './RoomCard.vue'
 import RoomFilters from './RoomFilters.vue'
 
 const settingState = useSettingsStore()
-const rooms = ref(getRooms())
+const rooms: Ref<Room[]> = ref([])
 
-const sortedRooms = computed(() => {
-  let res: Room[] = []
-  if (settingState.roomFilter.sortBy == 'gems') {
-    // eslint-disable-next-line
-    res = rooms.value.sort((a, b) => b.gems - a.gems)
-  } else if (settingState.roomFilter.sortBy == 'players') {
-    // eslint-disable-next-line
-    res = rooms.value.sort((a, b) => b.players.length - a.players.length)
+watchEffect(async () => {
+  const res = await getRooms(settingState.roomFilter)
+  if (!res.error) {
+    rooms.value = res.data
   }
-
-  return settingState.roomFilter.invert ? res.slice().reverse() : res
 })
-
-const roomAndOwners: Ref<[Room, User][]> = ref([])
-watchEffect(async () => (roomAndOwners.value = await getPlayersForRooms(sortedRooms.value)))
 </script>
 
 <template>
   <section class="my-4">
     <RoomFilters />
-    <RoomCard v-for="[room, owner] in roomAndOwners" :key="room.id" :room="room" :owner="owner" />
+    <div v-if="rooms.length">
+      <RoomCard v-for="room in rooms" :key="room.id" :room="room" />
+    </div>
+    <div v-else class="justify-center flex flex-col text-center">
+      <Squirrel :size="128" class="align-center mx-auto mb-2 text-stone-200" />
+      <div>
+        <div class="font-bold text-stone-200 text-lg">Сейчас никто не играет</div>
+        <div class="text-stone-300">как насчёт того, чтобы создать новую комнату!</div>
+        <NewGame :show-name="true" class="align-center mx-auto" />
+      </div>
+    </div>
   </section>
 </template>

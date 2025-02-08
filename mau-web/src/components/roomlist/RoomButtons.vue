@@ -11,7 +11,7 @@ const { mobile } = defineProps<{ mobile: boolean }>()
     <NewGame :show-name="true" />
     <RandomGame :show-name="true" />
   </section>
-  <section v-else class="p-2 border-2 border-stone-700 rounded-md">
+  <section v-else class="flex gap-2 flex-col p-2 border-2 border-stone-700 rounded-md">
     <HomeButton :show-name="true" />
     <NewGame :show-name="true" />
     <RandomGame :show-name="true" />

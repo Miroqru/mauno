@@ -13,7 +13,7 @@ const me = userState.getMe()
 const canJoin = computed(
   () =>
     !userState.roomId &&
-    room.players.length < room.maxPlayers &&
+    room.players.length < room.max_players &&
     me.value != null &&
     me.value.gems >= room.gems,
 )
@@ -21,9 +21,9 @@ const canLeave = computed(() => userState.roomId != null && room.id == userState
 const canStart = computed(
   () =>
     userState.roomId != null &&
-    room.owner == userState.userId &&
-    room.players.length >= room.minPlayers &&
-    room.players.length <= room.maxPlayers,
+    room.owner.username == userState.userId &&
+    room.players.length >= room.min_players &&
+    room.players.length <= room.max_players,
 )
 
 async function shareLink() {
@@ -32,15 +32,18 @@ async function shareLink() {
 </script>
 
 <template>
-  <section class="my-8 flex flex-wrap gap-4">
+  <section class="my-8 flex flex-row-reverse flex-wrap gap-4">
     <HomeButton />
 
-    <button class="bg-stone-700 p-4 rounded-full transition hover:bg-sky-800" @click="shareLink()">
+    <button
+      class="bg-stone-700 p-4 md:p-3 rounded-full transition hover:bg-sky-800"
+      @click="shareLink()"
+    >
       <Link />
     </button>
 
     <button
-      class="bg-stone-700 p-4 rounded-full flex gap-2 transition hover:bg-teal-800"
+      class="bg-stone-700 p-4 md:p-3 rounded-full flex gap-2 transition hover:bg-teal-800"
       v-if="canJoin"
       @click="userState.joinRoom(room.id)"
     >
@@ -51,7 +54,7 @@ async function shareLink() {
     <button
       v-else-if="canLeave"
       class="bg-stone-700 p-4 rounded-full flex gap-2 transition hover:bg-pink-800"
-      @click="userState.leaveRoom()"
+      @click="userState.leaveRoom(room.id)"
     >
       <LogOut :size="24" /> Выйти
     </button>

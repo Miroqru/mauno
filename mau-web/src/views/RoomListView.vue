@@ -1,22 +1,12 @@
 <script setup lang="ts">
-import { getUserById } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomCard from '@/components/room/RoomCard.vue'
 import GameRooms from '@/components/roomlist/GameRooms.vue'
 import RoomButtons from '@/components/roomlist/RoomButtons.vue'
 import { useUserStore } from '@/stores/user'
-import type { User } from '@/types'
-import { onMounted, ref, type Ref } from 'vue'
 
 const userState = useUserStore()
-const room = ref(userState.getRoom())
-const owner: Ref<User | null> = ref(null)
-
-onMounted(async () => {
-  if (room.value) {
-    owner.value = await getUserById(room.value.owner)
-  }
-})
+const room = userState.getRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>
 
@@ -30,8 +20,8 @@ const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 
   <div class="md:flex md:gap-2">
     <div>
+      <RoomCard v-if="room" :room="room" />
       <RoomButtons :mobile="isMobile" />
-      <RoomCard v-if="room && owner" :room="room" :owner="owner" />
     </div>
     <GameRooms class="flex-1" />
   </div>

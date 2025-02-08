@@ -7,24 +7,12 @@ import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
 import { useUserStore } from '@/stores/user'
 
-import { getUserById } from '@/api'
-import type { User } from '@/types'
-import { onMounted, ref, type Ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
 import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
 
 const userStore = useUserStore()
 const me = userStore.getMe()
-const room = ref(userStore.getRoom())
-
-const owner: Ref<User | null> = ref(null)
-
-onMounted(async () => {
-  if (room.value) {
-    owner.value = await getUserById(room.value.owner)
-  }
-})
-
+const room = userStore.getRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>
 
@@ -32,10 +20,10 @@ const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
   <UserCard v-if="me" :user="me" />
   <UserCardPlaceholder v-else />
 
-  <RoomCard v-if="room && isMobile && owner" :room="room" :owner="owner" />
+  <RoomCard v-if="room && isMobile" :room="room" />
 
   <div class="md:flex md:gap-2">
-    <section v-if="!isMobile" class="p-2 m-2">
+    <section v-if="!isMobile" class="p-2 m-2 flex flex-col gap-2">
       <NewGame :show-name="true" />
       <RandomGame :show-name="true" />
     </section>
@@ -45,7 +33,7 @@ const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
   <div class="md:flex md:justify-around md:gap-2">
     <RoomList class="flex-1" />
     <div>
-      <RoomCard v-if="room && !isMobile && owner" :room="room" :owner="owner" />
+      <RoomCard v-if="room && !isMobile" :room="room" />
       <ChallengeList />
     </div>
   </div>

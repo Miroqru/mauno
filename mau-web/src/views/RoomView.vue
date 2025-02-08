@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getRoomById, getUserById } from '@/api'
+import { getRoomById } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomButtons from '@/components/room/RoomButtons.vue'
 import RoomModes from '@/components/room/RoomModes.vue'
@@ -7,34 +7,40 @@ import RoomOwner from '@/components/room/RoomOwner.vue'
 import RoomPlayers from '@/components/room/RoomPlayers.vue'
 import RoomSettings from '@/components/room/RoomSettings.vue'
 import { useUserStore } from '@/stores/user'
-import type { User } from '@/types'
+import type { Room } from '@/types'
 import { Squirrel } from 'lucide-vue-next'
 import { onMounted, ref, type Ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const userState = useUserStore()
 const route = useRoute()
-const room = ref(getRoomById(route.params.id as string))
-const owner: Ref<User | null> = ref(null)
+const room: Ref<Room | null> = ref(null)
 
 onMounted(async () => {
-  if (room.value) {
-    owner.value = await getUserById(room.value.owner)
+  const res = await getRoomById(route.params.id as string)
+  if (!res.error) {
+    room.value = res.data
   }
 })
 </script>
 
 <template>
-  <div v-if="room && owner">
-    <RoomOwner :room="room" :owner="owner" />
-    <RoomPlayers :players="room?.players" :is-owner="userState.userId == room.owner" />
+  <div v-if="room">
+    <RoomOwner :room="room" />
 
-    <div class="md:flex justify-around gap-4">
-      <RoomSettings v-if="userState.userId == room.owner" :room="room" />
-      <RoomModes class="flex-1" />
+    <div class="md:flex gap-4">
+      <RoomPlayers :room="room" class="flex-1" />
+      <RoomSettings
+        v-if="userState.userId == room.owner.username && room.status != 'ended'"
+        :room="room"
+      />
+      <RoomModes :room="room" />
     </div>
 
-    <RoomButtons :room="room" />
+    <RoomButtons :room="room" v-if="room.status != 'ended'" />
+    <section v-else class="p-2 m-2 absolute bottom-0 right-0 flex gap-2">
+      <HomeButton :show-name="true" />
+    </section>
   </div>
 
   <!-- На случай если не удалось загрузить комнату -->

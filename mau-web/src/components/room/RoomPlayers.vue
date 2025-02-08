@@ -1,33 +1,42 @@
 <script setup lang="ts">
-import { getUserById } from '@/api'
-import type { User } from '@/types'
-import { CircleX } from 'lucide-vue-next'
-import { ref, watchEffect, type Ref } from 'vue'
+import { kickUserFromRoom, setOwnerInRoom } from '@/api'
+import { useUserStore } from '@/stores/user'
+import type { Room, User } from '@/types'
+import { CircleX, Crown } from 'lucide-vue-next'
 import UserStatus from '../home/UserStatus.vue'
 
-const { players, isOwner } = defineProps<{ players: string[]; isOwner: boolean }>()
-const roomPlayers: Ref<User[]> = ref([])
+const { room } = defineProps<{ room: Room }>()
+const userState = useUserStore()
 
-watchEffect(async () => {
-  const res: User[] = []
-  for (const userId of players) {
-    const player = await getUserById(userId)
-    if (player) {
-      res.push(player)
-    }
-  }
-  roomPlayers.value = res
-})
+async function kick(user: User) {
+  await kickUserFromRoom(userState.userToken as string, room.id, user.username)
+}
+async function setOwner(user: User) {
+  await setOwnerInRoom(userState.userToken as string, room.id, user.username)
+}
 </script>
 
 <template>
   <section class="my-4">
     <h2 class="text-xl font-bold">Игроки</h2>
 
-    <div v-for="player in roomPlayers" :key="player.username" class="flex md:inline-flex gap-2">
+    <div v-for="player in room.players" :key="player.username" class="flex md:inline-flex gap-1">
+      <Crown
+        v-if="player.username == room.owner.username"
+        class="align-middle my-auto text-amber-300"
+      />
       <UserStatus class="flex-1" :user="player" />
-      <button v-if="isOwner">
+      <button
+        v-if="userState.userId == room.owner.username && player.username != room.owner.username"
+        @click="kick(player)"
+      >
         <CircleX class="text-stone-600 transition hover:text-pink-600" />
+      </button>
+      <button
+        v-if="userState.userId == room.owner.username && player.username != room.owner.username"
+        @click="setOwner(player)"
+      >
+        <Crown class="text-stone-600 transition hover:text-amber-500" />
       </button>
     </div>
   </section>

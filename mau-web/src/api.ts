@@ -1,51 +1,12 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
 import { toValue } from 'vue'
-import type { Challenge, Room, User, UserDataIn } from './types'
+import type { Challenge, RoomDataIn, RoomFilter, User, UserDataIn } from './types'
 
 // Датасет различных безделушек
 // Заглушки на будущее
 // после эти данные должны будут загружаться с сервера
 //
-
-const rooms: Room[] = [
-  {
-    id: 'r0',
-    owner: 'milinuri',
-    players: ['milinuri'],
-    minPlayers: 2,
-    maxPlayers: 3,
-    gems: 50,
-    private: true,
-  },
-  {
-    id: 'r1',
-    owner: 'mikasa',
-    players: ['mikasa', 'minami'],
-    minPlayers: 3,
-    maxPlayers: 4,
-    gems: 75,
-    private: false,
-  },
-  {
-    id: 'r2',
-    owner: 'miro',
-    players: ['miro', 'milinuri'],
-    minPlayers: 2,
-    maxPlayers: 2,
-    gems: 25,
-    private: false,
-  },
-  {
-    id: 'r6',
-    owner: 'renilura',
-    players: ['renilura', 'remrin', 'qquwu', 'renilura'],
-    minPlayers: 4,
-    maxPlayers: 7,
-    gems: 250,
-    private: false,
-  },
-]
 
 const challenges: Challenge[] = [
   { name: 'Сыграть 5 раз', now: 2, total: 5, reward: 25 },
@@ -144,43 +105,111 @@ export async function getUserById(username: string) {
 
 // Комнаты -------------------------------------------------------------
 
-export function getRooms() {
-  const res = []
-  for (const room of rooms) {
-    if (!room.private) {
-      res.push(room)
-    }
-  }
-  return res
+export async function getRooms(filter?: RoomFilter) {
+  return await useApi(
+    filter != undefined ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}` : '/rooms/',
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
 }
 
-export function getRoomById(roomID: string) {
-  for (const room of rooms) {
-    if (room.id == roomID) {
-      return room
-    }
-  }
+export async function getRoomById(roomID: string) {
+  return await useApi(`/rooms/${roomID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
 }
 
-export function createRoom() {
-  return 'r0'
+export async function updateRoom(roomID: string, token: string, roomData: RoomDataIn) {
+  return await useApi(`/rooms/${roomID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'PUT',
+    body: JSON.stringify(roomData),
+  })
 }
 
-export function getRandomRoom() {
-  return 'r2'
+export async function createRoom(token: string) {
+  return await useApi('/rooms/', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+  })
 }
 
-// TODO: Вспомогательная функция, будет убрана после
-export async function getPlayersForRooms(rooms: Room[]) {
-  const res: [Room, User][] = []
-  for (const room of rooms) {
-    const owner = await getUserById(room.owner)
-    if (!owner) {
-      continue
-    }
-    res.push([room, owner])
-  }
-  return res
+export async function getRandomRoom() {
+  return await useApi('/rooms/random', {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+export async function joinToRoom(token: string, roomID: string) {
+  return await useApi(`/rooms/${roomID}/join/`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+  })
+}
+
+export async function leaveFromRoom(token: string, roomID: string) {
+  return await useApi(`/rooms/${roomID}/leave/`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+  })
+}
+
+export async function kickUserFromRoom(token: string, roomID: string, userID: string) {
+  return await useApi(`/rooms/${roomID}/kick/${userID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+  })
+}
+
+export async function setOwnerInRoom(token: string, roomID: string, userID: string) {
+  return await useApi(`/rooms/${roomID}/owner/${userID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'POST',
+  })
+}
+
+export async function getRoomModes(roomID: string) {
+  return await useApi(`/rooms/${roomID}/modes/`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+export async function updateRoomRules(roomID: string, token: string, rules: string[]) {
+  return await useApi(`/rooms/${roomID}/modes`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'PUT',
+    body: JSON.stringify({ rules: rules }),
+  })
 }
 
 // Таблица лидеров -----------------------------------------------------
