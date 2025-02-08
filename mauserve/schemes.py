@@ -12,7 +12,7 @@
 from tortoise import Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-from mauserve.models import UserModel
+from mauserve.models import RoomModel, UserModel
 
 # Конвертированные модели
 # =======================
@@ -24,4 +24,9 @@ Tortoise.init_models(["mauserve.models"], "models")
 # Данные модели были конвертированные из TortoiseORM и доступны всем.
 UserData = pydantic_model_creator(
     UserModel, name="UserData", exclude=["id", "password_hash"]
+)
+RoomData = pydantic_model_creator(
+    RoomModel,
+    name="RoomData",
+    exclude=["owner.password_hash", "players.password_hash"],
 )
