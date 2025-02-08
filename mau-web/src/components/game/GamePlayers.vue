@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PlayerAvatar from './PlayerAvatar.vue'
+
 const players = [
   {
     name: 'Qq Uwu',

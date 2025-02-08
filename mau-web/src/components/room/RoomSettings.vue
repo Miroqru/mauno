@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Check, CheckCircle, Circle } from 'lucide-vue-next'
+import type { Room, RoomDataIn } from '@/types'
 
+import type { Ref } from 'vue'
 import { updateRoom } from '@/api'
 import { useUserStore } from '@/stores/user'
-import type { Room, RoomDataIn } from '@/types'
-import { ref, type Ref } from 'vue'
+import { Check, CheckCircle, Circle } from 'lucide-vue-next'
+import { ref } from 'vue'
 import GemSelector from './GemSelector.vue'
 import RangeSelector from './RangeSelector.vue'
 
@@ -32,7 +33,9 @@ async function updateRoomSubmit() {
 
 <template>
   <section class="my-4 md:border-2 md:border-stone-700 rounded-md md:p-2">
-    <h2 class="text-xl font-bold mb-2 text-center">Настройки комнаты</h2>
+    <h2 class="text-xl font-bold mb-2 text-center">
+      Настройки комнаты
+    </h2>
 
     <div v-if="errorBadge" class="bg-pink-800 p-2 border-2 border-pink-600 rounded-md mv-2">
       {{ errorBadge }}
@@ -44,14 +47,14 @@ async function updateRoomSubmit() {
         type="text"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Имя комнаты"
-      />
+      >
 
       <input
         v-model="settings.room_password"
         type="password"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Пароль для входа"
-      />
+      >
     </div>
 
     <div class="flex gap-2 mb-2">

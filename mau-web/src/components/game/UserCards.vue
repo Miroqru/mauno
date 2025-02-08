@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UnoCard from './UnoCard.vue'
+
 const hand = [
   { name: '+2', image: 'b_take', active: true },
   { name: '+2', image: 'g_take', active: true },

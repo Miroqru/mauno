@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { User } from '@/types'
+import type { Ref } from 'vue'
 import { getLeaderboardIndex, getLeaders } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
@@ -6,8 +8,7 @@ import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
-import type { User } from '@/types'
-import { ref, watchEffect, type Ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 
 const settingState = useSettingsStore()
 const userState = useUserStore()
@@ -25,13 +26,15 @@ watchEffect(async () => {
 
 <template>
   <section class="text-center justify-between bg-linear-170 from-amber-400/40 rounded-xl p-2 mb-4">
-    <h2 class="text-xl mb-2 font-bold">Таблица лидеров</h2>
+    <h2 class="text-xl mb-2 font-bold">
+      Таблица лидеров
+    </h2>
     <div class="text-stone-3003">
       Все эти игроки добились успеха упорным трудом. И вы можете быть среди них.
     </div>
   </section>
 
-  <section class="h-[60vh] overflow-auto mb-4" v-if="records.length">
+  <section v-if="records.length" class="h-[60vh] overflow-auto mb-4">
     <UserStatus
       v-for="[index, user] in records.entries()"
       :key="index"

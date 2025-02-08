@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useSettingsStore } from '@/stores/settings'
 import type { RoomOrder } from '@/types'
+import { useSettingsStore } from '@/stores/settings'
 import { ArrowDownNarrowWide, ArrowDownWideNarrow } from 'lucide-vue-next'
 import FilterButton from './FilterButton.vue'
 
 const settingState = useSettingsStore()
 
-const filters: { name: string; orderBy: RoomOrder }[] = [
+const filters: { name: string, orderBy: RoomOrder }[] = [
   { name: 'Дата', orderBy: 'create_time' },
   { name: 'Кристаллы', orderBy: 'gems' },
   { name: 'Игроки', orderBy: 'players' },

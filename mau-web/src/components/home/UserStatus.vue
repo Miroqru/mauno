@@ -13,10 +13,12 @@ const { index, user, displayParam } = defineProps<{
 
 <template>
   <RouterLink
-    :to="'/user/' + user.username"
+    :to="`/user/${user.username}`"
     class="flex gap-2 justify-around m-2 bg-stone-800 p-1 rounded-md transition hover:bg-stone-700"
   >
-    <div v-if="index" class="text-amber-50 text-middle my-auto">{{ index }}</div>
+    <div v-if="index" class="text-amber-50 text-middle my-auto">
+      {{ index }}
+    </div>
     <div class="inline-flex gap-2 flex-1">
       <UserAvatar :user="user" />
       <div class="text-middle m-auto flex-1 font-bold text-amber-503">
@@ -25,19 +27,19 @@ const { index, user, displayParam } = defineProps<{
     </div>
 
     <div
-      v-if="displayParam == 'games'"
+      v-if="displayParam === 'games'"
       class="inline-flex gap-1 mr-2 text-middle m-auto text-teal-200"
     >
       {{ user.gems }} <Gamepad2 :size="24" />
     </div>
     <div
-      v-else-if="displayParam == 'wins'"
+      v-else-if="displayParam === 'wins'"
       class="inline-flex gap-1 mr-2 text-middle m-auto text-amber-200"
     >
       {{ user.gems }} <Sparkle :size="24" />
     </div>
     <div
-      v-else-if="displayParam == 'cards'"
+      v-else-if="displayParam === 'cards'"
       class="inline-flex gap-1 mr-2 text-middle m-auto text-pink-200"
     >
       {{ user.gems }} <Book :size="24" />

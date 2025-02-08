@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useSettingsStore } from '@/stores/settings'
 import type { RoomOrder } from '@/types'
+import { useSettingsStore } from '@/stores/settings'
 
-const { name, orderBy } = defineProps<{ name: string; orderBy: RoomOrder }>()
+const { name, orderBy } = defineProps<{ name: string, orderBy: RoomOrder }>()
 const settingState = useSettingsStore()
 </script>
 
 <template>
-  <div class="bg-teal-800 px-2 rounded-md" v-if="orderBy == settingState.roomFilter.orderBy">
+  <div v-if="orderBy === settingState.roomFilter.orderBy" class="bg-teal-800 px-2 rounded-md">
     {{ name }}
   </div>
   <button

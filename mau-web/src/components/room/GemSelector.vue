@@ -10,26 +10,28 @@ const emit = defineEmits<{ update: [number] }>()
     <!-- minus -->
     <button
       v-if="value >= 10"
-      @click="emit('update', value - 5)"
       class="p-1 bg-stone-700 rounded-lg transition hover:bg-stone-600"
+      @click="emit('update', value - 5)"
     >
       <Minus />
     </button>
-    <div class="p-1 px-2 bg-stone-800 rounded-lg" v-else>
+    <div v-else class="p-1 px-2 bg-stone-800 rounded-lg">
       <Minus />
     </div>
 
-    <div class="p-1 px-2 rounded-md bg-stone-700">{{ value }}</div>
+    <div class="p-1 px-2 rounded-md bg-stone-700">
+      {{ value }}
+    </div>
 
     <!-- plus -->
     <button
       v-if="value < 500"
-      @click="emit('update', value + 5)"
       class="p-1 bg-stone-700 rounded-lg transition hover:bg-stone-600"
+      @click="emit('update', value + 5)"
     >
       <Plus />
     </button>
-    <div class="p-1 px-2 bg-stone-800 rounded-lg" v-else>
+    <div v-else class="p-1 px-2 bg-stone-800 rounded-lg">
       <Plus />
     </div>
   </div>

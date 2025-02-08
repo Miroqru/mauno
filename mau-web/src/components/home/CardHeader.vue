@@ -9,7 +9,9 @@ const props = defineProps<{
 
 <template>
   <RouterLink :to="props.to" class="group flex justify-between mb-2">
-    <h2 class="text-lg font-bold">{{ props.name }}</h2>
+    <h2 class="text-lg font-bold">
+      {{ props.name }}
+    </h2>
     <ChevronRight class="text-stone-400 transition group-hover:text-teal-400" />
   </RouterLink>
 </template>

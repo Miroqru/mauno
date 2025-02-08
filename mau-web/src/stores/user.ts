@@ -1,7 +1,8 @@
-import { getRoomById, getUser, joinToRoom, leaveFromRoom } from '@/api'
 import type { User } from '@/types'
+import type { Ref } from 'vue'
+import { getRoomById, getUser, joinToRoom, leaveFromRoom } from '@/api'
 import { defineStore } from 'pinia'
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   const userId: Ref<string | null> = ref(localStorage.getItem('userId'))
@@ -63,7 +64,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     getRoomById(roomId.value).then((res) => {
-      if (res.error || res.data.status == 'ended') {
+      if (res.error || res.data.status === 'ended') {
         localStorage.removeItem('roomId')
         roomId.value = null
       }

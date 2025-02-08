@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { User } from '@/types'
+import type { Ref } from 'vue'
 import { getLeaders } from '@/api'
 import CardHeader from '@/components/home/CardHeader.vue'
-import type { User } from '@/types'
-import { onMounted, ref, type Ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import ErrorLoadingCard from '../ErrorLoadingCard.vue'
 import UserStatus from './UserStatus.vue'
 

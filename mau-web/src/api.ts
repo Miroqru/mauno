@@ -1,7 +1,7 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
-import { toValue } from 'vue'
 import type { Challenge, RoomDataIn, RoomFilter, User, UserDataIn } from './types'
+import { toValue } from 'vue'
 
 // Датасет различных безделушек
 // Заглушки на будущее
@@ -26,7 +26,8 @@ async function useApi(url: string, req?: RequestInit) {
       return { error: true, data: await res.json() }
     }
     return { error: false, data: await res.json() }
-  } catch (error) {
+  }
+  catch (error) {
     return { error: true, data: error }
   }
 }
@@ -60,16 +61,16 @@ export async function getUser(token: string) {
   return await useApi('/users/me', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
   })
 }
 
-export async function updateUser(token: string, profile: { name: string; avatar_url: string }) {
+export async function updateUser(token: string, profile: { name: string, avatar_url: string }) {
   return await useApi('/users/', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'PUT',
     body: JSON.stringify(profile),
@@ -78,12 +79,12 @@ export async function updateUser(token: string, profile: { name: string; avatar_
 
 export async function changeUserPassword(
   token: string,
-  password: { old_password: string; new_password: string },
+  password: { old_password: string, new_password: string },
 ) {
   return await useApi('/users/change-password', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
     body: JSON.stringify(password),
@@ -91,7 +92,7 @@ export async function changeUserPassword(
 }
 
 export async function getUserById(username: string) {
-  return await useApi('/users/' + username, {
+  return await useApi(`/users/${username}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -107,7 +108,9 @@ export async function getUserById(username: string) {
 
 export async function getRooms(filter?: RoomFilter) {
   return await useApi(
-    filter != undefined ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}` : '/rooms/',
+    filter !== undefined
+      ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}`
+      : '/rooms/',
     {
       headers: {
         'Content-Type': 'application/json',
@@ -128,7 +131,7 @@ export async function updateRoom(roomID: string, token: string, roomData: RoomDa
   return await useApi(`/rooms/${roomID}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'PUT',
     body: JSON.stringify(roomData),
@@ -139,7 +142,7 @@ export async function createRoom(token: string) {
   return await useApi('/rooms/', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
   })
@@ -157,7 +160,7 @@ export async function joinToRoom(token: string, roomID: string) {
   return await useApi(`/rooms/${roomID}/join/`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
   })
@@ -167,7 +170,7 @@ export async function leaveFromRoom(token: string, roomID: string) {
   return await useApi(`/rooms/${roomID}/leave/`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
   })
@@ -177,7 +180,7 @@ export async function kickUserFromRoom(token: string, roomID: string, userID: st
   return await useApi(`/rooms/${roomID}/kick/${userID}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
   })
@@ -187,7 +190,7 @@ export async function setOwnerInRoom(token: string, roomID: string, userID: stri
   return await useApi(`/rooms/${roomID}/owner/${userID}`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'POST',
   })
@@ -205,10 +208,10 @@ export async function updateRoomRules(roomID: string, token: string, rules: stri
   return await useApi(`/rooms/${roomID}/modes`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
     },
     method: 'PUT',
-    body: JSON.stringify({ rules: rules }),
+    body: JSON.stringify({ rules }),
   })
 }
 
@@ -217,7 +220,7 @@ export async function updateRoomRules(roomID: string, token: string, rules: stri
 export type Category = 'gems' | `games` | `wins` | `cards`
 
 export async function getLeaders(category: Category) {
-  return await useApi('/leaderboard/' + category, {
+  return await useApi(`/leaderboard/${category}`, {
     headers: {
       'Content-Type': 'application/json',
     },

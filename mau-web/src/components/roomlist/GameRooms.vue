@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { Room } from '@/types'
+import type { Ref } from 'vue'
 import { getRooms } from '@/api'
 import { useSettingsStore } from '@/stores/settings'
-import type { Room } from '@/types'
 import { Squirrel } from 'lucide-vue-next'
-import { ref, watchEffect, type Ref } from 'vue'
+import { ref, watchEffect } from 'vue'
 import NewGame from '../buttons/NewGame.vue'
 import RoomCard from './RoomCard.vue'
 import RoomFilters from './RoomFilters.vue'
@@ -28,8 +29,12 @@ watchEffect(async () => {
     <div v-else class="justify-center flex flex-col text-center">
       <Squirrel :size="128" class="align-center mx-auto mb-2 text-stone-200" />
       <div>
-        <div class="font-bold text-stone-200 text-lg">Сейчас никто не играет</div>
-        <div class="text-stone-300">как насчёт того, чтобы создать новую комнату!</div>
+        <div class="font-bold text-stone-200 text-lg">
+          Сейчас никто не играет
+        </div>
+        <div class="text-stone-300">
+          как насчёт того, чтобы создать новую комнату!
+        </div>
         <NewGame :show-name="true" class="align-center mx-auto" />
       </div>
     </div>

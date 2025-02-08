@@ -28,7 +28,9 @@ const features = [
   <UnoMain />
 
   <section class="m-4 align-center text-center">
-    <h2 class="text-xl font-bold mb-4">Крутые фишечки</h2>
+    <h2 class="text-xl font-bold mb-4">
+      Крутые фишечки
+    </h2>
     <div class="justify-center gap-4">
       <FeatureCard v-for="feat in features" :key="feat.name" :name="feat.name" :desc="feat.desc" />
     </div>

@@ -10,8 +10,9 @@ async function randomRoom() {
   const result = await getRandomRoom()
   if (result.error) {
     console.error(result.data)
-  } else {
-    await router.push('/room/' + result.data.id)
+  }
+  else {
+    await router.push(`/room/${result.data.id}`)
   }
 }
 </script>
@@ -22,6 +23,8 @@ async function randomRoom() {
     @click="randomRoom()"
   >
     <Shuffle :size="24" />
-    <div v-if="showName">Случайная</div>
+    <div v-if="showName">
+      Случайная
+    </div>
   </button>
 </template>

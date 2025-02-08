@@ -1,13 +1,13 @@
 // Общие типы, используемые на сайте
 
 // Данные пользователя для регистрации / входа
-export type UserDataIn = {
+export interface UserDataIn {
   username: string
   password: string
 }
 
 // Данные комнаты, которые можно изменить
-export type RoomDataIn = {
+export interface RoomDataIn {
   name: string
   private: boolean
   room_password: string
@@ -19,12 +19,12 @@ export type RoomDataIn = {
 export type RoomOrder = 'create_time' | 'gems' | 'players'
 export type RoomStatus = 'idle' | 'game' | 'ended'
 
-export type RoomFilter = {
+export interface RoomFilter {
   reverse: boolean
   orderBy: RoomOrder
 }
 
-export type RoomRuleData = {
+export interface RoomRuleData {
   key: string
   name: string
   status: boolean

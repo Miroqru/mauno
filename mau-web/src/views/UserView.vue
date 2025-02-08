@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { User } from '@/types'
+import type { Ref } from 'vue'
 import { getUserById } from '@/api'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
 import { useUserStore } from '@/stores/user'
-import type { User } from '@/types'
-import { onMounted, ref, type Ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import HomeButton from '../components/buttons/HomeButton.vue'
 import GetGems from '../components/user/GetGems.vue'
@@ -44,8 +45,12 @@ onMounted(async () => {
   <!-- Пока пользователь не успел загрузиться -->
   <section v-else>
     <div class="text-center justify-between bg-linear-160 from-violet-400/40 rounded-xl p-2 mb-4">
-      <h2 class="text-xl mb-2 font-bold">Профиль пользователя</h2>
-      <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
+      <h2 class="text-xl mb-2 font-bold">
+        Профиль пользователя
+      </h2>
+      <div class="text-stone-300">
+        Здесь вы можете просмотреть свою статистику.
+      </div>
     </div>
     <ErrorLoadingCard :block="true" />
   </section>

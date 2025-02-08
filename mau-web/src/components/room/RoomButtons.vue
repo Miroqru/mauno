@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user'
 import type { Room } from '@/types'
+import { useUserStore } from '@/stores/user'
 import { Flame, Link, LogOut, Play } from 'lucide-vue-next'
 import { computed } from 'vue'
 import HomeButton from '../buttons/HomeButton.vue'
@@ -12,18 +12,18 @@ const me = userState.getMe()
 
 const canJoin = computed(
   () =>
-    !userState.roomId &&
-    room.players.length < room.max_players &&
-    me.value != null &&
-    me.value.gems >= room.gems,
+    !userState.roomId
+    && room.players.length < room.max_players
+    && me.value !== null
+    && me.value.gems >= room.gems,
 )
-const canLeave = computed(() => userState.roomId != null && room.id == userState.roomId)
+const canLeave = computed(() => userState.roomId !== null && room.id === userState.roomId)
 const canStart = computed(
   () =>
-    userState.roomId != null &&
-    room.owner.username == userState.userId &&
-    room.players.length >= room.min_players &&
-    room.players.length <= room.max_players,
+    userState.roomId !== null
+    && room.owner.username === userState.userId
+    && room.players.length >= room.min_players
+    && room.players.length <= room.max_players,
 )
 
 async function shareLink() {
@@ -43,8 +43,8 @@ async function shareLink() {
     </button>
 
     <button
-      class="bg-stone-700 p-4 md:p-3 rounded-full flex gap-2 transition hover:bg-teal-800"
       v-if="canJoin"
+      class="bg-stone-700 p-4 md:p-3 rounded-full flex gap-2 transition hover:bg-teal-800"
       @click="userState.joinRoom(room.id)"
     >
       <Flame />

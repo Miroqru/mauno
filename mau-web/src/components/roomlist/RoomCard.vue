@@ -12,20 +12,24 @@ const date = dayjs(room.create_time)
 
 <template>
   <RouterLink
-    :to="'/room/' + room.id"
+    :to="`/room/${room.id}`"
     class="inline-flex flex-col 2 m-2 bg-stone-800 p-1 rounded-md transition hover:bg-stone-700"
   >
     <div class="flex gap-2">
       <RoomStatus :status="room.status" />
       <div class="flex gap-1">
-        <div class="text-lg text-middle m-auto font-bold">{{ room.name }}</div>
+        <div class="text-lg text-middle m-auto font-bold">
+          {{ room.name }}
+        </div>
         <Lock :size="14" class="text-stone-300" />
       </div>
     </div>
     <div class="flex gap-2 justify-between">
       <div class="flex gap-2">
         <UserAvatar :user="room.owner" />
-        <div class="text-middle m-auto flex-1 font-bold">{{ room.owner.name }}</div>
+        <div class="text-middle m-auto flex-1 font-bold">
+          {{ room.owner.name }}
+        </div>
         <div class="text-stone-300 text-sm text-middle my-auto">
           {{ date.format('DD.M mm:HH') }}
         </div>

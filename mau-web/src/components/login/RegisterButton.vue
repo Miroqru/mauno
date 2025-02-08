@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UserDataIn } from '@/types'
 
-const { active, user } = defineProps<{ active: boolean; user: UserDataIn }>()
+const { active, user } = defineProps<{ active: boolean, user: UserDataIn }>()
 const emit = defineEmits<{ submit: [UserDataIn] }>()
 </script>
 

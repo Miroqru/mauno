@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { Room, RoomRuleData } from '@/types'
+import type { Ref } from 'vue'
 import { getRoomModes, updateRoomRules } from '@/api'
 import { useUserStore } from '@/stores/user'
-import type { Room, RoomRuleData } from '@/types'
 import { Sparkle } from 'lucide-vue-next'
-import { onMounted, ref, type Ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import RoomRule from './RoomRule.vue'
 
 const { room } = defineProps<{ room: Room }>()
@@ -19,7 +20,7 @@ onMounted(async () => {
 })
 
 async function updateRoomSubmit() {
-  const active_rules = rules.value.filter((rule) => rule.status).map((rule) => rule.key)
+  const active_rules = rules.value.filter(rule => rule.status).map(rule => rule.key)
 
   const res = await updateRoomRules(room.id, userState.userToken as string, active_rules)
   if (!res.error) {
@@ -30,7 +31,9 @@ async function updateRoomSubmit() {
 
 <template>
   <section class="my-4 md:p-2 md:border-2 md:border-stone-700 rounded-md">
-    <h2 class="text-xl font-bold mb-2">Игровые правила</h2>
+    <h2 class="text-xl font-bold mb-2">
+      Игровые правила
+    </h2>
     <RoomRule
       v-for="[index, rule] in rules.entries()"
       :key="rule.name"

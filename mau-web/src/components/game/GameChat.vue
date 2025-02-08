@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ChatMessage from '@/components/game/ChatMessage.vue'
+
 const messages = [
   { name: 'Milinuri', message: 'Выбросил карту +2' },
   { name: 'Qq Uwu', message: 'Беру 2 карты' },

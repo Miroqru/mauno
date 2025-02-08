@@ -2,7 +2,7 @@
 import type { Category } from '@/api'
 import FilterButton from './FilterButton.vue'
 
-const categoryButtons: { name: string; category: Category }[] = [
+const categoryButtons: { name: string, category: Category }[] = [
   { name: 'Игр', category: 'games' },
   { name: 'Побед', category: 'wins' },
   { name: 'карт', category: 'cards' },

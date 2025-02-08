@@ -1,11 +1,11 @@
-import './assets/main.css'
-
 import { createPinia } from 'pinia'
-import { createApp } from 'vue'
 
+import { createApp } from 'vue'
 import App from './App.vue'
+
 import router from './router'
 import { useUserStore } from './stores/user'
+import './assets/main.css'
 
 const app = createApp(App)
 
@@ -16,7 +16,8 @@ const userStore = useUserStore()
 router.beforeEach((to) => {
   if (to.fullPath === '/' || to.fullPath === '/login/' || userStore.userId) {
     return true
-  } else {
+  }
+  else {
     return '/login/'
   }
 })

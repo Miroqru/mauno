@@ -12,8 +12,9 @@ async function newRoom() {
   const result = await createRoom(userState.userToken as string)
   if (result.error) {
     console.error(result.data)
-  } else {
-    await router.push('/room/' + result.data.id)
+  }
+  else {
+    await router.push(`/room/${result.data.id}`)
   }
 }
 </script>
@@ -24,6 +25,8 @@ async function newRoom() {
     @click="newRoom()"
   >
     <Plus :size="24" />
-    <div v-if="showName">Комнату</div>
+    <div v-if="showName">
+      Комнату
+    </div>
   </button>
 </template>
