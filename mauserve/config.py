@@ -9,7 +9,7 @@ from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings
 from redis.asyncio.client import Redis
 
-from mauserve.users.token import SimpleTokenManager
+from mauserve.token import SimpleTokenManager
 
 
 class Config(BaseSettings):

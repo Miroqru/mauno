@@ -9,8 +9,8 @@ from tortoise.queryset import QuerySet
 from mauserve.config import redis, stm
 from mauserve.mau.rules import RULES
 from mauserve.models import RoomModel, UserModel
-from mauserve.roomlist.schemes import RoomDataIn, RoomMode, RoomModeIn
-from mauserve.schemes import RoomData
+from mauserve.schemes.db import RoomData
+from mauserve.schemes.roomlist import RoomDataIn, RoomMode, RoomModeIn
 
 router = APIRouter(prefix="/rooms", tags=["room list"])
 

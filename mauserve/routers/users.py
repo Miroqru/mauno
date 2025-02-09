@@ -17,8 +17,8 @@ from tortoise.exceptions import IntegrityError
 
 from mauserve.config import stm
 from mauserve.models import UserModel
-from mauserve.schemes import UserData
-from mauserve.users.schemes import (
+from mauserve.schemes.db import UserData
+from mauserve.schemes.users import (
     ChangePasswordDataIn,
     EditUserDataIn,
     UserDataIn,

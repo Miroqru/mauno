@@ -9,15 +9,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-# Подгружаем роутеры
+from loguru import logger
 from tortoise import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise
 
+# Подгружаем роутеры
 from mauserve.config import config
-from mauserve.leaderbord.router import router as leaderbord_router
-from mauserve.roomlist.router import router as rooms_router
-from mauserve.users.router import router as user_router
+from mauserve.routers import ROUTERS
 
 # Жизненный цикл базы данных
 # ==========================
@@ -82,6 +80,6 @@ app.add_middleware(
 
 
 # Подключает сторонние роутеры
-app.include_router(user_router)
-app.include_router(leaderbord_router)
-app.include_router(rooms_router)
+for router in ROUTERS:
+    app.include_router(router)
+    logger.info("Include router: {}", router.prefix)

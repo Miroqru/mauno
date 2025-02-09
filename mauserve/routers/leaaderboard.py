@@ -5,7 +5,7 @@ from enum import StrEnum
 from fastapi import APIRouter, HTTPException
 
 from mauserve.models import UserModel
-from mauserve.schemes import UserData
+from mauserve.schemes.db import UserData
 
 router = APIRouter(prefix="/leaderboard", tags=["rating"])
 
