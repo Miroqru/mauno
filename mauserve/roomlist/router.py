@@ -31,6 +31,23 @@ async def get_public_rooms(
     )
 
 
+@router.get("/active")
+async def get_active_user_room(
+    user: UserModel = Depends(stm.read_token),
+) -> RoomData:
+    """Получает комнату, в которой сейчас находится пользователь."""
+    active_room: QuerySet[RoomModel] = (
+        await RoomModel.filter(players=user)
+        .exclude(status="ended")
+        .get_or_none()
+    )
+
+    if active_room is None:
+        raise HTTPException(404, "User is now no in room")
+
+    return await RoomData.from_tortoise_orm(active_room)
+
+
 @router.get("/random")
 async def get_random_room() -> RoomData:
     """Получает случайную доступную комнату."""
