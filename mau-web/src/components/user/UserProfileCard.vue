@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import type { User } from '@/types'
-import { getLeaderboardIndex } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { Gem, Sparkle, User2 } from 'lucide-vue-next'
-import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import LogOutButton from '../buttons/LogOutButton.vue'
 
-const { user } = defineProps<{ user: User }>()
+const { user, topIndex } = defineProps<{ user: User, topIndex: number }>()
 const userStore = useUserStore()
-const userTop = ref(0)
-
-onMounted(async () => {
-  userTop.value = await getLeaderboardIndex(user.username, 'gems')
-})
 </script>
 
 <template>
@@ -39,7 +32,7 @@ onMounted(async () => {
           {{ user.gems }} <Gem />
         </div>
         <RouterLink class="flex gap-1" to="/top">
-          {{ userTop }} место <Sparkle />
+          {{ topIndex }} место <Sparkle />
         </RouterLink>
       </div>
     </div>

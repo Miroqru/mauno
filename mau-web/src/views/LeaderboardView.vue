@@ -18,9 +18,23 @@ const records: Ref<User[]> = ref([])
 const topIndex = ref(0)
 
 watchEffect(async () => {
-  records.value = (await getLeaders(settingState.topFilter)) || []
+  const serverRecords = (await getLeaders(settingState.topFilter)) || []
+  if (serverRecords.type === 'right') {
+    records.value = serverRecords.value
+  }
+
   // FIXME: Почему не обновляемся в карточке пользователя
-  topIndex.value = await getLeaderboardIndex(userState.userId as string, settingState.topFilter)
+  await getLeaders(settingState.topFilter).then((res) => {
+    if (res.type === 'right') {
+      records.value = serverRecords.value || []
+    }
+  })
+
+  await getLeaderboardIndex(userState.userId as string, settingState.topFilter).then((res) => {
+    if (res.type === 'right') {
+      topIndex.value = res.value
+    }
+  })
 })
 </script>
 

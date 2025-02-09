@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { User } from '@/types'
+import type { Ref } from 'vue'
 import { changeUserPassword, updateUser } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { Check } from 'lucide-vue-next'
@@ -8,8 +9,8 @@ import { computed, ref } from 'vue'
 const { user } = defineProps<{ user: User }>()
 const userStore = useUserStore()
 
-const errorBadge = ref(null)
-const successBadge = ref(null)
+const errorBadge: Ref<any> = ref(null)
+const successBadge: Ref<any> = ref(null)
 
 const name = ref('')
 const avatar = ref('')
@@ -39,11 +40,11 @@ async function updateProfile() {
   name.value = ''
   avatar.value = ''
 
-  if (res.error) {
-    errorBadge.value = res.data
+  if (res.type === 'left') {
+    errorBadge.value = res.value
   }
   else {
-    successBadge.value = res.data
+    successBadge.value = res.value
   }
 }
 async function changePassword() {
@@ -59,11 +60,11 @@ async function changePassword() {
   newPassword.value = ''
   confirmPassword.value = ''
 
-  if (res.error) {
-    errorBadge.value = res.data
+  if (res.type === 'left') {
+    errorBadge.value = res.value
   }
   else {
-    successBadge.value = res.data
+    successBadge.value = res.value
   }
 }
 

@@ -8,11 +8,8 @@ const router = useRouter()
 
 async function randomRoom() {
   const result = await getRandomRoom()
-  if (result.error) {
-    console.error(result.data)
-  }
-  else {
-    await router.push(`/room/${result.data.id}`)
+  if (result.type === 'right') {
+    await router.push(`/room/${result.value.id}`)
   }
 }
 </script>

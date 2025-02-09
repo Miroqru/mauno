@@ -23,10 +23,9 @@ const settings: Ref<RoomDataIn> = ref({
 const errorBadge = ref(null)
 
 async function updateRoomSubmit() {
-  console.warn(settings.value)
   const res = await updateRoom(room.id, userState.userToken as string, settings.value)
-  if (res.error) {
-    errorBadge.value = res.data
+  if (res.type === 'left') {
+    errorBadge.value = res.value
   }
 }
 </script>

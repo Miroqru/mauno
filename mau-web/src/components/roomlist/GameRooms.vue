@@ -14,8 +14,8 @@ const rooms: Ref<Room[]> = ref([])
 
 watchEffect(async () => {
   const res = await getRooms(settingState.roomFilter)
-  if (!res.error) {
-    rooms.value = res.data
+  if (res.type === 'right') {
+    rooms.value = res.value
   }
 })
 </script>

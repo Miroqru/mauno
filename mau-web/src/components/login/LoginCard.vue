@@ -35,8 +35,8 @@ const isConfirmActive = computed(() => {
 
 async function register(user: UserDataIn) {
   const res = await registerUser(user)
-  if (res.error) {
-    errorBadge.value = res.data.detail
+  if (res.type === 'left') {
+    errorBadge.value = res.value.detail
     username.value = ''
     password.value = ''
     confirmPassword.value = ''
@@ -48,14 +48,14 @@ async function register(user: UserDataIn) {
 
 async function login(user: UserDataIn) {
   const res = await loginUser(user)
-  if (res.error) {
-    errorBadge.value = res.data.detail
+  if (res.type === 'left') {
+    errorBadge.value = res.value.detail
     username.value = ''
     password.value = ''
     confirmPassword.value = ''
   }
   else {
-    userState.logIn(user.username, res.data.token)
+    userState.logIn(user.username, res.value.token)
     await router.push('/home/')
   }
 }

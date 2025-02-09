@@ -19,8 +19,8 @@ const room: Ref<Room | null> = ref(null)
 
 onMounted(async () => {
   const res = await getRoomById(route.params.id as string)
-  if (!res.error) {
-    room.value = res.data
+  if (res.type === 'right') {
+    room.value = res.value
   }
 })
 </script>

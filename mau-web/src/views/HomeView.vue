@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { getLeaderboardIndex } from '@/api'
 import NewGame from '@/components/buttons/NewGame.vue'
 import RandomGame from '@/components/buttons/RandomGame.vue'
 import ChallengeList from '@/components/home/ChallengeList.vue'
 import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
-import { useUserStore } from '@/stores/user'
 
+import { useUserStore } from '@/stores/user'
+import { onMounted, ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
 import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
 
@@ -14,10 +16,23 @@ const userStore = useUserStore()
 const me = userStore.getMe()
 const room = userStore.getRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
+
+const topIndex = ref(0)
+
+onMounted(async () => {
+  if (me.value == null) {
+    return
+  }
+
+  const res = await getLeaderboardIndex(me.value.username, 'gems')
+  if (res.type === 'right') {
+    topIndex.value = res.value
+  }
+})
 </script>
 
 <template>
-  <UserCard v-if="me" :user="me" />
+  <UserCard v-if="me" :user="me" :top-index="topIndex" />
   <UserCardPlaceholder v-else />
 
   <RoomCard v-if="room && isMobile" :room="room" />

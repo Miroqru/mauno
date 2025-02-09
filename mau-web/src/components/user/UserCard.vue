@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import type { User } from '@/types'
-import { getLeaderboardIndex } from '@/api'
 import { Gem, Sparkle, User2 } from 'lucide-vue-next'
-import { onMounted, ref } from 'vue'
 
-const { user } = defineProps<{ user: User }>()
-const userTop = ref(0)
-
-onMounted(async () => {
-  userTop.value = await getLeaderboardIndex(user.username, 'gems')
-})
+const { user, topIndex } = defineProps<{ user: User, topIndex: number }>()
 </script>
 
 <template>
@@ -26,7 +19,7 @@ onMounted(async () => {
           {{ user.gems }} <Gem />
         </div>
         <div class="flex text-stone-400 gap-1">
-          {{ userTop }} место <Sparkle />
+          {{ topIndex }} место <Sparkle />
         </div>
       </div>
     </div>

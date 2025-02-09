@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { User } from '@/types'
 import type { Ref } from 'vue'
-import { getUserById } from '@/api'
+import { getLeaderboardIndex, getUserById } from '@/api'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
@@ -17,6 +17,7 @@ const route = useRoute()
 const userStore = useUserStore()
 
 let user: Ref<User | null> = ref(null)
+const userTop = ref(0)
 
 if (!route.params.id) {
   user = ref(userStore.getMe())
@@ -24,14 +25,24 @@ if (!route.params.id) {
 
 onMounted(async () => {
   if (route.params.id) {
-    user.value = await getUserById(route.params.id as string)
+    const res = await getUserById(route.params.id as string)
+    if (res.type === 'right') {
+      user.value = res.value
+    }
+  }
+
+  if (user.value !== null) {
+    const res = await getLeaderboardIndex(user.value.username, 'gems')
+    if (res.type === 'right') {
+      userTop.value = res.value
+    }
   }
 })
 </script>
 
 <template>
   <div v-if="user">
-    <UserProfileCard :user="user" />
+    <UserProfileCard :user="user" :top-index="userTop" />
     <div class="md:flex md:gap-2">
       <div class="md:flex-1">
         <UserStats :user="user" />

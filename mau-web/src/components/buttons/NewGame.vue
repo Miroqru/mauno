@@ -10,11 +10,8 @@ const userState = useUserStore()
 
 async function newRoom() {
   const result = await createRoom(userState.userToken as string)
-  if (result.error) {
-    console.error(result.data)
-  }
-  else {
-    await router.push(`/room/${result.data.id}`)
+  if (result.type === 'right') {
+    await router.push(`/room/${result.value.id}`)
   }
 }
 </script>
@@ -30,3 +27,4 @@ async function newRoom() {
     </div>
   </button>
 </template>
+[]

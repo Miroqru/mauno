@@ -14,8 +14,8 @@ const userState = useUserStore()
 
 onMounted(async () => {
   const res = await getRoomModes(room.id)
-  if (!res.error) {
-    rules.value = res.data
+  if (res.type === 'right') {
+    rules.value = res.value
   }
 })
 
@@ -23,8 +23,8 @@ async function updateRoomSubmit() {
   const active_rules = rules.value.filter(rule => rule.status).map(rule => rule.key)
 
   const res = await updateRoomRules(room.id, userState.userToken as string, active_rules)
-  if (!res.error) {
-    rules.value = res.data
+  if (res.type === 'right') {
+    rules.value = res.value
   }
 }
 </script>

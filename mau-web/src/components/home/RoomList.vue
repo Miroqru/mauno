@@ -12,8 +12,8 @@ const rooms: Ref<Room[]> = ref([])
 
 onMounted(async () => {
   const res = await getRooms()
-  if (!res.error) {
-    rooms.value = res.data
+  if (res.type === 'right') {
+    rooms.value = res.value
   }
 })
 </script>

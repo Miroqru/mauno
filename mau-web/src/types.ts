@@ -6,6 +6,8 @@ export interface UserDataIn {
   password: string
 }
 
+export interface EditUserDataIn { name: string, avatar_url: string }
+
 // Данные комнаты, которые можно изменить
 export interface RoomDataIn {
   name: string

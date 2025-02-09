@@ -34,8 +34,10 @@ export const useUserStore = defineStore('user', () => {
       return user
     }
 
-    getUser(userToken.value).then(({ data }) => {
-      user.value = data
+    getUser(userToken.value).then((res) => {
+      if (res.type === 'right') {
+        user.value = res.value
+      }
     })
 
     return user
@@ -43,18 +45,16 @@ export const useUserStore = defineStore('user', () => {
 
   async function joinRoom(room: string) {
     const res = await joinToRoom(userToken.value as string, room)
-    if (!res.error) {
+    if (res.type === 'right') {
       localStorage.setItem('roomId', room)
       roomId.value = room
     }
   }
 
   async function leaveRoom(room: string) {
-    const res = await leaveFromRoom(userToken.value as string, room)
-    if (!res.error) {
-      localStorage.removeItem('roomId')
-      roomId.value = null
-    }
+    await leaveFromRoom(userToken.value as string, room)
+    localStorage.removeItem('roomId')
+    roomId.value = null
   }
 
   function getRoom() {
@@ -64,11 +64,11 @@ export const useUserStore = defineStore('user', () => {
     }
 
     getRoomById(roomId.value).then((res) => {
-      if (res.error || res.data.status === 'ended') {
+      if (res.type === 'left' || res.value.status === 'ended') {
         localStorage.removeItem('roomId')
         roomId.value = null
       }
-      room.value = res.data
+      room.value = res.value
     })
 
     return room
