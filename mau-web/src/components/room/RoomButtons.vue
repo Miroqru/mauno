@@ -9,18 +9,19 @@ const { room } = defineProps<{ room: Room }>()
 
 const userState = useUserStore()
 const me = userState.getMe()
+const activeRoom = userState.getActiveRoom()
 
 const canJoin = computed(
   () =>
-    !userState.roomId
+    !activeRoom.value
     && room.players.length < room.max_players
     && me.value !== null
     && me.value.gems >= room.gems,
 )
-const canLeave = computed(() => userState.roomId !== null && room.id === userState.roomId)
+const canLeave = computed(() => activeRoom.value !== null && room.id === activeRoom.value)
 const canStart = computed(
   () =>
-    userState.roomId !== null
+    activeRoom.value !== null
     && room.owner.username === userState.userId
     && room.players.length >= room.min_players
     && room.players.length <= room.max_players,

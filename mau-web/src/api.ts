@@ -177,6 +177,15 @@ export async function getRandomRoom(): Promise<Either<any, Room>> {
   })
 }
 
+export async function fetchActiveRoom(token: string): Promise<Either<any, Room>> {
+  return await useApi('/rooms/active', {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  })
+}
+
 export async function joinToRoom(token: string, roomID: string): Promise<Either<any, Room>> {
   return await useApi(`/rooms/${roomID}/join/`, {
     headers: {
