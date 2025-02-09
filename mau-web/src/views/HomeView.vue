@@ -7,6 +7,7 @@ import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
 
+import { useNotifyStore } from '@/stores/notify'
 import { useUserStore } from '@/stores/user'
 import { onMounted, ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
@@ -16,17 +17,21 @@ const userStore = useUserStore()
 const me = userStore.getMe()
 const room = userStore.getRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
-
 const topIndex = ref(0)
+const notifyState = useNotifyStore()
 
 onMounted(async () => {
   if (me.value == null) {
+    notifyState.addNotify('Оффлайн', 'Mau сервер не отвечает', 'error')
     return
   }
 
   const res = await getLeaderboardIndex(me.value.username, 'gems')
   if (res.type === 'right') {
     topIndex.value = res.value
+  }
+  else {
+    notifyState.addNotify('Таблица лидеров', 'Mau сервер не отвечает', 'error')
   }
 })
 </script>

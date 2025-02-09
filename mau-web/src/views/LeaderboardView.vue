@@ -6,33 +6,36 @@ import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
+import { useNotifyStore } from '@/stores/notify'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { ref, watchEffect } from 'vue'
 
 const settingState = useSettingsStore()
 const userState = useUserStore()
+const notifyState = useNotifyStore()
 
 const me = userState.getMe()
 const records: Ref<User[]> = ref([])
 const topIndex = ref(0)
 
 watchEffect(async () => {
-  const serverRecords = (await getLeaders(settingState.topFilter)) || []
-  if (serverRecords.type === 'right') {
-    records.value = serverRecords.value
-  }
-
   // FIXME: Почему не обновляемся в карточке пользователя
   await getLeaders(settingState.topFilter).then((res) => {
     if (res.type === 'right') {
-      records.value = serverRecords.value || []
+      records.value = res.value || []
+    }
+    else {
+      notifyState.addNotify('Таблица лидеров', res.value, 'error')
     }
   })
 
   await getLeaderboardIndex(userState.userId as string, settingState.topFilter).then((res) => {
     if (res.type === 'right') {
       topIndex.value = res.value
+    }
+    else {
+      notifyState.addNotify('Таблица лидеров', res.value, 'error')
     }
   })
 })
@@ -57,9 +60,12 @@ watchEffect(async () => {
       :display-param="settingState.topFilter"
     />
   </section>
-  <ErrorLoadingCard />
-
-  <!-- <div v-else class="my-4 text-center text-lg">А где рекорды?</div> -->
+  <ErrorLoadingCard
+    v-else
+    details="Не удалось получить таблицу лидеров"
+    :block="true"
+    class="my-4"
+  />
 
   <UserStatus
     v-if="me"

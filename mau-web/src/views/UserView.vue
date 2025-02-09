@@ -5,6 +5,7 @@ import { getLeaderboardIndex, getUserById } from '@/api'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
+import { useNotifyStore } from '@/stores/notify'
 import { useUserStore } from '@/stores/user'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -13,14 +14,17 @@ import GetGems from '../components/user/GetGems.vue'
 import UserStats from '../components/user/UserStats.vue'
 
 const route = useRoute()
-
 const userStore = useUserStore()
+const notifyState = useNotifyStore()
 
 let user: Ref<User | null> = ref(null)
 const userTop = ref(0)
 
 if (!route.params.id) {
   user = ref(userStore.getMe())
+  if (user.value === null) {
+    notifyState.addNotify('Оффлайн', 'Mau сервер не отвечает', 'error')
+  }
 }
 
 onMounted(async () => {
@@ -29,12 +33,18 @@ onMounted(async () => {
     if (res.type === 'right') {
       user.value = res.value
     }
+    else {
+      notifyState.addNotify('Пользователь', res.value, 'error')
+    }
   }
 
   if (user.value !== null) {
     const res = await getLeaderboardIndex(user.value.username, 'gems')
     if (res.type === 'right') {
       userTop.value = res.value
+    }
+    else {
+      notifyState.addNotify('Пользователь', res.value, 'error')
     }
   }
 })
