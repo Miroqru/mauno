@@ -79,3 +79,4 @@ data/
 images/api_auth.json
 images/sticker_config.json
 images/sticker_uploader.session
+.env
