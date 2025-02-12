@@ -1,15 +1,19 @@
-"""Хранилище игровых сессий."""
+"""Хранилище игровых сессий.
+
+Занимается общей обработкой всех существующих сессий.
+Отвечает за создание новых игр и привязыванию их к чату.
+"""
 
 from aiogram import Bot
 from aiogram.types import User
 from loguru import logger
 
-from maubot.uno.exceptions import (
+from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
+from mau.game import UnoGame
+from mau.player import Player
 
 
 class SessionManager:
@@ -24,7 +28,6 @@ class SessionManager:
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[int, int] = {}
 
-
     # Управление игроками в сессии
     # ============================
 
@@ -37,7 +40,7 @@ class SessionManager:
         if game is None:
             raise NoGameInChatError()
         if not game.open:
-            raise  LobbyClosedError()
+            raise LobbyClosedError()
 
         game.add_player(user)
         self.user_to_chat[user.id] = chat_id
@@ -67,7 +70,6 @@ class SessionManager:
         if chat_id is None:
             return None
         return self.games[chat_id].get_player(user_id)
-
 
     # Управление сессиями
     # ===================

@@ -13,17 +13,16 @@ from aiogram import Bot
 from aiogram.types import User
 from loguru import logger
 
-from maubot import keyboards, messages
-from maubot.uno.card import BaseCard, CardColor, CardType
-from maubot.uno.deck import Deck
-from maubot.uno.enums import GameState
-from maubot.uno.exceptions import (
+from mau.card import CardColor
+from mau.deck import Deck
+from mau.enums import GameState
+from mau.exceptions import (
     AlreadyJoinedError,
     LobbyClosedError,
     NoGameInChatError,
 )
-from maubot.uno.journal import Journal
-from maubot.uno.player import Player
+from mau.player import Player
+from mau.telegram.journal import Journal
 
 
 @dataclass(slots=True)
@@ -44,12 +43,14 @@ class GameRules:
     side_effect: bool = False
     intervention: bool = False
 
+
 @dataclass(frozen=True, slots=True)
 class Rule:
     """Правило для игры."""
 
     key: str
     name: str
+
 
 RULES = (
     Rule("twist_hand", "🤝 Обмен руками"),
@@ -64,10 +65,9 @@ RULES = (
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("side_effect", "🌀 Побочный выброс"),
     Rule("ahead_of_curve", "🔪 На опережение 🔧"),
-    Rule("intervention", "😈 Вмешательство 🔧")
+    Rule("intervention", "😈 Вмешательство 🔧"),
 )
 
-TWIST_HAND_NUM = 2
 
 class UnoGame:
     """Представляет каждую игру Uno.
@@ -84,6 +84,8 @@ class UnoGame:
 
         # Игроки Uno
         self.current_player: int = 0
+        # TODO: Переименовать start player в owner
+        # TODO: Изменить на экземпляр игрока, на будущее
         self.start_player = None
         self.bluff_player: Player = None
         self.players: list[Player] = []
@@ -119,14 +121,12 @@ class UnoGame:
             prev_index = (self.current_player - 1) % len(self.players)
         return self.players[prev_index]
 
-
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
-            if player.user.id == user_id:
+            if player.user_id == user_id:
                 return player
         return None
-
 
     # Управление потоком игры
     # =======================
@@ -168,60 +168,6 @@ class UnoGame:
 
         self.deck.top(self)
 
-    def process_turn(self, card: BaseCard, player: Player) -> None:
-        """Обрабатываем текущий ход."""
-        logger.info("Playing card {}", card)
-        self.deck.put_on_top(card)
-        player.hand.remove(card)
-        self.journal.set_markup(None)
-
-        card(self)
-
-        # 8< -------------------------
-
-        if len(player.hand) == 1:
-            self.journal.add("🌟 UNO!\n")
-
-        if len(player.hand) == 0:
-            self.journal.add(f"👑 {self.user.first_name} победил(а)!\n")
-            self.remove_player(self.user.id)
-            if not self.started:
-                self.journal.add(messages.end_game_message(self))
-
-        elif all(card.cost == TWIST_HAND_NUM, self.rules.twist_hand):
-            self.journal.add(f"✨ {self.name} Задумывается c кем обменяться.")
-            self.state = GameState.TWIST_HAND
-            self.journal.set_markup(keyboards.select_player_markup(self))
-
-        elif all(self.rules.rotate_cards, self.deck.top.cost == 0):
-            self.rotate_cards()
-            self.journal.add(
-                "🤝 Все игроки обменялись картами по кругу.\n"
-                f"{messages.get_room_players(self)}"
-            )
-
-        if card.card_type in (
-            CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
-        ):
-            self.journal.add(f"✨ {self.name} Задумывается о выборе цвета.")
-            self.state = GameState.CHOOSE_COLOR
-            self.journal.set_markup(keyboards.COLOR_MARKUP)
-
-        if any(self.rules.random_color,
-            self.rules.choose_random_color,
-            self.rules.auto_choose_color
-        ):
-            self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
-
-        if self.state == GameState.NEXT:
-            if self.rules.random_color:
-                self.deck.top.color = CardColor(randint(0, 3))
-            if self.deck.top.cost == 1 and self.rules.side_effect:
-                logger.info("Player continue turn")
-            else:
-                self.next_turn()
-
-
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
@@ -236,7 +182,6 @@ class UnoGame:
         self.journal.clear()
         self.skip_players()
 
-
     # Управление списком игроков
     # ==========================
 
@@ -250,7 +195,7 @@ class UnoGame:
         if player is not None:
             raise AlreadyJoinedError()
 
-        player = Player(self, user)
+        player = Player(self, user.id, user.mention_html())
         player.on_leave()
         if self.started:
             player.take_first_hand()

@@ -13,6 +13,17 @@ from aiogram.filters import (
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
 from loguru import logger
 
+from mau.card import TakeCard, TakeFourCard
+from mau.enums import GameState
+from mau.exceptions import (
+    AlreadyJoinedError,
+    DeckEmptyError,
+    LobbyClosedError,
+    NoGameInChatError,
+)
+from mau.game import UnoGame
+from mau.player import Player
+from mau.session import SessionManager
 from maubot import keyboards, messages
 from maubot.messages import (
     NO_ROOM_MESSAGE,
@@ -20,22 +31,12 @@ from maubot.messages import (
     get_closed_room_message,
     get_room_status,
 )
-from maubot.uno.card import TakeCard, TakeFourCard
-from maubot.uno.enums import GameState
-from maubot.uno.exceptions import (
-    AlreadyJoinedError,
-    DeckEmptyError,
-    LobbyClosedError,
-    NoGameInChatError,
-)
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
-from maubot.uno.session import SessionManager
 
 router = Router(name="Player")
 
 # Обработчики
 # ===========
+
 
 @router.message(Command("join"))
 async def join_player(
@@ -67,7 +68,7 @@ async def join_player(
                 text=get_room_status(game),
                 chat_id=game.chat_id,
                 message_id=game.lobby_message,
-                reply_markup=keyboards.get_room_markup(game)
+                reply_markup=keyboards.get_room_markup(game),
             )
         else:
             game.journal.add(
@@ -75,6 +76,7 @@ async def join_player(
                 f"{message.from_user.mention_html()}!"
             )
             await game.journal.send_journal()
+
 
 @router.message(Command("leave"))
 async def leave_player(
@@ -91,10 +93,12 @@ async def leave_player(
         return await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
 
     if game.started:
-        game.journal.add(text=(
-            "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
-        ))
+        game.journal.add(
+            text=(
+                "🍰 Ладненько, следующих ход за "
+                f"{game.player.user.mention_html()}."
+            )
+        )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
@@ -108,9 +112,10 @@ async def leave_player(
 # Обработчики для кнопок
 # ======================
 
-@router.callback_query(F.data=="join")
+
+@router.callback_query(F.data == "join")
 async def join_callback(
-    query: CallbackQuery, sm: SessionManager, game: UnoGame |  None
+    query: CallbackQuery, sm: SessionManager, game: UnoGame | None
 ) -> None:
     """Добавляет игрока в текущую комнату."""
     try:
@@ -126,14 +131,16 @@ async def join_callback(
     else:
         await query.message.edit_text(
             text=get_room_status(game),
-            reply_markup=keyboards.get_room_markup(game)
+            reply_markup=keyboards.get_room_markup(game),
         )
 
-@router.callback_query(F.data=="take")
-async def take_cards_call(query: CallbackQuery,
+
+@router.callback_query(F.data == "take")
+async def take_cards_call(
+    query: CallbackQuery,
     sm: SessionManager,
-    game: UnoGame |  None,
-    player: Player | None
+    game: UnoGame | None,
+    player: Player | None,
 ) -> None:
     """Игрок выбирает взять карты."""
     if game is None or player is None:
@@ -152,12 +159,12 @@ async def take_cards_call(query: CallbackQuery,
 
     player.take_cards()
     if len(player.game.deck.cards) == 0:
-        game.journal.add("🃏 В колоде не осталось карт для игрока.",)
+        game.journal.add(
+            "🃏 В колоде не осталось карт для игрока.",
+        )
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
-    if (isinstance(game.deck.top, TakeCard | TakeFourCard)
-        and take_counter
-    ):
+    if isinstance(game.deck.top, TakeCard | TakeFourCard) and take_counter:
         game.journal.set_markup(None)
         game.next_turn()
         game.journal.set_markup(keyboards.TURN_MARKUP)
@@ -171,11 +178,13 @@ async def take_cards_call(query: CallbackQuery,
         game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
-@router.callback_query(F.data=="shot")
-async def shotgun_call(query: CallbackQuery,
+
+@router.callback_query(F.data == "shot")
+async def shotgun_call(
+    query: CallbackQuery,
     sm: SessionManager,
-    game: UnoGame |  None,
-    player: Player | None
+    game: UnoGame | None,
+    player: Player | None,
 ) -> None:
     """Игрок выбирает взять карты."""
     if game is None or player is None:
@@ -186,7 +195,7 @@ async def shotgun_call(query: CallbackQuery,
     res = player.shotgun()
     game.journal.set_markup(None)
     if not res:
-        game.take_counter = round(game.take_counter*1.5)
+        game.take_counter = round(game.take_counter * 1.5)
         game.journal.add(
             "✨ На сей раз <b>вам повезло</b> и револьвер не выстрелил.",
         )
@@ -222,9 +231,9 @@ async def shotgun_call(query: CallbackQuery,
         await query.message.edit_text(text=status)
 
 
-
 # Обработчики событий
 # ===================
+
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_user_leave(
@@ -242,7 +251,7 @@ async def on_user_leave(
 
     if game.started:
         game.journal.add(
-           f"Ладненько, следующих ход за {game.player.user.mention_html()}."
+            f"Ладненько, следующих ход за {game.player.user.mention_html()}."
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -250,4 +259,3 @@ async def on_user_leave(
         status_message = NOT_ENOUGH_PLAYERS
         sm.remove(event.chat.id)
         await event.answer(status_message)
-

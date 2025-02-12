@@ -9,6 +9,7 @@
 - Дать 4 карты.
 """
 
+import re
 from collections.abc import Iterable, Iterator
 from enum import IntEnum
 from random import randint
@@ -16,16 +17,17 @@ from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
-from maubot.uno.enums import GameState
+from mau.enums import GameState
 
 if TYPE_CHECKING:
-    from maubot.uno.game import UnoGame
+    from mau.game import UnoGame
 
 # Дополнительные перечисления
 # ===========================
 
 # Emoji для представления цвета карты
 COLOR_EMOJI = ["❤️", "💛", "💚", "💙", "🖤"]
+
 
 class CardColor(IntEnum):
     """Все доступные цвета карт UNO."""
@@ -40,7 +42,9 @@ class CardColor(IntEnum):
         """Представление цвета в виде смайлика."""
         return COLOR_EMOJI[self.value]
 
-CARD_TYPES = ["", "skip", "reverse", "+", "choose", "take"]
+
+CARD_TYPES = ["", "skip", "reverse", "take", "color", "take_four"]
+
 
 class CardType(IntEnum):
     """Основные типы карт UNO.
@@ -67,6 +71,7 @@ class CardType(IntEnum):
 
 # Описание карт
 # =============
+
 
 class BaseCard:
     """Описание каждой карты Uno.
@@ -103,7 +108,8 @@ class BaseCard:
             return True
         elif self.color == other_card.color:
             return True
-        elif (self.card_type == other_card.card_type
+        elif (
+            self.card_type == other_card.card_type
             and self.value == other_card.value
         ):
             return True
@@ -128,7 +134,7 @@ class BaseCard:
         for card in hand:
             yield (card, self.can_cover(card))
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Выполняет способность карты.
 
         У каждой карты есть свой способность.
@@ -143,14 +149,20 @@ class BaseCard:
         """
         logger.debug("Used card {} in chat {}", self, game.chat_id)
 
-
-    def __call__(self, game: 'UnoGame') -> None:
+    def __call__(self, game: "UnoGame") -> None:
         """Синтаксический сахар для вызова действия карты.
 
         Позволяет использовать способность этой карты.
         Является сокращением для метода use_card.
         """
         return self.use_card(game)
+
+    def to_str(self) -> str:
+        """запаковывает карту в строку."""
+        return f"{self.card_type}{self.color.value}{self.value}"
+
+    # магические методы
+    # =================
 
     def __str__(self) -> str:
         """Представление карты в строковом виде."""
@@ -206,7 +218,7 @@ class TurnCard(BaseCard):
         self.value = value
         self.cost = 20
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Пропускает ход для следующего игрока.
 
         Args:
@@ -231,7 +243,7 @@ class ReverseCard(BaseCard):
         super().__init__(color, CardType.REVERSE)
         self.cost = 20
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Разворачивает очерёдность ходов для игры.
 
         Args:
@@ -239,7 +251,7 @@ class ReverseCard(BaseCard):
 
         """
         # Когда игроков двое, работает как карта пропуска
-        if len(game.players) == 2: # noqa
+        if len(game.players) == 2:  # noqa
             game.skip_players()
         else:
             game.reverse = not game.reverse
@@ -262,7 +274,7 @@ class TakeCard(BaseCard):
         self.value = value
         self.cost = 20
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -270,8 +282,10 @@ class TakeCard(BaseCard):
 
         """
         game.take_counter += self.value
-        logger.info("Take counter increase by {} and now {}",
-            self.value, game.take_counter
+        logger.info(
+            "Take counter increase by {} and now {}",
+            self.value,
+            game.take_counter,
         )
 
     def __str__(self) -> str:
@@ -289,7 +303,7 @@ class ChooseColorCard(BaseCard):
         super().__init__(CardColor.BLACK, CardType.CHOOSE_COLOR)
         self.cost = 50
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -333,7 +347,7 @@ class TakeFourCard(BaseCard):
         self.value = value
         self.cost = 50
 
-    def use_card(self, game: 'UnoGame') -> None:
+    def use_card(self, game: "UnoGame") -> None:
         """Следующий игрок берёт несколько карт.
 
         Args:
@@ -361,3 +375,41 @@ class TakeFourCard(BaseCard):
             and self.value == other_card.value
             and self.cost == other_card.cost
         )
+
+
+# Сборка карт из строки
+# =====================
+
+
+def card_from_str(card_str: str) -> BaseCard:
+    """Превращает строку карты в действительный экземпляр.
+
+    Обратное действие для получения экземпляра карты из строки.
+    Используется уже при обработке отправленного стикеров.
+    """
+    card_match = re.match(r"(|skip|reverse|take|color|take_four)([0-4])([0-9])")
+    if card_match is None:
+        raise ValueError("Incorrect card str")
+
+    c_type, c_color, c_value = card_match.groups()
+
+    if c_type == "color":
+        return ChooseColorCard()
+
+    elif c_type == "take_four":
+        return TakeFourCard()
+
+    elif c_type == "":
+        return TurnCard(CardColor(int(c_color)), int(c_value))
+
+    elif c_type == "take":
+        return TakeCard(CardColor(int(c_color)), int(c_value))
+
+    elif c_type == "reverse":
+        return ReverseCard(CardColor(int(c_color)))
+
+    elif c_type == "skip":
+        return NumberCard(CardColor(int(c_color)), int(c_value))
+
+    else:
+        raise ValueError("Incorrect card str")

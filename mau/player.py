@@ -3,11 +3,9 @@
 from random import randint
 from typing import TYPE_CHECKING, NamedTuple, Self
 
-from aiogram.types import User
 from loguru import logger
 
-from maubot import keyboards
-from maubot.uno.card import (
+from mau.card import (
     BaseCard,
     CardColor,
     NumberCard,
@@ -16,17 +14,16 @@ from maubot.uno.card import (
     TakeFourCard,
     TurnCard,
 )
-from maubot.uno.enums import GameState
-from maubot.uno.exceptions import DeckEmptyError
+from mau.enums import GameState
+from mau.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
-    from maubot.uno.game import UnoGame
+    from mau.game import UnoGame
 
-
-_MIN_SHOTGUN_TAKE_COUNTER = 3
 
 # Дополнительные типы данных
 # ==========================
+
 
 class SortedCards(NamedTuple):
     """Распределяет карты на: покрывающие и не покрывающие."""
@@ -42,10 +39,11 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    def __init__(self, game: 'UnoGame', user: User) -> None:
+    def __init__(self, game: "UnoGame", user_id: str, user_name: str) -> None:
         self.hand: BaseCard = []
         self.game: UnoGame = game
-        self.user = user
+        self.user_id = user_id
+        self._user_name = user_name
 
         self.bluffing = False
         self.anti_cheat = 0
@@ -56,39 +54,42 @@ class Player:
     @property
     def name(self) -> str:
         """Возвращает имя игрока с упоминанием пользователя ядл бота."""
-        return self.user.mention_html()
+        return self._user_name
 
     @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
 
+    # TODO: game.owner.id
     @property
     def is_owner(self) -> bool:
         """Является ли текущий пользователь автором комнаты."""
-        return self.user.id == self.game.start_player.id
+        return self.user_id == self.game.start_player.id
 
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
         if self.game.rules.debug_cards:
-            logger.debug("{} Draw debug first hand for player", self.user)
+            logger.debug("{} Draw debug first hand for player", self._user_name)
             self.hand = [
                 TakeFourCard(),
                 TakeFourCard(),
             ]
             for x in (0, 1, 2, 3):
-                self.hand.extend((
-                    TakeCard(CardColor(x)),
-                    TurnCard(CardColor(x), 1),
-                    ReverseCard(CardColor(x)),
-                    NumberCard(CardColor(x), 7),
-                    NumberCard(CardColor(x), 2),
-                    NumberCard(CardColor(x), 0),
-                ))
+                self.hand.extend(
+                    (
+                        TakeCard(CardColor(x)),
+                        TurnCard(CardColor(x), 1),
+                        ReverseCard(CardColor(x)),
+                        NumberCard(CardColor(x), 7),
+                        NumberCard(CardColor(x), 2),
+                        NumberCard(CardColor(x), 0),
+                    )
+                )
             return
 
-        logger.debug("{} Draw first hand for player", self.user)
+        logger.debug("{} Draw first hand for player", self._user_name)
         try:
             self.hand = list(self.game.deck.take(7))
         except DeckEmptyError:
@@ -100,19 +101,14 @@ class Player:
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
         take_counter = self.game.take_counter or 1
-        logger.debug("{} Draw {} cards", self.user, take_counter)
+        logger.debug("{} Draw {} cards", self._user_name, take_counter)
 
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
         self.game.take_flag = True
 
-    def put_card(self, card_index: int) -> None:
-        """Разыгрывает одну из карт из своей руки."""
-        card = self.hand.pop(card_index)
-        self.game.process_turn(card)
-
-    def _sort_hand_cards(self, top) -> SortedCards:
+    def _sort_hand_cards(self, top: BaseCard) -> SortedCards:
         cover = []
         uncover = []
         for card, can_cover in top.get_cover_cards(self.hand):
@@ -129,13 +125,12 @@ class Player:
 
             cover.append(card)
             self.bluffing = (
-                self.bluffing
-                or card.color == self.game.deck.top.color
+                self.bluffing or card.color == self.game.deck.top.color
             )
 
         return SortedCards(sorted(cover), sorted(uncover))
 
-    def _get_equal_cards(self, top) -> SortedCards:
+    def _get_equal_cards(self, top: BaseCard) -> SortedCards:
         cover = []
         uncover = []
         for card in self.hand:
@@ -152,12 +147,10 @@ class Player:
 
             cover.append(card)
             self.bluffing = (
-                self.bluffing
-                or card.color == self.game.deck.top.color
+                self.bluffing or card.color == self.game.deck.top.color
             )
 
         return SortedCards(sorted(cover), sorted(uncover))
-
 
     def get_cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
@@ -177,13 +170,12 @@ class Player:
             return self._get_equal_cards(top)
         return self._sort_hand_cards(top)
 
-
     # Обработка событий
     # =================
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
-        logger.debug("{} Leave from game", self.user)
+        logger.debug("{} Leave from game", self._user_name)
         # Если он последний игрок, подчищать за собой не приходится
         if len(self.game.players) == 1:
             return
@@ -212,7 +204,6 @@ class Player:
         self.shotgun_current += 1
         return self.shotgun_current >= self.shotgun_lose
 
-
     # Обработка игровых действий
     # ==========================
 
@@ -238,7 +229,7 @@ class Player:
             self.game.take_counter += 2
             self.game.journal.add(
                 f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
-                f"{self.user.first_name} получает "
+                f"{self.name} получает "
                 f"{self.game.take_counter} карт.\n"
             )
             self.take_cards()
@@ -249,68 +240,21 @@ class Player:
         await self.game.journal.send_journal()
         self.game.next_turn()
 
-    async def call_take_cards(self) -> None:
-        """Действия игрока при взятии карты.
-
-        В зависимости от правил, можно взять не одну карту, а сразу
-        несколько.
-        Если включен револьвер, то при взятии нескольких карт будет
-        выбор:
-
-        - Брать карты сейчас.
-        - Выстрелить, чтобы взял следующий игрок.
-        """
-        if self.game.rules.take_until_cover and self.game.take_counter == 0:
-            self.game.take_counter = self.game.deck.count_until_cover()
-            self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
-
-        if any(self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
-            self.game.rules.shotgun,
-            self.game.rules.single_shotgun
-        ):
-            current = (
-                self.game.shotgun_current if self.game.rules.single_shotgun
-                else self.shotgun_current
-            )
-            self.game.journal.add(
-                "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
-                f"Вы можете <b>взять свои карты</b> "
-                "или же попробовать <b>выстрелить из револьвера</b>.\n"
-                "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-                f"🔫 Из револьвера стреляли {current} / 8 раз\n."
-            )
-            self.game.journal.set_markup(keyboards.SHOTGUN_REPLY)
-
-        logger.info("{} take cards", self)
-        take_counter = self.game.take_counter
-        self.take_cards()
-        if len(self.game.deck.cards) == 0:
-            self.game.journal.add("🃏 В колоде не осталось карт для игрока.")
-
-        # Если пользователь выбрал взять карты, то он пропускает свой ход
-        if (isinstance(self.game.deck.top, TakeCard | TakeFourCard)
-            and take_counter
-        ):
-            self.game.next_turn()
-        else:
-            self.game.state = GameState.NEXT
-
-
     # Магические методы
     # =================
 
     def __repr__(self) -> str:
         """Представление игрока при отладке."""
-        return repr(self.user)
+        return repr(self._user_name)
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""
-        return str(self.user)
+        return str(self._user_name)
 
     def __eq__(self, other_player: Self) -> bool:
         """Сравнивает двух игроков по UID пользователя."""
-        return self.user.id == other_player.user.id
+        return self.user_id == other_player.user_id
 
     def __ne__(self, other_player: Self) -> bool:
         """Проверяет что игроки не совпадают."""
-        return self.user.id != other_player.user.id
+        return self.user_id != other_player.user_id

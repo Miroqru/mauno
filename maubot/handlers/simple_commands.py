@@ -13,6 +13,7 @@ router = Router(name="simple commands")
 # Обработчики
 # ===========
 
+
 @router.message(Command("help"))
 async def get_help(message: Message, bot: Bot) -> None:
     """Помогает пользователю начать работать с ботом."""
@@ -33,6 +34,7 @@ async def get_help(message: Message, bot: Bot) -> None:
     except Exception as e:
         logger.warning("Unable to send private message: {}", e)
         await message.answer("👀 Я не могу написать вам первым.")
+
 
 @router.message(Command("status"))
 async def get_bot_status(message: Message) -> None:

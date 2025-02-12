@@ -9,11 +9,11 @@
 from aiogram.filters import Filter
 from aiogram.types import CallbackQuery
 
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
+from mau.game import UnoGame
+from mau.player import Player
 
 
-# TODO: Возможно он ладе не работает нормально, да вот только почему??
+# TODO: Возможно он даже не работает нормально, да вот только почему??
 class NowPlaying(Filter):
     """Фильтр текущего игрока.
 
@@ -27,20 +27,15 @@ class NowPlaying(Filter):
     """
 
     async def __call__(
-        self,
-        query: CallbackQuery,
-        game: UnoGame | None,
-        player: Player | None
+        self, query: CallbackQuery, game: UnoGame | None, player: Player | None
     ) -> bool:
         """Проверяет что текущий игрок имеет право сделать ход."""
         if game is None or player is None:
             await query.answer("🍉 А вы точно сейчас играете?")
             return False
 
-        if game.player == player:
+        if game.player == player or game.rules.ahead_of_curve:
             return True
-        elif game.rules.ahead_of_curve:
-            return True
-        await query.answer("🍉 А вы точно сейчас ходите?")
-        return False
 
+        await query.answer("🍉 А сейчас точно ваш ход?")
+        return False

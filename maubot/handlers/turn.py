@@ -9,23 +9,24 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 from loguru import logger
 
+from mau.card import CardColor, card_from_str
+from mau.enums import GameState
+from mau.game import UnoGame
+from mau.player import Player
+from mau.session import SessionManager
+from mau.telegram.player import call_take_cards
+from mau.telegram.turn import process_turn
 from maubot import keyboards
-from maubot.stickers import from_str
-from maubot.uno.card import CardColor
-from maubot.uno.enums import GameState
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
-from maubot.uno.session import SessionManager
 
 router = Router(name="Turn")
 
 # Обработчики
 # ===========
 
+
 @router.inline_query()
-async def inline_handler(query: InlineQuery,
-    game: UnoGame | None,
-    player: Player | None
+async def inline_handler(
+    query: InlineQuery, game: UnoGame | None, player: Player | None
 ) -> None:
     """Обработчик inline запросов к боту.
 
@@ -38,12 +39,14 @@ async def inline_handler(query: InlineQuery,
 
     await query.answer(result, cache_time=1, is_personal=True)
 
+
 @router.chosen_inline_result()
-async def process_card_handler(result: ChosenInlineResult,
+async def process_card_handler(
+    result: ChosenInlineResult,
     game: UnoGame | None,
     player: Player | None,
     bot: Bot,
-    sm: SessionManager
+    sm: SessionManager,
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
     logger.info("Process result {} in game {}", result, game)
@@ -53,19 +56,19 @@ async def process_card_handler(result: ChosenInlineResult,
         player is None,
         game is None,
         result.result_id in ("status", "nogame"),
-        re.match(r"status:\d", result.result_id)
+        re.match(r"status:\d", result.result_id),
     ):
         return
 
     if player != game.player:
-        game.journal.add(f"😈 {player.user.mention_html()} вмешался в игру.")
+        game.journal.add(f"😈 {player.name} вмешался в игру.")
         game.set_current_player(player)
 
     if result.result_id == "pass":
         game.next_turn()
 
     elif result.result_id == "take":
-        player.call_take_cards()
+        call_take_cards(player)
 
     elif result.result_id == "bluff":
         await player.call_bluff()
@@ -81,21 +84,22 @@ async def process_card_handler(result: ChosenInlineResult,
             player_hand = len(player.hand)
             other_hand = len(other_player.hand)
             game.journal.add(
-                f"🤝 {player.user.first_name} ({player_hand} карт) "
-                f"и {other_player.user.first_name} ({other_hand} карт) "
+                f"🤝 {player.name} ({player_hand} карт) "
+                f"и {other_player.name} ({other_hand} карт) "
                 "обменялись руками.\n"
             )
             player.twist_hand(other_player)
         else:
             game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
-    card = from_str(result.result_id)
+    card = card_from_str(result.result_id)
     if card is not None:
-        game.process_turn(card, player)
+        process_turn(game, card, player)
 
     if game.started and game.state == GameState.NEXT:
         game.journal.add(
-            "🌀 Продолжаем ход" if game.player == player
+            "🌀 Продолжаем ход"
+            if game.player == player
             else f"🍰 <b>Следующий ходит</b>: {game.player.name}"
         )
         if game.journal.reply_markup is None:
@@ -107,14 +111,15 @@ async def process_card_handler(result: ChosenInlineResult,
 # Обработчики для кнопок
 # ======================
 
+
 @router.callback_query(F.data.regexp(r"color:([0-3])").as_("color"))
-async def choose_color_call( # noqa
+async def choose_color_call(  # noqa
     query: CallbackQuery,
     game: UnoGame | None,
     player: Player | None,
     color: re.Match[str],
     sm: SessionManager,
-    bot: Bot
+    bot: Bot,
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     if game is None or player is None:
@@ -129,9 +134,7 @@ async def choose_color_call( # noqa
     game.choose_color(color)
 
     if game.started:
-        game.journal.add(
-            f"🍰 <b>Следующий ходит</b>: {game.player.name}"
-        )
+        game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
@@ -139,11 +142,15 @@ async def choose_color_call( # noqa
 
     return await query.answer(f"🎨 Вы выбрали {color}.")
 
-@router.callback_query(F.data.regexp(r"select_player:(\d)").as_("index"),)
-async def select_player_call(query: CallbackQuery,
+
+@router.callback_query(
+    F.data.regexp(r"select_player:(\d)").as_("index"),
+)
+async def select_player_call(
+    query: CallbackQuery,
     game: UnoGame | None,
     player: Player | None,
-    index: re.Match[int]
+    index: re.Match[int],
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
     if game is None or player is None:
@@ -156,8 +163,8 @@ async def select_player_call(query: CallbackQuery,
         player_hand = len(player.hand)
         other_hand = len(other_player.hand)
         game.journal.add(
-            f"🤝 {player.user.first_name} ({player_hand} карт) "
-            f"и {other_player.user.first_name} ({other_hand} карт) "
+            f"🤝 {player.name} ({player_hand} карт) "
+            f"и {other_player.name} ({other_hand} карт) "
             "обменялись руками.\n"
         )
         game.journal.set_markup(None)
@@ -166,8 +173,6 @@ async def select_player_call(query: CallbackQuery,
     else:
         game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
-    game.journal.add(
-        f"🍰 <b>Следующий ходит</b>: {game.player.name}"
-    )
+    game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
     game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
