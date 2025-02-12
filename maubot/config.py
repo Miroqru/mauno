@@ -5,42 +5,30 @@
 Загружаются один раз при запуске и больше не изменяются.
 """
 
-from pathlib import Path
-
 from aiogram.client.default import DefaultBotProperties
 from loguru import logger
 from pydantic import BaseModel, SecretStr
-
-# Общие настройки бота
-# ====================
-
-CONFIG_PATh = Path("config.json")
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# TODO: Большая часть полей вообще не используется и почему не .env?
-class Config(BaseModel):
-    """Общие настройки для Telegram бота, касающиеся Uno."""
+class Config(BaseSettings):
+    """Общие настройки для Telegram бота, касающиеся Uno.
 
-    token: SecretStr
-    admin_list: list[int]
-    db_url: str = "sqlite://uno.sqlite"
-    open_lobby: bool = True
-    default_gamemode: str = "classic"
-    waiting_time: int = 120
-    time_removal_after_skip: int = 20
-    min_fast_turn_time: int = 15
-    min_players: int = 2
+    - telegram_token: Токен для работы Telegram бота.
+    - stickers_path: Путь к словарю всех стикеров бота.
+    - min_players: Минимальное количество игроков для начала игры.
+    """
 
+    telegram_token: SecretStr
     stickers_path: str
+    min_players: int
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="allow"
+    )
 
 
-try:
-    with open(CONFIG_PATh) as f:
-        config: Config = Config.model_validate_json(f.read())
-except FileNotFoundError as e:
-    logger.error(e)
-    logger.info("Copy config.json.sample, then edit it")
-
+config: Config = Config()
 
 # Настройка стикеров
 # ==================

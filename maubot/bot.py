@@ -111,7 +111,9 @@ async def main() -> None:
 
     logger.info("Setup bot ...")
     try:
-        bot = Bot(token=config.token.get_secret_value(), default=default)
+        bot = Bot(
+            token=config.telegram_token.get_secret_value(), default=default
+        )
         sm.bot = bot
     except TokenValidationError as e:
         logger.error(e)
