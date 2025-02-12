@@ -17,6 +17,7 @@ router = Router(name="Crystals")
 # Обработчики
 # ===========
 
+
 @router.message(Command("dayreward"))
 async def user_info(message: Message) -> None:
     """Получает награду за ежедневный вход."""

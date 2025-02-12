@@ -14,7 +14,7 @@ ROUTERS = (
     simple_commands.router,
     session.router,
     player.router,
-    turn.router
+    turn.router,
 )
 
 __all__ = ("ROUTERS",)

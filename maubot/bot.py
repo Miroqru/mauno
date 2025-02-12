@@ -43,6 +43,7 @@ LOG_FORMAT = (
 # Middleware
 # ==========
 
+
 @dp.message.middleware()
 @dp.inline_query.middleware()
 @dp.callback_query.middleware()
@@ -51,7 +52,7 @@ LOG_FORMAT = (
 async def game_middleware(
     handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
     event: Update,
-    data: dict[str, Any]
+    data: dict[str, Any],
 ) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
     if isinstance(event, Message | ChatMemberUpdated):
@@ -67,10 +68,11 @@ async def game_middleware(
         game = None if chat_id is None else sm.games.get(chat_id)
 
     data["game"] = game
-    data["player"] = None if game is None else game.get_player(
-        event.from_user.id
+    data["player"] = (
+        None if game is None else game.get_player(event.from_user.id)
     )
     return await handler(event, data)
+
 
 @dp.errors()
 async def catch_errors(event: ErrorEvent) -> None:
@@ -86,13 +88,17 @@ async def catch_errors(event: ErrorEvent) -> None:
         message = None
 
     if message is not None:
-        await message.answer(text=(
-            "❌ <b>Что-то явно пошло не по плану...</b>\n\n"
-            f"{event.exception}"
-        ))
+        await message.answer(
+            text=(
+                "❌ <b>Что-то явно пошло не по плану...</b>\n\n"
+                f"{event.exception}"
+            )
+        )
+
 
 # Главная функция запуска бота
 # ============================
+
 
 async def main() -> None:
     """Запускает бота.
@@ -102,10 +108,7 @@ async def main() -> None:
     После запускает обработку событий бота.
     """
     logger.remove()
-    logger.add(
-        sys.stdout,
-        format=LOG_FORMAT
-    )
+    logger.add(sys.stdout, format=LOG_FORMAT)
 
     logger.info("Check config")
     logger.debug("Token: {}", config.token)
@@ -113,10 +116,7 @@ async def main() -> None:
 
     logger.info("Setup bot ...")
     try:
-        bot = Bot(
-            token=config.token.get_secret_value(),
-            default=default
-        )
+        bot = Bot(token=config.token.get_secret_value(), default=default)
         sm.bot = bot
     except TokenValidationError as e:
         logger.error(e)
@@ -129,10 +129,7 @@ async def main() -> None:
         logger.debug("Include router {}", router.name)
 
     logger.info("Init db connection ...")
-    await Tortoise.init(
-        db_url=config.db_url,
-        modules={"models": ["maubot.db"]}
-    )
+    await Tortoise.init(db_url=config.db_url, modules={"models": ["maubot.db"]})
     await Tortoise.generate_schemas()
 
     logger.success("Start polling!")

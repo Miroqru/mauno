@@ -31,6 +31,7 @@ ROOM_SETTINGS = (
 # Обработчики
 # ===========
 
+
 @router.message(Command("game"))
 async def create_game(
     message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
@@ -51,15 +52,14 @@ async def create_game(
 
     lobby_message = await message.answer(
         messages.get_room_status(game),
-        reply_markup=keyboards.get_room_markup(game)
+        reply_markup=keyboards.get_room_markup(game),
     )
     # Добавляем ID сообщения с лобби, чтобы после редактировать его
     game.lobby_message = lobby_message.message_id
 
+
 @router.message(Command("start"))
-async def start_gama(
-    message: Message, game: UnoGame | None
-) -> None:
+async def start_gama(message: Message, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
         return await message.answer(HELP_MESSAGE)
@@ -91,6 +91,7 @@ async def start_gama(
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
 
+
 @router.message(Command("stop"))
 async def stop_gama(
     message: Message, game: UnoGame | None, sm: SessionManager
@@ -115,6 +116,7 @@ async def stop_gama(
 # Управление настройками комнаты
 # ==============================
 
+
 @router.message(Command("open"))
 async def open_gama(
     message: Message, game: UnoGame | None, sm: SessionManager
@@ -133,6 +135,7 @@ async def open_gama(
     await message.answer(
         "🍰 Комната <b>открыта</b>!\n любой участник может зайти (/join)."
     )
+
 
 @router.message(Command("close"))
 async def close_gama(
@@ -157,6 +160,7 @@ async def close_gama(
 # Управление участниками комнатами
 # ================================
 
+
 @router.message(Command("kick"))
 async def kick_player(
     message: Message, game: UnoGame | None, sm: SessionManager
@@ -171,7 +175,7 @@ async def kick_player(
         )
 
     player = game.get_player(message.from_user.id)
-    if player is None or not  player.is_owner:
+    if player is None or not player.is_owner:
         return await message.answer(
             "👀 Только создатель комнаты может выгнать участника."
         )
@@ -195,8 +199,7 @@ async def kick_player(
     )
     if game.started:
         game.journal.add(
-            "🍰 Ладненько, следующих ход за "
-            f"{game.player.user.mention_html()}."
+            f"🍰 Ладненько, следующих ход за {game.player.user.mention_html()}."
         )
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -205,6 +208,7 @@ async def kick_player(
             f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
         )
         sm.remove(message.chat.id)
+
 
 @router.message(Command("skip"))
 async def skip_player(
@@ -242,7 +246,8 @@ async def skip_player(
 # Обработчики событий
 # ===================
 
-@router.callback_query(F.data=="start_game")
+
+@router.callback_query(F.data == "start_game")
 async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
     try:
@@ -266,17 +271,19 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 # Настройки комнаты
 # =================
 
+
 @router.message(Command("settings"))
 async def settings_menu(message: Message, game: UnoGame | None) -> None:
     """Отображает настройки для текущей комнаты."""
     if game is None:
         return await message.answer(NO_ROOM_MESSAGE)
 
-    await message.answer(ROOM_SETTINGS,
-        reply_markup=keyboards.get_settings_markup(game.rules)
+    await message.answer(
+        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
     )
 
-@router.callback_query(F.data=="room_settings")
+
+@router.callback_query(F.data == "room_settings")
 async def settings_menu_call(
     query: CallbackQuery, game: UnoGame | None
 ) -> None:
@@ -284,16 +291,18 @@ async def settings_menu_call(
     if game is None:
         return await query.message.answer(NO_ROOM_MESSAGE)
 
-    await query.message.answer(ROOM_SETTINGS,
-        reply_markup=keyboards.get_settings_markup(game.rules)
+    await query.message.answer(
+        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
     )
     await query.answer()
+
 
 class SettingsCallback(CallbackData, prefix="set"):
     """Переключатель настроек."""
 
     key: str
     value: bool
+
 
 @router.callback_query(SettingsCallback.filter())
 async def edit_room_settings_call(
@@ -304,6 +313,6 @@ async def edit_room_settings_call(
         return await query.message.answer(NO_ROOM_MESSAGE)
 
     setattr(game.rules, callback_data.key, callback_data.value)
-    await query.message.edit_text(ROOM_SETTINGS,
-        reply_markup=keyboards.get_settings_markup(game.rules)
+    await query.message.edit_text(
+        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
     )

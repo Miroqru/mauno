@@ -2,6 +2,12 @@
 
 Хранит в себе таблицу всех стикеров из стикер пака.
 А также предоставляет методы для сериализации/десериализации карт Уно.
+
+Стикеры карт Uno используются как основной игровой элемент бота.
+К примеру:
+- Последняя верхняя карта.
+- Отоббражение руки пользователя.
+- Разыгранная пользователем карта.
 """
 
 import re
@@ -21,25 +27,23 @@ from maubot.uno.card import (
 # Таблица стикеров
 # ================
 
+# Словарь карт и соответствующих им id стикеров
+# Теоретически эту часть можно вынести в файл и подгружать при запуске бота
 NORMAL = {
     "color": "CAADAgADPHsAAiaIEEo3PH_1_hJiAgI",
     "take_four": "CAADAgAD4VIAAtKFGUraSw7N0M3cdQI",
-
     "take0": "CAADAgADnVUAAvgdGErG3_gKpp8jnwI",
     "take1": "CAADAgADFV8AAheZGUqoCJetzCx0FgI",
     "take2": "CAADAgAD-18AAoorEEpOkXxhbOXNCQI",
     "take3": "CAADAgADDlcAAszHGEruHxf6-SMqTAI",
-
     "reverse0": "CAADAgAD_lsAAjvWGUoLvRT6qdCvQgI",
     "reverse1": "CAADAgADKVwAAuTYGUr7NN0nPKXkVwI",
     "reverse2": "CAADAgADL2AAAr_4GUpxfQzKTSn8pwI",
     "reverse3": "CAADAgADa2IAAiHNEEreGC52-rt7YwI",
-
     "skip0": "CAADAgADN1sAAtg4GEpjUbLGSlPd4QI",
     "skip1": "CAADAgADtlwAAiMfGUp_gg84Dt6P0wI",
     "skip2": "CAADAgADQ2MAAtCSEEpw-HUIqKmyPgI",
     "skip3": "CAADAgADc1cAAsx0GUp0W_o9dNpQuQI",
-
     # Red number cards
     "00": "CAADAgADOmIAAuNeGErlPISFevq19wI",
     "01": "CAADAgADGG0AAvtbEUp645xI3UYcywI",
@@ -51,7 +55,6 @@ NORMAL = {
     "07": "CAADAgAD9FUAAv-OGEpJ3Z1Z45z_5QI",
     "08": "CAADAgADzFwAApocGEq-KOcFXZxyiAI",
     "09": "CAADAgAD8WEAAtJrEEqfCfRoWkjzIgI",
-
     # Yellow number cards
     "10": "CAADAgADrlsAAocrGErWJLYBSmFoGwI",
     "11": "CAADAgADnFcAAuJyGErFTIuG_L1ZwAI",
@@ -63,7 +66,6 @@ NORMAL = {
     "17": "CAADAgADYFUAAnKFGUonScuLHzE--QI",
     "18": "CAADAgADC1oAAp64GEpi306cxS87OAI",
     "19": "CAADAgADumAAAmgfEEqBFVYfNbklPwI",
-
     # Green number cards
     "20": "CAADAgADsVsAAkmoGErG-B_sF6QOEQI",
     "21": "CAADAgADFZIAAiCrEEpEPIB6RRJ0YAI",
@@ -75,7 +77,6 @@ NORMAL = {
     "27": "CAADAgAD_FYAAlziGUoIHB0NriUugwI",
     "28": "CAADAgADgWUAAlG3EEq3mnUNHX4b3wI",
     "29": "CAADAgAD-FQAAhYRGUq6RXipo41hcQI",
-
     # Blue number cards
     "30": "CAADAgADu2AAAqHqGEpu5u3-WrVRkQI",
     "31": "CAADAgADN1kAAoI3GUrmW2B1o9RC1wI",
@@ -89,25 +90,22 @@ NORMAL = {
     "39": "CAADAgADClUAAg5AGUoTCkMJPPvrngI",
 }
 
+# Ещё один набор карт, только которые уже нелзя разыграть прямо сейчас
 NOT_PLAYABLE = {
     "color": "CAADAgADJGEAAnEeGUoVBvnlTBYG2AI",
     "take_four": "CAADAgADd1UAAmPXGUpHi5F59z2RjAI",
-
     "take0": "CAADAgADnVoAAtBlGEocOLZl0DtzzQI",
     "take1": "CAADAgADkmAAAnbiEEphvXVuLmsnCgI",
     "take2": "CAADAgADCVsAAqdvGUrWr2UAARZtAAGUAg",
     "take3": "CAADAgAD7loAAsw4GEonEPlnzQuQmwI",
-
     "reverse0": "CAADAgAD9VEAAvYOGUrw7842otILNAI",
     "reverse1": "CAADAgADaGIAAg01GUrruSTxSWVN3QI",
     "reverse2": "CAADAgADflMAAltHGErDzleE2WTy_gI",
     "reverse3": "CAADAgADok0AAjPkGEpWl-xL_xzmkgI",
-
     "skip0": "CAADAgADTF0AAr8TGEqfyKyWH_8lKAI",
     "skip1": "CAADAgADfWEAAnf6EEq1r3zdmFWp6QI",
     "skip2": "CAADAgADslgAArcCGUrIprPCAmQPsgI",
     "skip3": "CAADAgAD-1MAAlxQGErshcIYTIYF5QI",
-
     # Red number cards
     "00": "CAADAgADGVsAAn7FGEomnhx2TFdljQI",
     "01": "CAADAgADf2gAAvJ6EEqv4nu3QaoKtgI",
@@ -119,7 +117,6 @@ NOT_PLAYABLE = {
     "07": "CAADAgADxVgAAqvRGErzQqC5TLaQGgI",
     "08": "CAADAgADvloAAikWGEoCZPcNcnCX0wI",
     "09": "CAADAgADHF0AAp5hGEohvhqt8yZ0GAI",
-
     # Yellow cover cards
     "10": "CAADAgADVGEAArhrEEr5Y59EePdtugI",
     "11": "CAADAgADelsAAgS2GEr-TfvXhmpDDAI",
@@ -131,8 +128,6 @@ NOT_PLAYABLE = {
     "17": "CAADAgADlVgAAqJKGEpNtXJoky_WFAI",
     "18": "CAADAgADvlYAAiHzGUrt4g16i437MwI",
     "19": "CAADAgAD1VMAApBrGUpThaFe58GQCgI",
-
-
     # Green cover cards
     "20": "CAADAgADG14AAjRNEEp_z2Vazeu7lwI",
     "21": "CAADAgADBV4AAq_tEEoLIjGkp7aPYwI",
@@ -144,7 +139,6 @@ NOT_PLAYABLE = {
     "27": "CAADAgADOVQAArMaGEoxBhhl2F56QAI",
     "28": "CAADAgAD2msAAueEGUpCFBLLgjMI4gI",
     "29": "CAADAgAD61cAAg3ZGEr-YMKj5N7_SAI",
-
     # Blue sticker cards
     "30": "CAADAgADZFgAAh0FGUpT05JzSMNNMQI",
     "31": "CAADAgADoFMAAjc1GEo_7oRbdMbkkgI",
@@ -162,13 +156,14 @@ NOT_PLAYABLE = {
 # Стикеры для обозначения опций
 # =============================
 
+
 class OptionStickers(NamedTuple):
     """Стикеры для специальных действий во время игры.
 
-    bluff - обвинить другого игрока во лжи, когда он разыграл +4
-    draw - Взять карту из колоды.
-    info - Посмотреть текущий статус игры.
-    pass - Передать ход следующему игроку / пропустить.
+    - bluff: обвинить другого игрока во лжи, когда он разыграл +4
+    - draw: Взять карту из колоды.
+    - info: Посмотреть текущий статус игры.
+    - next_turn: Передать ход следующему игроку / пропустить.
     """
 
     bluff: str
@@ -176,11 +171,12 @@ class OptionStickers(NamedTuple):
     info: str
     next_turn: str
 
+
 OPTIONS = OptionStickers(
-    bluff = "CAADAgAD3l8AAmhnGUpEc9H33kKNogI",
-    draw = "CAADAgAD01UAAhAZGEofZ5ztvSiLtAI",
-    info = "CAADAgAD72EAAmV9GUrFGV1GnASDHwI",
-    next_turn = "CAADAgADZ2IAAouNEUpzqTKGgvjDKAI",
+    bluff="CAADAgAD3l8AAmhnGUpEc9H33kKNogI",
+    draw="CAADAgAD01UAAhAZGEofZ5ztvSiLtAI",
+    info="CAADAgAD72EAAmV9GUrFGV1GnASDHwI",
+    next_turn="CAADAgADZ2IAAouNEUpzqTKGgvjDKAI",
 )
 
 
@@ -194,10 +190,15 @@ take_pattern = re.compile(r"take([0-5])(\d):\d")
 reverse_pattern = re.compile(r"reverse([0-5]):\d")
 number_pattern = re.compile(r"([0-5])(\d):\d")
 
+
+# TODO: Как насчёт того, чтобы вынести это в класс игрового движка
 def to_sticker_id(card: BaseCard) -> str:
-    """Преобразует карту в строковый ID для стикера."""
+    """Преобразует карту в строковый ID для стикера.
+
+    После данная строка исполььзуется при формировании inlline клавиатуры.
+    """
     if isinstance(card, NumberCard):
-        return f"{card.color.value}{card.value}" # 00 .. # 59
+        return f"{card.color.value}{card.value}"  # 00 .. # 59
     elif isinstance(card, TurnCard):
         return f"skip{card.color.value}"
     elif isinstance(card, ReverseCard):
@@ -209,23 +210,14 @@ def to_sticker_id(card: BaseCard) -> str:
     elif isinstance(card, TakeFourCard):
         return "take_four"
 
-def to_str(card: BaseCard) -> str:
-    """Превращает карту в строковый ID."""
-    if isinstance(card, NumberCard):
-        return f"{card.color.value}{card.value}" # 00 .. # 59
-    elif isinstance(card, TurnCard):
-        return f"skip{card.color.value}{card.value}"
-    elif isinstance(card, ReverseCard):
-        return f"reverse{card.color.value}"
-    elif isinstance(card, TakeCard):
-        return f"take{card.color.value}{card.value}"
-    elif isinstance(card, ChooseColorCard):
-        return "choose_color"
-    elif isinstance(card, TakeFourCard):
-        return "take_four"
 
+# TODO: Тоже можно поместить в игровой движок
 def from_str(card_str: str) -> BaseCard:
-    """Превращает строку карты в действительный экземпляр."""
+    """Превращает строку карты в действительный экземпляр.
+
+    Обратное действие для получения экземпляра карты из строки.
+    Используется уже при обработке отрпавленныъ стикеров.
+    """
     if re.match(r"choose_color:\d", card_str):
         return ChooseColorCard()
 

@@ -34,7 +34,6 @@ class Deck:
         self.used_cards: list[BaseCard] = []
         self.top: BaseCard | None = None
 
-
     # Работа с целой колодой
     # ======================
 
@@ -57,7 +56,6 @@ class Deck:
         self.cards.extend(self.used_cards)
         self.used_cards.clear()
         self.shuffle()
-
 
     # Работа с картами
     # ================
@@ -97,13 +95,12 @@ class Deck:
         """Получает количество кард в колоде до подходящей."""
         for i, card in enumerate(reversed(self.cards)):
             if self.top.can_cover(card):
-                return i+1
+                return i + 1
         return 1
 
     def put(self, card: BaseCard) -> None:
         """Возвращает использованную карту в колоду."""
         self.used_cards.append(card)
-
 
     # Работа с верхней картой
     # =======================
@@ -115,7 +112,6 @@ class Deck:
 
         self.used_cards.append(self.top)
         self.top = card
-
 
     # Наполнение колоды
     # =================

@@ -15,6 +15,7 @@ router = Router(name="user")
 # Обработчики
 # ===========
 
+
 @router.message(Command("user"))
 async def user_info(message: Message) -> None:
     """Общая информация о пользователе."""
@@ -34,7 +35,7 @@ async def user_info(message: Message) -> None:
     if us.total_games == 0:
         win_pr = 0
     else:
-        win_pr = round((us.first_places / us.total_games)*100, 2)
+        win_pr = round((us.first_places / us.total_games) * 100, 2)
 
     res = (
         f"[{message.chat.id} : {message.chat.type}]\n {message.chat.title}\n\n"

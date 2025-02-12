@@ -15,7 +15,7 @@ from aiogram.types import (
 
 from maubot import stickers
 from maubot.config import config
-from maubot.messages import get_room_status, plural_form
+from maubot.messages import get_room_status, take_cards_message
 from maubot.uno.card import TakeFourCard
 from maubot.uno.enums import GameState
 from maubot.uno.game import RULES, GameRules, UnoGame
@@ -23,52 +23,81 @@ from maubot.uno.player import Player
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям
-TURN_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(
-        text="🎮 Разыграть 🃏", switch_inline_query_current_chat=""
-    )
-]])
+TURN_MARKUP = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🎮 Разыграть 🃏", switch_inline_query_current_chat=""
+            )
+        ]
+    ]
+)
 
-SHOTGUN_REPLY = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
-    InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
-]])
+# Клавиатура для режима игры с револьвером
+# Пользователь может взят карты или попробовать выстрелить
+# Если ему повезёт, брать будет уже не он
+SHOTGUN_REPLY = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
+            InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
+        ]
+    ]
+)
 
 # Используется при выборе цвета для специальных карт
-COLOR_MARKUP = InlineKeyboardMarkup(inline_keyboard=[[
-    InlineKeyboardButton(text="❤️", callback_data="color:0"),
-    InlineKeyboardButton(text="💛", callback_data="color:1"),
-    InlineKeyboardButton(text="💚", callback_data="color:2"),
-    InlineKeyboardButton(text="💙", callback_data="color:3")
-]])
+COLOR_MARKUP = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❤️", callback_data="color:0"),
+            InlineKeyboardButton(text="💛", callback_data="color:1"),
+            InlineKeyboardButton(text="💚", callback_data="color:2"),
+            InlineKeyboardButton(text="💙", callback_data="color:3"),
+        ]
+    ]
+)
 
-def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
-    """Вспомогательная клавиатура для управления комнатой."""
-    buttons = [[
-        InlineKeyboardButton(text="⚙️ Правила",
-            callback_data="room_settings"
-        ),
-        InlineKeyboardButton(text="☕ Зайти", callback_data="join")
-    ]]
-    if len(game.players) >= config.min_players:
-        buttons.append([InlineKeyboardButton(text="🎮 Начать игру",
-            callback_data="start_game"
-        )])
-
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
+# Когда кто-то пробует использовать inline режим бота без активной комнаты
 NO_GAME_QUERY = [
     InlineQueryResultArticle(
         id="nogame",
         title="В чате ещё нет игровой комнаты",
-        input_message_content=InputTextMessageContent(message_text=(
-            "☕ Сейчас никто не играет.\n\n"
-            "Используйте /game для создания новой комнаты.\n"
-            "А после воспользуйтесь /join чтобы присоединиться к комнате. "
-        ))
+        input_message_content=InputTextMessageContent(
+            message_text=(
+                "☕ Сейчас никто не играет.\n\n"
+                "Используйте /game для создания новой комнаты.\n"
+                "А после воспользуйтесь /join чтобы присоединиться к комнате. "
+            )
+        ),
     )
 ]
+
+
+def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
+    """Вспомогательная клавиатура для управления комнатой.
+
+    Позволяет начать игру и присоединиться к ней.
+    А также открыть клавиатуру для настройки игровых правил.
+    """
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="⚙️ Правила", callback_data="room_settings"
+            ),
+            InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
+        ]
+    ]
+    if len(game.players) >= config.min_players:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="🎮 Начать игру", callback_data="start_game"
+                )
+            ]
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
 
 # Собираем Inline query с колодой пользователя
 # ============================================
@@ -80,28 +109,33 @@ _COLOR_INFO = (
     (3, "Синий", "💙"),
 )
 
+
 def get_color_query(player: Player) -> list[InlineQueryResultArticle]:
     """Клавиатура для выбора следующего цвета."""
     result = [
         InlineQueryResultArticle(
             id=f"color:{i}",
             title=f"Выбрать {name}",
-            input_message_content=InputTextMessageContent(message_text=(
-                f"🎨 Я выбираю.. {sim}"
-            ))
+            input_message_content=InputTextMessageContent(
+                message_text=(f"🎨 Я выбираю.. {sim}")
+            ),
         )
         for i, name, sim in _COLOR_INFO
     ]
-    result.append(InlineQueryResultArticle(
-        id="status",
-        title="Ваши карты (жмяк для статуса комнаты):",
-        description=", ".join([str(card) for card in player.hand]),
-        input_message_content=InputTextMessageContent(
-            message_text=get_room_status(player.game)
-        ),
-    ))
+    result.append(
+        InlineQueryResultArticle(
+            id="status",
+            title="Ваши карты (жмяк для статуса комнаты):",
+            description=", ".join([str(card) for card in player.hand]),
+            input_message_content=InputTextMessageContent(
+                message_text=get_room_status(player.game)
+            ),
+        )
+    )
     return result
 
+
+# TODO: А может убрать эту функцию совсем
 def select_player_query(
     player: Player, add_pass_button: bool = False
 ) -> list[InlineQueryResultArticle]:
@@ -112,48 +146,60 @@ def select_player_query(
         if i == player.game.current_player:
             continue
 
-        result.append(InlineQueryResultArticle(
-            id=f"select_player:{i}",
-            title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
-            input_message_content=InputTextMessageContent(message_text=(
-                f"🔪 Я <b>выбираю</b> {pl.user.first_name}."
-            ))
-        ))
+        result.append(
+            InlineQueryResultArticle(
+                id=f"select_player:{i}",
+                title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+                input_message_content=InputTextMessageContent(
+                    message_text=(f"🔪 Я <b>выбираю</b> {pl.user.first_name}.")
+                ),
+            )
+        )
 
+    # TODO: Этой кнопкой так никто и не воспользовался, блин
     if add_pass_button:
-        result.append(InlineQueryResultArticle(
-            id="pass",
-            title="Пропустить ход",
-            input_message_content=InputTextMessageContent(message_text=(
-                "🍷 В этот раз я оставлю всё как есть."
-            ))
-        ))
+        result.append(
+            InlineQueryResultArticle(
+                id="pass",
+                title="Пропустить ход",
+                input_message_content=InputTextMessageContent(
+                    message_text=("🍷 В этот раз я оставлю всё как есть.")
+                ),
+            )
+        )
 
     return result
 
+
 def select_player_markup(player: Player) -> InlineKeyboardMarkup:
-    """Клавиатура для выбора игрока."""
+    """Клавиатура для выбора игрока.
+
+    Отображает имя игрока и сколько у него сейчас карт.
+    """
     inline_keyboard = []
 
     for i, pl in enumerate(player.game.players):
         if i == player.game.current_player:
             continue
-        inline_keyboard.append([InlineKeyboardButton(
-            text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
-            callback_data=f"select_player:{i}",
-        )])
+        inline_keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+                    callback_data=f"select_player:{i}",
+                )
+            ]
+        )
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
 
 def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
         yield InlineQueryResultCachedSticker(
-            id=f"{stickers.to_str(cover_card)}:{i}",
-            sticker_file_id=stickers.NORMAL[
-                stickers.to_sticker_id(cover_card)
-            ]
+            id=f"{stickers.to_sticker_id(cover_card)}:{i}",
+            sticker_file_id=stickers.NORMAL[stickers.to_sticker_id(cover_card)],
         )
 
     for i, cover_card in enumerate(player_cards.uncover):
@@ -164,13 +210,14 @@ def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
             ],
             input_message_content=InputTextMessageContent(
                 message_text=get_room_status(player.game)
-            )
+            ),
         )
 
+
 def get_all_hand_cards(
-    player: Player
+    player: Player,
 ) -> Iterator[InlineQueryResultCachedSticker]:
-    """Получает все карты пользователя."""
+    """Получает все карты пользователя, без действия при нажатии."""
     for i, cover_card in enumerate(player.hand):
         yield InlineQueryResultCachedSticker(
             id=f"status:{i}",
@@ -179,13 +226,24 @@ def get_all_hand_cards(
             ],
             input_message_content=InputTextMessageContent(
                 message_text=get_room_status(player.game)
-            )
+            ),
         )
+
+
+def _add_sticker(
+    id: str, sticker: str, message: str
+) -> InlineQueryResultCachedSticker:
+    return InlineQueryResultCachedSticker(
+        id=id,
+        sticker_file_id=sticker,
+        input_message_content=InputTextMessageContent(message_text=message),
+    )
 
 
 def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
+    result = []
     if not player.is_current and not player.game.rules.intervention:
         return get_all_hand_cards(player)
 
@@ -196,54 +254,39 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
         return select_player_query(player)
 
     elif player.game.take_flag:
-        result = [InlineQueryResultCachedSticker(
-            id="pass",
-            sticker_file_id=stickers.OPTIONS.next_turn,
-            input_message_content=InputTextMessageContent(message_text=(
-                "🃏 Пропускаю."
-            )))
+        result = [
+            _add_sticker("pass", stickers.OPTIONS.next_turn, "🃏 Пропускаю.")
         ]
     elif player.is_current:
-        if player.game.take_counter:
-            take_message = (
-                f"🃏 Беру {player.game.take_counter} "
-                f"{plural_form(player.game.take_counter, ('карту', 'карты', 'карт'))}" # noqa
+        result = [
+            _add_sticker(
+                "take", stickers.OPTIONS.draw, take_cards_message(player.game)
             )
-        else:
-            take_message = "🃏 Беру карту."
-
-        result = [InlineQueryResultCachedSticker(
-            id="take",
-            sticker_file_id=stickers.OPTIONS.draw,
-            input_message_content=InputTextMessageContent(message_text=(
-                take_message
-            )))
         ]
-    else:
-        result = []
 
-    if (isinstance(player.game.deck.top, TakeFourCard)
+    if (
+        isinstance(player.game.deck.top, TakeFourCard)
         and player.game.take_counter
     ):
-        result.append(InlineQueryResultCachedSticker(
-            id="bluff",
-            sticker_file_id=stickers.OPTIONS.bluff,
-            input_message_content=InputTextMessageContent(message_text=(
-                "🍷 Ты блефуешь, показывай карты!"
-            ))
-        ))
+        result.append(
+            _add_sticker(
+                "bluff",
+                stickers.OPTIONS.bluff,
+                "🍷 Ты блефуешь, показывай карты!",
+            )
+        )
 
     # Карты из руки уже отсортированы, остаётся только их добавить
-    for card_query in get_hand_cards(player):
-        result.append(card_query)
+    result.extend(get_hand_cards(player))
 
     # Явное отображение статуса игры
-    result.append(InlineQueryResultCachedSticker(
-        id="status",
-        sticker_file_id=stickers.OPTIONS.info,
-        input_message_content=InputTextMessageContent(
-            message_text=get_room_status(player.game)
-    )))
+    result.append(
+        _add_sticker(
+            "status",
+            stickers.OPTIONS.info,
+            get_room_status(player.game),
+        )
+    )
 
     return result
 
@@ -251,19 +294,21 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
 # Настройки игровой комнаты
 # =========================
 
-def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
-    """Клавиатура для управления настройками комнаты."""
-    buttons = []
-    for rule in RULES:
-        status = getattr(game_rules, rule.key, False)
-        if status:
-            status_sim = "🌟"
-        else:
-            status_sim = ""
 
-        buttons.append([InlineKeyboardButton(
-            text=f"{status_sim}{rule.name}",
-            callback_data=f"set:{rule.key}:{not status}"
-        )])
+def create_button(rule: str, status: bool) -> InlineKeyboardButton:
+    """Создает кнопку для заданного правила."""
+    status_sim = "🌟" if status else ""
+    return InlineKeyboardButton(
+        text=f"{status_sim}{rule.name}",
+        callback_data=f"set:{rule.key}:{not status}",
+    )
 
+
+# TODO: Когда наконец игровые правила станут просто списком
+def generate_buttons(game_rules: GameRules) -> InlineKeyboardMarkup:
+    """Генерирует кнопки на основе правил игры."""
+    buttons = [
+        [create_button(rule, getattr(game_rules, rule.key, False))]
+        for rule in RULES
+    ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)

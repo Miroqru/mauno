@@ -28,6 +28,7 @@ _MIN_SHOTGUN_TAKE_COUNTER = 3
 # Дополнительные типы данных
 # ==========================
 
+
 class SortedCards(NamedTuple):
     """Распределяет карты на: покрывающие и не покрывающие."""
 
@@ -42,7 +43,7 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    def __init__(self, game: 'UnoGame', user: User) -> None:
+    def __init__(self, game: "UnoGame", user: User) -> None:
         self.hand: BaseCard = []
         self.game: UnoGame = game
         self.user = user
@@ -78,14 +79,16 @@ class Player:
                 TakeFourCard(),
             ]
             for x in (0, 1, 2, 3):
-                self.hand.extend((
-                    TakeCard(CardColor(x)),
-                    TurnCard(CardColor(x), 1),
-                    ReverseCard(CardColor(x)),
-                    NumberCard(CardColor(x), 7),
-                    NumberCard(CardColor(x), 2),
-                    NumberCard(CardColor(x), 0),
-                ))
+                self.hand.extend(
+                    (
+                        TakeCard(CardColor(x)),
+                        TurnCard(CardColor(x), 1),
+                        ReverseCard(CardColor(x)),
+                        NumberCard(CardColor(x), 7),
+                        NumberCard(CardColor(x), 2),
+                        NumberCard(CardColor(x), 0),
+                    )
+                )
             return
 
         logger.debug("{} Draw first hand for player", self.user)
@@ -112,7 +115,7 @@ class Player:
         card = self.hand.pop(card_index)
         self.game.process_turn(card)
 
-    def _sort_hand_cards(self, top) -> SortedCards:
+    def _sort_hand_cards(self, top: BaseCard) -> SortedCards:
         cover = []
         uncover = []
         for card, can_cover in top.get_cover_cards(self.hand):
@@ -129,13 +132,12 @@ class Player:
 
             cover.append(card)
             self.bluffing = (
-                self.bluffing
-                or card.color == self.game.deck.top.color
+                self.bluffing or card.color == self.game.deck.top.color
             )
 
         return SortedCards(sorted(cover), sorted(uncover))
 
-    def _get_equal_cards(self, top) -> SortedCards:
+    def _get_equal_cards(self, top: BaseCard) -> SortedCards:
         cover = []
         uncover = []
         for card in self.hand:
@@ -152,12 +154,10 @@ class Player:
 
             cover.append(card)
             self.bluffing = (
-                self.bluffing
-                or card.color == self.game.deck.top.color
+                self.bluffing or card.color == self.game.deck.top.color
             )
 
         return SortedCards(sorted(cover), sorted(uncover))
-
 
     def get_cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
@@ -176,7 +176,6 @@ class Player:
         if self.game.rules.intervention and self.game.player != self:
             return self._get_equal_cards(top)
         return self._sort_hand_cards(top)
-
 
     # Обработка событий
     # =================
@@ -211,7 +210,6 @@ class Player:
             return is_fired
         self.shotgun_current += 1
         return self.shotgun_current >= self.shotgun_lose
-
 
     # Обработка игровых действий
     # ==========================
@@ -264,12 +262,14 @@ class Player:
             self.game.take_counter = self.game.deck.count_until_cover()
             self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
 
-        if any(self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
+        if any(
+            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
             self.game.rules.shotgun,
-            self.game.rules.single_shotgun
+            self.game.rules.single_shotgun,
         ):
             current = (
-                self.game.shotgun_current if self.game.rules.single_shotgun
+                self.game.shotgun_current
+                if self.game.rules.single_shotgun
                 else self.shotgun_current
             )
             self.game.journal.add(
@@ -288,13 +288,13 @@ class Player:
             self.game.journal.add("🃏 В колоде не осталось карт для игрока.")
 
         # Если пользователь выбрал взять карты, то он пропускает свой ход
-        if (isinstance(self.game.deck.top, TakeCard | TakeFourCard)
+        if (
+            isinstance(self.game.deck.top, TakeCard | TakeFourCard)
             and take_counter
         ):
             self.game.next_turn()
         else:
             self.game.state = GameState.NEXT
-
 
     # Магические методы
     # =================

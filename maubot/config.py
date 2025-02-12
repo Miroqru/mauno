@@ -16,6 +16,8 @@ from pydantic import BaseModel, SecretStr
 
 CONFIG_PATh = Path("config.json")
 
+
+# TODO: Большая часть полей вообще не используется и почему не .env?
 class Config(BaseModel):
     """Общие настройки для Telegram бота, касающиеся Uno."""
 
@@ -29,6 +31,7 @@ class Config(BaseModel):
     min_fast_turn_time: int = 15
     min_players: int = 2
 
+
 try:
     with open(CONFIG_PATh) as f:
         config: Config = Config.model_validate_json(f.read())
@@ -41,6 +44,4 @@ except FileNotFoundError as e:
 # =======================================
 
 # Настройки бота по умолчанию
-default = DefaultBotProperties(
-    parse_mode="html"
-)
+default = DefaultBotProperties(parse_mode="html")

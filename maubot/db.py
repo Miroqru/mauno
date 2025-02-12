@@ -7,6 +7,7 @@
 from tortoise import Model, fields
 
 
+# TODO: Переработать в виде интеграции с сайтом,, по факту не используется
 class User(Model):
     """База данных игрока.
 

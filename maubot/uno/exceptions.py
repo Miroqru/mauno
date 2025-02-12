@@ -3,6 +3,7 @@
 Собраны в одном месте для удобства.
 """
 
+
 class NoGameInChatError(Exception):
     """If there is no active game created in the chat.
 
@@ -11,25 +12,30 @@ class NoGameInChatError(Exception):
 
     pass
 
+
 class AlreadyJoinedError(Exception):
     """When the user tries to reconnect to the game."""
 
     pass
+
 
 class LobbyClosedError(Exception):
     """When a user tries to join a closed lobby."""
 
     pass
 
+
 class NotEnoughPlayersError(Exception):
     """When there are not enough players to start the game."""
 
     pass
 
+
 class DeckEmptyError(Exception):
     """When the deck runs out of cards."""
 
     pass
+
 
 class ClassCoverError(Exception):
     """When the user tries to cover with the wrong card."""

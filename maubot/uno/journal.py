@@ -44,6 +44,7 @@ if TYPE_CHECKING:
 #         """представление приоритета в виде символа."""
 #         return PRIORITY_ICONS[self.value]
 
+
 class Event(NamedTuple):
     """Запись об игровом событии.
 
@@ -69,6 +70,7 @@ class Event(NamedTuple):
 # Основной класс
 # ==============
 
+
 class Journal:
     """Класс журнала игровых событий.
 
@@ -78,7 +80,7 @@ class Journal:
     зависимости от действий участников.
     """
 
-    def __init__(self, game: 'UnoGame', bot: Bot) -> None:
+    def __init__(self, game: "UnoGame", bot: Bot) -> None:
         self.game: UnoGame = game
         self.bot: Bot = bot
         self.events: list[Event] = []
@@ -88,18 +90,21 @@ class Journal:
     # Управление журналом
     # ===================
 
-    def add(self,
+    def add(
+        self,
         text: str,
         # icon: str | None = None,
         # priority: EventPriority | int = EventPriority.INFO
     ) -> None:
         """Добавляет новое событие в журнал."""
-        self.events.append(Event(
-            date=datetime.now(),
-            text=text,
-            # icon=icon,
-            # priority=priority
-        ))
+        self.events.append(
+            Event(
+                date=datetime.now(),
+                text=text,
+                # icon=icon,
+                # priority=priority
+            )
+        )
 
     # def get_event(self, index: int) -> Event | None:
     #     pass
@@ -110,8 +115,8 @@ class Journal:
     # def remove_event(self, index: int) -> None:
     #     pass
 
-    def set_markup(self,
-        reply_markup: InlineKeyboardMarkup | None = None
+    def set_markup(
+        self, reply_markup: InlineKeyboardMarkup | None = None
     ) -> None:
         """Устанавливает клавиатуру для бота при отправку журнала."""
         self.reply_markup = reply_markup
@@ -146,12 +151,11 @@ class Journal:
             self.message = await self.bot.send_message(
                 chat_id=self.game.chat_id,
                 text=journal_message,
-                reply_markup=self.reply_markup
+                reply_markup=self.reply_markup,
             )
         else:
             await self.message.edit_text(
-                text=journal_message,
-                reply_markup=self.reply_markup
+                text=journal_message, reply_markup=self.reply_markup
             )
 
     def clear(self) -> None:
@@ -160,7 +164,6 @@ class Journal:
         self.events.clear()
         self.reply_markup = None
         self.message = None
-
 
     # Магические методы
     # =================

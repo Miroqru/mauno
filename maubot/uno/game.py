@@ -44,12 +44,14 @@ class GameRules:
     side_effect: bool = False
     intervention: bool = False
 
+
 @dataclass(frozen=True, slots=True)
 class Rule:
     """Правило для игры."""
 
     key: str
     name: str
+
 
 RULES = (
     Rule("twist_hand", "🤝 Обмен руками"),
@@ -64,10 +66,11 @@ RULES = (
     Rule("debug_cards", "🦝 Отладочные карты!"),
     Rule("side_effect", "🌀 Побочный выброс"),
     Rule("ahead_of_curve", "🔪 На опережение 🔧"),
-    Rule("intervention", "😈 Вмешательство 🔧")
+    Rule("intervention", "😈 Вмешательство 🔧"),
 )
 
 TWIST_HAND_NUM = 2
+
 
 class UnoGame:
     """Представляет каждую игру Uno.
@@ -84,6 +87,8 @@ class UnoGame:
 
         # Игроки Uno
         self.current_player: int = 0
+        # TODO: Переименовать startt player в onwer
+        # TODO: Изменить на экземпляр игрока, на будущее
         self.start_player = None
         self.bluff_player: Player = None
         self.players: list[Player] = []
@@ -119,14 +124,12 @@ class UnoGame:
             prev_index = (self.current_player - 1) % len(self.players)
         return self.players[prev_index]
 
-
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
             if player.user.id == user_id:
                 return player
         return None
-
 
     # Управление потоком игры
     # =======================
@@ -200,16 +203,15 @@ class UnoGame:
                 f"{messages.get_room_players(self)}"
             )
 
-        if card.card_type in (
-            CardType.TAKE_FOUR, CardType.CHOOSE_COLOR
-        ):
+        if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
             self.journal.add(f"✨ {self.name} Задумывается о выборе цвета.")
             self.state = GameState.CHOOSE_COLOR
             self.journal.set_markup(keyboards.COLOR_MARKUP)
 
-        if any(self.rules.random_color,
+        if any(
+            self.rules.random_color,
             self.rules.choose_random_color,
-            self.rules.auto_choose_color
+            self.rules.auto_choose_color,
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
 
@@ -220,7 +222,6 @@ class UnoGame:
                 logger.info("Player continue turn")
             else:
                 self.next_turn()
-
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
@@ -235,7 +236,6 @@ class UnoGame:
         self.turn_start = datetime.now()
         self.journal.clear()
         self.skip_players()
-
 
     # Управление списком игроков
     # ==========================
