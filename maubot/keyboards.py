@@ -13,8 +13,7 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 
-from maubot import stickers
-from maubot.config import config
+from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
 from maubot.uno.card import TakeFourCard
 from maubot.uno.enums import GameState
@@ -198,16 +197,14 @@ def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     player_cards = player.get_cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
         yield InlineQueryResultCachedSticker(
-            id=f"{stickers.to_sticker_id(cover_card)}:{i}",
-            sticker_file_id=stickers.NORMAL[stickers.to_sticker_id(cover_card)],
+            id=f"{cover_card.to_str()}:{i}",
+            sticker_file_id=stickers.normal[cover_card.to_str()],
         )
 
     for i, cover_card in enumerate(player_cards.uncover):
         yield InlineQueryResultCachedSticker(
             id=f"status:{i}",
-            sticker_file_id=stickers.NOT_PLAYABLE[
-                stickers.to_sticker_id(cover_card)
-            ],
+            sticker_file_id=stickers.not_playable[cover_card.to_str()],
             input_message_content=InputTextMessageContent(
                 message_text=get_room_status(player.game)
             ),
@@ -221,9 +218,7 @@ def get_all_hand_cards(
     for i, cover_card in enumerate(player.hand):
         yield InlineQueryResultCachedSticker(
             id=f"status:{i}",
-            sticker_file_id=stickers.NOT_PLAYABLE[
-                stickers.to_sticker_id(cover_card)
-            ],
+            sticker_file_id=stickers.not_playable[cover_card.to_str()],
             input_message_content=InputTextMessageContent(
                 message_text=get_room_status(player.game)
             ),

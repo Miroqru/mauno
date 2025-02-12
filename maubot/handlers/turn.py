@@ -10,8 +10,7 @@ from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 from loguru import logger
 
 from maubot import keyboards
-from maubot.stickers import from_str
-from maubot.uno.card import CardColor
+from maubot.uno.card import CardColor, card_from_str
 from maubot.uno.enums import GameState
 from maubot.uno.game import UnoGame
 from maubot.uno.player import Player
@@ -91,7 +90,7 @@ async def process_card_handler(
         else:
             game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
-    card = from_str(result.result_id)
+    card = card_from_str(result.result_id)
     if card is not None:
         game.process_turn(card, player)
 

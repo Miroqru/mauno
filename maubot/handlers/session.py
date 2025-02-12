@@ -11,8 +11,8 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from maubot import keyboards, messages, stickers
-from maubot.config import config
+from maubot import keyboards, messages
+from maubot.config import config, stickers
 from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
 from maubot.uno.exceptions import NoGameInChatError
 from maubot.uno.game import UnoGame
@@ -83,10 +83,7 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
             )
 
         game.start()
-        await message.answer_sticker(
-            stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
-        )
-
+        await message.answer_sticker(stickers.normal[game.deck.top.to_str()])
         game.journal.add(messages.get_new_game_message(game))
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
@@ -259,9 +256,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
         )
 
     game.start()
-    await query.message.answer_sticker(
-        stickers.NORMAL[stickers.to_sticker_id(game.deck.top)]
-    )
+    await query.message.answer_sticker(stickers.normal[game.deck.top.to_str()])
 
     game.journal.add(messages.get_new_game_message(game))
     game.journal.set_markup(keyboards.TURN_MARKUP)

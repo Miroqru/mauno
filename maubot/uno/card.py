@@ -9,6 +9,7 @@
 - Дать 4 карты.
 """
 
+import re
 from collections.abc import Iterable, Iterator
 from enum import IntEnum
 from random import randint
@@ -42,7 +43,7 @@ class CardColor(IntEnum):
         return COLOR_EMOJI[self.value]
 
 
-CARD_TYPES = ["", "skip", "reverse", "+", "choose", "take"]
+CARD_TYPES = ["", "skip", "reverse", "take", "color", "take_four"]
 
 
 class CardType(IntEnum):
@@ -155,6 +156,13 @@ class BaseCard:
         Является сокращением для метода use_card.
         """
         return self.use_card(game)
+
+    def to_str(self) -> str:
+        """запаковывает карту в строку."""
+        return f"{self.card_type}{self.color.value}{self.value}"
+
+    # магические методы
+    # =================
 
     def __str__(self) -> str:
         """Представление карты в строковом виде."""
@@ -367,3 +375,41 @@ class TakeFourCard(BaseCard):
             and self.value == other_card.value
             and self.cost == other_card.cost
         )
+
+
+# Сборка карт из строки
+# =====================
+
+
+def card_from_str(card_str: str) -> BaseCard:
+    """Превращает строку карты в действительный экземпляр.
+
+    Обратное действие для получения экземпляра карты из строки.
+    Используется уже при обработке отправленного стикеров.
+    """
+    card_match = re.match(r"(|skip|reverse|take|color|take_four)([0-4])([0-9])")
+    if card_match is None:
+        raise ValueError("Incorrect card str")
+
+    c_type, c_color, c_value = card_match.groups()
+
+    if c_type == "color":
+        return ChooseColorCard()
+
+    elif c_type == "take_four":
+        return TakeFourCard()
+
+    elif c_type == "":
+        return TurnCard(CardColor(int(c_color)), int(c_value))
+
+    elif c_type == "take":
+        return TakeCard(CardColor(int(c_color)), int(c_value))
+
+    elif c_type == "reverse":
+        return ReverseCard(CardColor(int(c_color)))
+
+    elif c_type == "skip":
+        return NumberCard(CardColor(int(c_color)), int(c_value))
+
+    else:
+        raise ValueError("Incorrect card str")

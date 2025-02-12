@@ -31,6 +31,8 @@ class Config(BaseModel):
     min_fast_turn_time: int = 15
     min_players: int = 2
 
+    stickers_path: str
+
 
 try:
     with open(CONFIG_PATh) as f:
@@ -38,6 +40,41 @@ try:
 except FileNotFoundError as e:
     logger.error(e)
     logger.info("Copy config.json.sample, then edit it")
+
+
+# Настройка стикеров
+# ==================
+
+
+class OptionStickersID(BaseModel):
+    """Стикеры для специальных действий во время игры.
+
+    - bluff: обвинить другого игрока во лжи, когда он разыграл +4
+    - draw: Взять карту из колоды.
+    - info: Посмотреть текущий статус игры.
+    - next_turn: Передать ход следующему игроку / пропустить.
+    """
+
+    bluff: str
+    draw: str
+    info: str
+    next_turn: str
+
+
+class StickerSet(BaseModel):
+    """Перечень всех стикеров, используемых во время игры."""
+
+    normal: dict[str, str]
+    not_playable: dict[str, str]
+    options: OptionStickersID
+
+
+try:
+    with open(config.stickers_path) as f:
+        stickers: StickerSet = StickerSet.model_validate_json(f.read())
+except FileNotFoundError as e:
+    logger.error(e)
+    logger.info("First, create you own cards sticker pack.")
 
 
 # Параметры по умолчанию для бота aiogram
