@@ -60,7 +60,7 @@ async def process_card_handler(
         return
 
     if player != game.player:
-        game.journal.add(f"😈 {player.user.mention_html()} вмешался в игру.")
+        game.journal.add(f"😈 {player.name} вмешался в игру.")
         game.set_current_player(player)
 
     if result.result_id == "pass":
@@ -83,8 +83,8 @@ async def process_card_handler(
             player_hand = len(player.hand)
             other_hand = len(other_player.hand)
             game.journal.add(
-                f"🤝 {player.user.first_name} ({player_hand} карт) "
-                f"и {other_player.user.first_name} ({other_hand} карт) "
+                f"🤝 {player.name} ({player_hand} карт) "
+                f"и {other_player.name} ({other_hand} карт) "
                 "обменялись руками.\n"
             )
             player.twist_hand(other_player)
@@ -162,8 +162,8 @@ async def select_player_call(
         player_hand = len(player.hand)
         other_hand = len(other_player.hand)
         game.journal.add(
-            f"🤝 {player.user.first_name} ({player_hand} карт) "
-            f"и {other_player.user.first_name} ({other_hand} карт) "
+            f"🤝 {player.name} ({player_hand} карт) "
+            f"и {other_player.name} ({other_hand} карт) "
             "обменялись руками.\n"
         )
         game.journal.set_markup(None)

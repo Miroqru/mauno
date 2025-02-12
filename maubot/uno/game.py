@@ -186,7 +186,7 @@ class UnoGame:
             self.journal.add("🌟 UNO!\n")
 
         if len(player.hand) == 0:
-            self.journal.add(f"👑 {self.user.first_name} победил(а)!\n")
+            self.journal.add(f"👑 {self.name} победил(а)!\n")
             self.remove_player(self.user.id)
             if not self.started:
                 self.journal.add(messages.end_game_message(self))

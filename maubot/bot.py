@@ -19,7 +19,6 @@ from aiogram.types import (
 )
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
-from tortoise import Tortoise
 
 from maubot.config import config, default
 from maubot.handlers import ROUTERS
@@ -110,10 +109,6 @@ async def main() -> None:
     logger.remove()
     logger.add(sys.stdout, format=LOG_FORMAT)
 
-    logger.info("Check config")
-    logger.debug("Token: {}", config.token)
-    logger.debug("DB url: {}", config.db_url)
-
     logger.info("Setup bot ...")
     try:
         bot = Bot(token=config.token.get_secret_value(), default=default)
@@ -127,10 +122,6 @@ async def main() -> None:
     for router in ROUTERS:
         dp.include_router(router)
         logger.debug("Include router {}", router.name)
-
-    logger.info("Init db connection ...")
-    await Tortoise.init(db_url=config.db_url, modules={"models": ["maubot.db"]})
-    await Tortoise.generate_schemas()
 
     logger.success("Start polling!")
     await dp.start_polling(bot)

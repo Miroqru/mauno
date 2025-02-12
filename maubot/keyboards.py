@@ -149,9 +149,9 @@ def select_player_query(
         result.append(
             InlineQueryResultArticle(
                 id=f"select_player:{i}",
-                title=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+                title=f"{pl.name} ({len(pl.hand)} карт)",
                 input_message_content=InputTextMessageContent(
-                    message_text=(f"🔪 Я <b>выбираю</b> {pl.user.first_name}.")
+                    message_text=(f"🔪 Я <b>выбираю</b> {pl.name}.")
                 ),
             )
         )
