@@ -127,7 +127,7 @@ class UnoGame:
     def get_player(self, user_id: int) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
-            if player.user.id == user_id:
+            if player.user_id == user_id:
                 return player
         return None
 
@@ -250,7 +250,7 @@ class UnoGame:
         if player is not None:
             raise AlreadyJoinedError()
 
-        player = Player(self, user)
+        player = Player(self, user.id, user.mention_html())
         player.on_leave()
         if self.started:
             player.take_first_hand()

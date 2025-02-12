@@ -3,7 +3,6 @@
 from random import randint
 from typing import TYPE_CHECKING, NamedTuple, Self
 
-from aiogram.types import User
 from loguru import logger
 
 from maubot import keyboards
@@ -43,10 +42,11 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    def __init__(self, game: "UnoGame", user: User) -> None:
+    def __init__(self, game: "UnoGame", user_id: str, user_name: str) -> None:
         self.hand: BaseCard = []
         self.game: UnoGame = game
-        self.user = user
+        self.user_id = user_id
+        self._user_name = user_name
 
         self.bluffing = False
         self.anti_cheat = 0
@@ -57,23 +57,24 @@ class Player:
     @property
     def name(self) -> str:
         """Возвращает имя игрока с упоминанием пользователя ядл бота."""
-        return self.user.mention_html()
+        return self._user_name
 
     @property
     def is_current(self) -> bool:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
 
+    # TODO: game.owner.id
     @property
     def is_owner(self) -> bool:
         """Является ли текущий пользователь автором комнаты."""
-        return self.user.id == self.game.start_player.id
+        return self.user_id == self.game.start_player.id
 
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
         if self.game.rules.debug_cards:
-            logger.debug("{} Draw debug first hand for player", self.user)
+            logger.debug("{} Draw debug first hand for player", self._user_name)
             self.hand = [
                 TakeFourCard(),
                 TakeFourCard(),
@@ -91,7 +92,7 @@ class Player:
                 )
             return
 
-        logger.debug("{} Draw first hand for player", self.user)
+        logger.debug("{} Draw first hand for player", self._user_name)
         try:
             self.hand = list(self.game.deck.take(7))
         except DeckEmptyError:
@@ -103,7 +104,7 @@ class Player:
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
         take_counter = self.game.take_counter or 1
-        logger.debug("{} Draw {} cards", self.user, take_counter)
+        logger.debug("{} Draw {} cards", self._user_name, take_counter)
 
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
@@ -182,7 +183,7 @@ class Player:
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
-        logger.debug("{} Leave from game", self.user)
+        logger.debug("{} Leave from game", self._user_name)
         # Если он последний игрок, подчищать за собой не приходится
         if len(self.game.players) == 1:
             return
@@ -236,7 +237,7 @@ class Player:
             self.game.take_counter += 2
             self.game.journal.add(
                 f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
-                f"{self.user.first_name} получает "
+                f"{self.name} получает "
                 f"{self.game.take_counter} карт.\n"
             )
             self.take_cards()
@@ -301,16 +302,16 @@ class Player:
 
     def __repr__(self) -> str:
         """Представление игрока при отладке."""
-        return repr(self.user)
+        return repr(self._user_name)
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""
-        return str(self.user)
+        return str(self._user_name)
 
     def __eq__(self, other_player: Self) -> bool:
         """Сравнивает двух игроков по UID пользователя."""
-        return self.user.id == other_player.user.id
+        return self.user_id == other_player.user_id
 
     def __ne__(self, other_player: Self) -> bool:
         """Проверяет что игроки не совпадают."""
-        return self.user.id != other_player.user.id
+        return self.user_id != other_player.user_id
