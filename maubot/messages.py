@@ -6,8 +6,8 @@
 
 from datetime import datetime
 
+from mau.game import RULES, UnoGame
 from maubot.config import config
-from maubot.uno.game import RULES, UnoGame
 
 # Статические сообщения
 # =====================

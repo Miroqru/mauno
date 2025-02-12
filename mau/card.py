@@ -17,10 +17,10 @@ from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
-from maubot.uno.enums import GameState
+from mau.enums import GameState
 
 if TYPE_CHECKING:
-    from maubot.uno.game import UnoGame
+    from mau.game import UnoGame
 
 # Дополнительные перечисления
 # ===========================

@@ -11,12 +11,12 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
+from mau.exceptions import NoGameInChatError
+from mau.game import UnoGame
+from mau.session import SessionManager
 from maubot import keyboards, messages
 from maubot.config import config, stickers
 from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
-from maubot.uno.exceptions import NoGameInChatError
-from maubot.uno.game import UnoGame
-from maubot.uno.session import SessionManager
 
 router = Router(name="Sessions")
 

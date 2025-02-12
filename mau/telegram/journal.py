@@ -4,6 +4,7 @@
 в чат.
 
 TODO: Что за суета происходит тут в журнале?
+FIXME: Журнал слишком привязан к Telegram, его бы более абстрактным сделать
 """
 
 from datetime import datetime
@@ -13,7 +14,7 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, Message
 
 if TYPE_CHECKING:
-    from maubot.uno.game import UnoGame
+    from mau.game import UnoGame
 
 # Вспомогательные классы
 # ======================

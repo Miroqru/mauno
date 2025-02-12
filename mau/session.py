@@ -8,12 +8,12 @@ from aiogram import Bot
 from aiogram.types import User
 from loguru import logger
 
-from maubot.uno.exceptions import (
+from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
+from mau.game import UnoGame
+from mau.player import Player
 
 
 class SessionManager:

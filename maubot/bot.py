@@ -20,9 +20,9 @@ from aiogram.types import (
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
+from mau.session import SessionManager
 from maubot.config import config, default
 from maubot.handlers import ROUTERS
-from maubot.uno.session import SessionManager
 
 # Константы
 # =========

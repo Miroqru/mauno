@@ -13,12 +13,12 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 
+from mau.card import TakeFourCard
+from mau.enums import GameState
+from mau.game import RULES, GameRules, UnoGame
+from mau.player import Player
 from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
-from maubot.uno.card import TakeFourCard
-from maubot.uno.enums import GameState
-from maubot.uno.game import RULES, GameRules, UnoGame
-from maubot.uno.player import Player
 
 # Кнопка для совершения хода игроком
 # Будет прикрепляться к игровым сообщениям

@@ -9,8 +9,8 @@
 from aiogram.filters import Filter
 from aiogram.types import CallbackQuery
 
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
+from mau.game import UnoGame
+from mau.player import Player
 
 
 # TODO: Возможно он даже не работает нормально, да вот только почему??

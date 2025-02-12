@@ -9,12 +9,14 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 from loguru import logger
 
+from mau.card import CardColor, card_from_str
+from mau.enums import GameState
+from mau.game import UnoGame
+from mau.player import Player
+from mau.session import SessionManager
+from mau.telegram.player import call_take_cards
+from mau.telegram.turn import process_turn
 from maubot import keyboards
-from maubot.uno.card import CardColor, card_from_str
-from maubot.uno.enums import GameState
-from maubot.uno.game import UnoGame
-from maubot.uno.player import Player
-from maubot.uno.session import SessionManager
 
 router = Router(name="Turn")
 
@@ -66,7 +68,7 @@ async def process_card_handler(
         game.next_turn()
 
     elif result.result_id == "take":
-        player.call_take_cards()
+        call_take_cards(player)
 
     elif result.result_id == "bluff":
         await player.call_bluff()
@@ -92,7 +94,7 @@ async def process_card_handler(
 
     card = card_from_str(result.result_id)
     if card is not None:
-        game.process_turn(card, player)
+        process_turn(game, card, player)
 
     if game.started and game.state == GameState.NEXT:
         game.journal.add(

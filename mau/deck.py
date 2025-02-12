@@ -10,7 +10,7 @@ from random import shuffle
 
 from loguru import logger
 
-from maubot.uno.card import (
+from mau.card import (
     BaseCard,
     CardColor,
     ChooseColorCard,
