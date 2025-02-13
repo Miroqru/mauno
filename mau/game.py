@@ -40,19 +40,19 @@ class Rule:
 class GameRules(NamedTuple):
     """Набор игровых правил, которые можно менять при запуске игры."""
 
-    twist_hand = Rule("🤝 Обмен руками", False)
-    rotate_cards = Rule("🧭 Обмен телами.", False)
-    take_until_cover = Rule("🍷 Беру до последнего.", False)
-    single_shotgun = Rule("🎲 Общий револьвер.", False)
-    shotgun = Rule("🔫 Рулетка.", False)
-    wild = Rule("🐉 Дикие карты", False)
-    auto_choose_color = Rule("🃏 самоцвет", False)
-    choose_random_color = Rule("🎨 Случайный цвет", False)
-    random_color = Rule("🎨 Какой цвет дальше?", False)
-    debug_cards = Rule("🦝 Отладочные карты!", False)
-    side_effect = Rule("🌀 Побочный выброс", False)
-    ahead_of_curve = Rule("🔪 На опережение 🔧", False)
-    intervention = Rule("😈 Вмешательство 🔧", False)
+    twist_hand: Rule = Rule("🤝 Обмен руками", False)
+    rotate_cards: Rule = Rule("🧭 Обмен телами.", False)
+    take_until_cover: Rule = Rule("🍷 Беру до последнего.", False)
+    single_shotgun: Rule = Rule("🎲 Общий револьвер.", False)
+    shotgun: Rule = Rule("🔫 Рулетка.", False)
+    wild: Rule = Rule("🐉 Дикие карты", False)
+    auto_choose_color: Rule = Rule("🃏 самоцвет", False)
+    choose_random_color: Rule = Rule("🎨 Случайный цвет", False)
+    random_color: Rule = Rule("🎨 Какой цвет дальше?", False)
+    debug_cards: Rule = Rule("🦝 Отладочные карты!", False)
+    side_effect: Rule = Rule("🌀 Побочный выброс", False)
+    ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False)
+    intervention: Rule = Rule("😈 Вмешательство 🔧", False)
 
 
 class UnoGame:
@@ -62,8 +62,8 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, journal: BaseJournal, chat_id: int) -> None:
-        self.chat_id = chat_id
+    def __init__(self, journal: BaseJournal, room_id: str) -> None:
+        self.room_id = room_id
         self.rules = GameRules()
         self.deck = Deck()
         self.journal: BaseJournal = journal
@@ -73,7 +73,7 @@ class UnoGame:
         # TODO: Переименовать start player в owner
         # TODO: Изменить на экземпляр игрока, на будущее
         self.start_player = None
-        self.bluff_player: Player = None
+        self.bluff_player: Player | None = None
         self.players: list[Player] = []
         self.winners: list[Player] = []
         self.losers: list[Player] = []
@@ -107,7 +107,7 @@ class UnoGame:
             prev_index = (self.current_player - 1) % len(self.players)
         return self.players[prev_index]
 
-    def get_player(self, user_id: int) -> Player | None:
+    def get_player(self, user_id: str) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
             if player.user_id == user_id:
@@ -119,7 +119,7 @@ class UnoGame:
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
-        logger.info("Start new game in chat {}", self.chat_id)
+        logger.info("Start new game in chat {}", self.room_id)
         self.winners.clear()
         self.losers.clear()
         self.started = True
@@ -161,7 +161,7 @@ class UnoGame:
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
-        logger.info("Next Player")
+        logger.info("Next Pltopayer")
         self.state = GameState.NEXT
         self.take_flag = False
         self.turn_start = datetime.now()
@@ -173,7 +173,7 @@ class UnoGame:
 
     def add_player(self, user: BaseUser) -> None:
         """Добавляет игрока в игру."""
-        logger.info("Joining {} in game with id {}", user, self.chat_id)
+        logger.info("Joining {} in game with id {}", user, self.room_id)
         if not self.open:
             raise LobbyClosedError()
 
@@ -181,16 +181,16 @@ class UnoGame:
         if player is not None:
             raise AlreadyJoinedError()
 
-        player = Player(self, user.id, user.mention_html())
+        player = Player(self, user.id, user.name)
         player.on_leave()
         if self.started:
             player.take_first_hand()
 
         self.players.append(player)
 
-    def remove_player(self, user_id: int) -> None:
+    def remove_player(self, user_id: str) -> None:
         """Удаляет пользователя из игры."""
-        logger.info("Leaving {} game with id {}", user_id, self.chat_id)
+        logger.info("Leaving {} game with id {}", user_id, self.room_id)
 
         player = self.get_player(user_id)
         if player is None:
@@ -255,17 +255,17 @@ class UnoGame:
             self.journal.add("🌟 UNO!\n")
 
         if len(player.hand) == 0:
-            self.journal.add(f"👑 {self.name} победил(а)!\n")
-            self.remove_player(self.user.id)
+            self.journal.add(f"👑 {player.name} победил(а)!\n")
+            self.remove_player(player.user_id)
             if not self.started:
                 self.journal.add(end_game_message(self))
 
-        elif all(card.cost == TWIST_HAND_NUM, self.rules.twist_hand.status):
-            self.journal.add(f"✨ {self.name} Задумывается c кем обменяться.")
+        elif card.cost == TWIST_HAND_NUM or self.rules.twist_hand.status:
+            self.journal.add(f"✨ {player.name} Задумывается c кем обменяться.")
             self.state = GameState.TWIST_HAND
             self.journal.set_actions(select_player_markup(self))
 
-        elif all(self.rules.rotate_cards.status, self.deck.top.cost == 0):
+        elif self.rules.rotate_cards.status or self.deck.top.cost == 0:
             self.rotate_cards()
             self.journal.add(
                 "🤝 Все игроки обменялись картами по кругу.\n"
@@ -273,7 +273,7 @@ class UnoGame:
             )
 
         if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
-            self.journal.add(f"✨ {self.name} Задумывается о выборе цвета.")
+            self.journal.add(f"✨ {player.name} Задумывается о выборе цвета.")
             self.state = GameState.CHOOSE_COLOR
             self.journal.set_actions(
                 [
@@ -285,9 +285,11 @@ class UnoGame:
             )
 
         if any(
-            self.rules.random_color.status,
-            self.rules.choose_random_color.status,
-            self.rules.auto_choose_color.status,
+            (
+                self.rules.random_color.status,
+                self.rules.choose_random_color.status,
+                self.rules.auto_choose_color.status,
+            )
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
 

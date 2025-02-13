@@ -147,7 +147,7 @@ class BaseCard:
             Any: Результат работы карты, возвращаемый обратно в игру.
 
         """
-        logger.debug("Used card {} in chat {}", self, game.chat_id)
+        logger.debug("Used card {} in chat {}", self, game.room_id)
 
     def __call__(self, game: "UnoGame") -> None:
         """Синтаксический сахар для вызова действия карты.
@@ -172,8 +172,11 @@ class BaseCard:
         """Представление карты при отладке."""
         return self.__str__()
 
-    def __eq__(self, other_card: Self) -> bool:
+    def __eq__(self, other_card: object) -> bool:
         """Проверяет соответствие двух карт."""
+        if not isinstance(other_card, BaseCard):
+            return NotImplemented
+
         return (
             self.color == other_card.color
             and self.card_type == other_card.card_type
@@ -181,8 +184,11 @@ class BaseCard:
             and self.cost == other_card.cost
         )
 
-    def __lt__(self, other_card: Self) -> bool:
+    def __lt__(self, other_card: object) -> bool:
         """Проверяет что данная карта меньшей стоимости чем прочая."""
+        if not isinstance(other_card, BaseCard):
+            return NotImplemented
+
         return (
             self.color < other_card.color
             and self.value < other_card.value
@@ -327,8 +333,10 @@ class ChooseColorCard(BaseCard):
         """Представление карты в строковое виде."""
         return f"{self.card_type} {self.color}"
 
-    def __eq__(self, other_card: Self) -> bool:
+    def __eq__(self, other_card: object) -> bool:
         """Проверяет соответствие двух карт."""
+        if not isinstance(other_card, BaseCard):
+            return NotImplemented
         return (
             self.card_type == other_card.card_type
             and self.value == other_card.value
@@ -368,8 +376,10 @@ class TakeFourCard(BaseCard):
         game.take_counter += 4
         game.bluff_player = game.player
 
-    def __eq__(self, other_card: Self) -> bool:
+    def __eq__(self, other_card: object) -> bool:
         """Проверяет соответствие двух карт."""
+        if not isinstance(other_card, BaseCard):
+            return NotImplemented
         return (
             self.card_type == other_card.card_type
             and self.value == other_card.value
@@ -387,7 +397,9 @@ def card_from_str(card_str: str) -> BaseCard:
     Обратное действие для получения экземпляра карты из строки.
     Используется уже при обработке отправленного стикеров.
     """
-    card_match = re.match(r"(|skip|reverse|take|color|take_four)([0-4])([0-9])")
+    card_match = re.match(
+        r"(|skip|reverse|take|color|take_four)([0-4])([0-9])", card_str
+    )
     if card_match is None:
         raise ValueError("Incorrect card str")
 

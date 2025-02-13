@@ -56,7 +56,7 @@ class Player:
     """
 
     def __init__(self, game: "UnoGame", user_id: str, user_name: str) -> None:
-        self.hand: BaseCard = []
+        self.hand: list[BaseCard] = []
         self.game: UnoGame = game
         self.user_id = user_id
         self._user_name = user_name
@@ -81,6 +81,8 @@ class Player:
     @property
     def is_owner(self) -> bool:
         """Является ли текущий пользователь автором комнаты."""
+        if self.game.start_player is None:
+            return False
         return self.user_id == self.game.start_player.id
 
     def take_first_hand(self) -> None:
@@ -229,9 +231,9 @@ class Player:
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
-        logger.info("{} call bluff {}", self, self.game.prev)
+        logger.info("{} call bluff {}", self, self.game.bluff_player)
         bluff_player = self.game.bluff_player
-        if bluff_player.bluffing:
+        if bluff_player is not None and bluff_player.bluffing:
             self.game.journal.add(
                 "🔎 <b>Замечен блеф</b>!\n"
                 f"{bluff_player.name} получает "
@@ -242,9 +244,14 @@ class Player:
             if len(self.game.deck.cards) == 0:
                 self.game.journal.add("🃏 В колоде не осталось свободных карт.")
         else:
+            if bluff_player is None:
+                bluff_header = "🎩 <b>Никто не блефовал</b>!\n"
+            else:
+                bluff_header = f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
+
             self.game.take_counter += 2
             self.game.journal.add(
-                f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
+                f"{bluff_header}"
                 f"{self.name} получает "
                 f"{self.game.take_counter} карт.\n"
             )
@@ -274,10 +281,10 @@ class Player:
             self.game.take_counter = self.game.deck.count_until_cover()
             self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
 
-        if any(
-            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
-            self.game.rules.shotgun.status,
-            self.game.rules.single_shotgun.status,
+        if (
+            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
+            or self.game.rules.shotgun.status
+            or self.game.rules.single_shotgun.status
         ):
             current = (
                 self.game.shotgun_current
@@ -324,10 +331,18 @@ class Player:
         """Представление игрока в строковом виде."""
         return str(self._user_name)
 
-    def __eq__(self, other_player: Self) -> bool:
+    def __eq__(self, other_player: object) -> bool:
         """Сравнивает двух игроков по UID пользователя."""
-        return self.user_id == other_player.user_id
+        if isinstance(other_player, Player):
+            return self.user_id == other_player.user_id
+        elif isinstance(other_player, str):
+            return self.user_id == other_player
+        return NotImplemented
 
-    def __ne__(self, other_player: Self) -> bool:
+    def __ne__(self, other_player: object) -> bool:
         """Проверяет что игроки не совпадают."""
-        return self.user_id != other_player.user_id
+        if isinstance(other_player, Player):
+            return self.user_id != other_player.user_id
+        elif isinstance(other_player, str):
+            return self.user_id != other_player
+        return NotImplemented

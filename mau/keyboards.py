@@ -19,12 +19,10 @@ def select_player_markup(game: "UnoGame") -> list[EventAction]:
         if i == game.current_player:
             continue
         res.append(
-            [
-                EventAction(
-                    text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
-                    callback_data=f"select_player:{i}",
-                )
-            ]
+            EventAction(
+                text=f"{pl.name} ({len(pl.hand)} карт)",
+                callback_data=f"select_player:{i}",
+            )
         )
 
     return res

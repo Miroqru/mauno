@@ -4,13 +4,12 @@
 в чат.
 
 TODO: Что за суета происходит тут в журнале?
-FIXME: Журнал слишком привязан к Telegram, его бы более абстрактным сделать
 """
 
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import IntEnum
-from typing import NamedTuple
+from typing import NamedTuple, overload
 
 from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
@@ -47,7 +46,7 @@ class EventAction(NamedTuple):
     совершить в данный момент.
     """
 
-    name: str
+    text: str
     callback_data: str
 
 
@@ -82,7 +81,9 @@ class BaseJournal(ABC):
     """
 
     @abstractmethod
-    def add(self) -> None:
+    def add(
+        self, text: str, priority: EventPriority | int = EventPriority.INFO
+    ) -> None:
         """Добавляет новое событие в журнал."""
         pass
 
@@ -114,7 +115,7 @@ class BaseJournal(ABC):
 # ==============
 
 
-class TelegramJournal:
+class TelegramJournal(BaseJournal):
     """Класс журнала игровых событий.
 
     Используется для отслеживания статуса игры и оправки игровых
@@ -123,8 +124,8 @@ class TelegramJournal:
     зависимости от действий участников.
     """
 
-    def __init__(self, chat_id: str, bot: Bot) -> None:
-        self.game: str = chat_id
+    def __init__(self, room_id: str, bot: Bot) -> None:
+        self.room_id: str = room_id
         self.bot: Bot = bot
         self.default_action = [
             InlineKeyboardButton(
@@ -133,17 +134,19 @@ class TelegramJournal:
         ]
 
         self.events: list[Event] = []
-        self.actions: list[EventAction | InlineKeyboardButton] = (
-            self.default_action.copy()
+        self.actions: list[EventAction | InlineKeyboardButton] | None = list(
+            self.default_action
         )
         self.message: Message | None = None
 
     # Управление журналом
     # ===================
 
-    def _actions_to_reply_markup(self) -> InlineKeyboardMarkup:
-        pass
-        inline_keyboard = []
+    def _actions_to_reply_markup(self) -> InlineKeyboardMarkup | None:
+        if self.actions is None:
+            return None
+
+        inline_keyboard: list[list[InlineKeyboardButton]] = []
         for i, action in enumerate(self.actions):
             if i % 3 == 0:
                 inline_keyboard.append([])
@@ -151,11 +154,11 @@ class TelegramJournal:
             if isinstance(action, EventAction):
                 inline_keyboard[-1].append(
                     InlineKeyboardButton(
-                        text=action.name, callback_data=action.callback_data
+                        text=action.text, callback_data=action.callback_data
                     )
                 )
             else:
-                inline_keyboard.append(action)
+                inline_keyboard[-1].append(action)
         return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
     def add(
@@ -163,7 +166,9 @@ class TelegramJournal:
     ) -> None:
         """Добавляет новое событие в журнал."""
         self.events.append(
-            Event(date=datetime.now(), text=text, priority=priority)
+            Event(
+                date=datetime.now(), text=text, priority=EventPriority(priority)
+            )
         )
 
     # def get_event(self, index: int) -> Event | None:
@@ -175,7 +180,18 @@ class TelegramJournal:
     # def remove_event(self, index: int) -> None:
     #     pass
 
-    def set_actions(self, actions: list[EventAction] | None = None) -> None:
+    @overload
+    def set_actions(self, actions: list[EventAction] | None = None) -> None: ...
+
+    @overload
+    def set_actions(
+        self, actions: list[EventAction | InlineKeyboardButton] | None = None
+    ) -> None: ...
+
+    def set_actions(
+        self,
+        actions: list | None = None,
+    ) -> None:
         """Устанавливает клавиатуру для бота при отправку журнала."""
         self.actions = actions
 
@@ -208,21 +224,21 @@ class TelegramJournal:
         journal_message = self.get_journal_message()
         if self.message is None:
             self.message = await self.bot.send_message(
-                chat_id=self.chat_id,
+                chat_id=self.room_id,
                 text=journal_message,
-                reply_markup=self._actions_to_reply_markup(self.actions),
+                reply_markup=self._actions_to_reply_markup(),
             )
         else:
             await self.message.edit_text(
                 text=journal_message,
-                reply_markup=self._actions_to_reply_markup(self.actions),
+                reply_markup=self._actions_to_reply_markup(),
             )
 
     def clear(self) -> None:
         """Очищает журнал событий."""
         # await self.delete_journal()
         self.events.clear()
-        self.actions = self.default_action.copy()
+        self.actions = list(self.default_action)
         self.message = None
 
     # Магические методы
