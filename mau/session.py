@@ -12,8 +12,8 @@ from mau.exceptions import (
     NoGameInChatError,
 )
 from mau.game import UnoGame
+from mau.journal import TelegramJournal
 from mau.player import BaseUser, Player
-from mau.telegram.journal import TelegramJournal
 
 
 class SessionManager:

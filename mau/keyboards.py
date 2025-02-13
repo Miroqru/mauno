@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from mau.telegram.journal import EventAction
+from mau.journal import EventAction
 
 if TYPE_CHECKING:
     from mau.game import UnoGame

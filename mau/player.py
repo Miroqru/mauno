@@ -17,7 +17,7 @@ from mau.card import (
 )
 from mau.enums import GameState
 from mau.exceptions import DeckEmptyError
-from mau.telegram.journal import EventAction
+from mau.journal import EventAction
 
 if TYPE_CHECKING:
     from mau.game import UnoGame

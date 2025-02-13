@@ -19,10 +19,10 @@ from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
+from mau.journal import BaseJournal, EventAction
 from mau.keyboards import select_player_markup
 from mau.messages import end_game_message, get_room_players
 from mau.player import BaseUser, Player
-from mau.telegram.journal import BaseJournal, EventAction
 
 TWIST_HAND_NUM = 2
 
