@@ -192,12 +192,10 @@ async def kick_player(
 
     game.journal.add(
         f"🧹 {game.start_player.mention_html()} выгнал "
-        f"{kicked_user.mention_html()} из игры за плохое поведение.\n"
+        f"{kicked_user} из игры за плохое поведение.\n"
     )
     if game.started:
-        game.journal.add(
-            f"🍰 Ладненько, следующих ход за {game.player.user.mention_html()}."
-        )
+        game.journal.add(f"🍰 Ладненько, следующих ход за {game.player.name}.")
         game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
@@ -231,10 +229,10 @@ async def skip_player(
     skip_player = game.player
     game.next_turn()
     game.journal.add(
-        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+        f"☕ {skip_player.name} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
         "🍰 Ладненько, следующих ход за "
-        f"{game.player.user.mention_html()}."
+        f"{game.player.name}."
     )
     game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()

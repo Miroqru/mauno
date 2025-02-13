@@ -10,7 +10,6 @@ from datetime import datetime
 from random import randint, shuffle
 
 from aiogram import Bot
-from aiogram.types import User
 from loguru import logger
 
 from mau.card import CardColor
@@ -21,7 +20,7 @@ from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
-from mau.player import Player
+from mau.player import BaseUser, Player
 from mau.telegram.journal import Journal
 
 
@@ -80,6 +79,7 @@ class UnoGame:
         self.chat_id = chat_id
         self.rules = GameRules()
         self.deck = Deck()
+        # FIXME: Отвязать игру от бота, ввести абстрактный журнал
         self.journal = Journal(self, bot)
 
         # Игроки Uno
@@ -185,7 +185,7 @@ class UnoGame:
     # Управление списком игроков
     # ==========================
 
-    def add_player(self, user: User) -> None:
+    def add_player(self, user: BaseUser) -> None:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.chat_id)
         if not self.open:

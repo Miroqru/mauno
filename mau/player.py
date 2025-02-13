@@ -1,5 +1,6 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
+from dataclasses import dataclass
 from random import randint
 from typing import TYPE_CHECKING, NamedTuple, Self
 
@@ -23,6 +24,18 @@ if TYPE_CHECKING:
 
 # Дополнительные типы данных
 # ==========================
+
+
+@dataclass(frozen=True)
+class BaseUser:
+    """Абстрактное представление пользователя.
+
+    Представляет собой хранимую о пользователе информацию.
+    Чтобы отвязать пользователя от конкретной реализации.
+    """
+
+    id: str
+    name: str
 
 
 class SortedCards(NamedTuple):
@@ -218,7 +231,7 @@ class Player:
         if bluff_player.bluffing:
             self.game.journal.add(
                 "🔎 <b>Замечен блеф</b>!\n"
-                f"{bluff_player.user.first_name} получает "
+                f"{bluff_player.name} получает "
                 f"{self.game.take_counter} карт."
             )
             bluff_player.take_cards()
@@ -228,7 +241,7 @@ class Player:
         else:
             self.game.take_counter += 2
             self.game.journal.add(
-                f"🎩 {bluff_player.user.first_name} <b>Честный игрок</b>!\n"
+                f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
                 f"{self.name} получает "
                 f"{self.game.take_counter} карт.\n"
             )

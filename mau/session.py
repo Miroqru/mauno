@@ -5,7 +5,6 @@
 """
 
 from aiogram import Bot
-from aiogram.types import User
 from loguru import logger
 
 from mau.exceptions import (
@@ -13,7 +12,7 @@ from mau.exceptions import (
     NoGameInChatError,
 )
 from mau.game import UnoGame
-from mau.player import Player
+from mau.player import BaseUser, Player
 
 
 class SessionManager:
@@ -24,6 +23,7 @@ class SessionManager:
     """
 
     def __init__(self) -> None:
+        # FIXME: Отвязать от бота
         self.bot: Bot = None
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[int, int] = {}
@@ -31,7 +31,7 @@ class SessionManager:
     # Управление игроками в сессии
     # ============================
 
-    def join(self, chat_id: int, user: User) -> None:
+    def join(self, chat_id: int, user: BaseUser) -> None:
         """Добавляет нового игрока в игру.
 
         Более высокоуровневая функция, совершает больше проверок.
@@ -48,7 +48,7 @@ class SessionManager:
 
     def leave(self, player: Player) -> None:
         """Убирает игрока из игры."""
-        chat_id = self.user_to_chat.get(player.user.id)
+        chat_id = self.user_to_chat.get(player.user_id)
         if chat_id is None:
             raise NoGameInChatError()
 
@@ -59,7 +59,7 @@ class SessionManager:
 
         player.on_leave()
         game.players.remove(player)
-        self.user_to_chat.pop(player.user.id)
+        self.user_to_chat.pop(player.user_id)
 
         if len(game.players) <= 1:
             game.end()
@@ -90,7 +90,7 @@ class SessionManager:
         try:
             game = self.games.pop(chat_id)
             for player in game.players:
-                self.user_to_chat.pop(player.user.id)
+                self.user_to_chat.pop(player.user_id)
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError()
