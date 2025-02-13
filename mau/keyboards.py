@@ -1,0 +1,30 @@
+"""Вспомогательный генератор событий."""
+
+from typing import TYPE_CHECKING
+
+from mau.telegram.journal import EventAction
+
+if TYPE_CHECKING:
+    from mau.game import UnoGame
+
+
+def select_player_markup(game: "UnoGame") -> list[EventAction]:
+    """Клавиатура для выбора игрока.
+
+    Отображает имя игрока и сколько у него сейчас карт.
+    """
+    res = []
+
+    for i, pl in enumerate(game.players):
+        if i == game.current_player:
+            continue
+        res.append(
+            [
+                EventAction(
+                    text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
+                    callback_data=f"select_player:{i}",
+                )
+            ]
+        )
+
+    return res

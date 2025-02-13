@@ -20,18 +20,6 @@ from mau.player import Player
 from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
 
-# Используется при выборе цвета для специальных карт
-COLOR_MARKUP = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="❤️", callback_data="color:0"),
-            InlineKeyboardButton(text="💛", callback_data="color:1"),
-            InlineKeyboardButton(text="💚", callback_data="color:2"),
-            InlineKeyboardButton(text="💙", callback_data="color:3"),
-        ]
-    ]
-)
-
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
 NO_GAME_QUERY = [
     InlineQueryResultArticle(
@@ -144,28 +132,6 @@ def select_player_query(
         )
 
     return result
-
-
-def select_player_markup(player: Player) -> InlineKeyboardMarkup:
-    """Клавиатура для выбора игрока.
-
-    Отображает имя игрока и сколько у него сейчас карт.
-    """
-    inline_keyboard = []
-
-    for i, pl in enumerate(player.game.players):
-        if i == player.game.current_player:
-            continue
-        inline_keyboard.append(
-            [
-                InlineKeyboardButton(
-                    text=f"{pl.user.first_name} ({len(pl.hand)} карт)",
-                    callback_data=f"select_player:{i}",
-                )
-            ]
-        )
-
-    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
 
 def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:

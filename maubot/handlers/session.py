@@ -13,6 +13,7 @@ from loguru import logger
 
 from mau.exceptions import NoGameInChatError
 from mau.game import UnoGame
+from mau.messages import end_game_message
 from mau.session import SessionManager
 from maubot import keyboards, messages
 from maubot.config import config, stickers
@@ -105,7 +106,7 @@ async def stop_gama(
     sm.remove(game.chat_id)
     await message.answer(
         "🧹 Игра была добровольно-принудительно остановлена.\n"
-        f"{messages.end_game_message(game)}"
+        f"{end_game_message(game)}"
     )
 
 
@@ -198,7 +199,7 @@ async def kick_player(
         await game.journal.send_journal()
     else:
         await message.answer(
-            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
+            f"{NOT_ENOUGH_PLAYERS}\n\n{end_game_message(game)}"
         )
         sm.remove(message.chat.id)
 

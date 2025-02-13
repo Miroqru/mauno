@@ -11,7 +11,7 @@ from random import randint, shuffle
 
 from loguru import logger
 
-from mau.card import CardColor
+from mau.card import BaseCard, CardColor, CardType
 from mau.deck import Deck
 from mau.enums import GameState
 from mau.exceptions import (
@@ -19,8 +19,12 @@ from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
+from mau.keyboards import select_player_markup
+from mau.messages import end_game_message, get_room_players
 from mau.player import BaseUser, Player
-from mau.telegram.journal import BaseJournal
+from mau.telegram.journal import BaseJournal, EventAction
+
+TWIST_HAND_NUM = 2
 
 
 # TODO: Давайте заменим вот этот бред на что-то нормальное
@@ -254,3 +258,60 @@ class UnoGame:
             if player == pl:
                 self.current_player = i
                 return
+
+    def process_turn(self, card: BaseCard, player: Player) -> None:
+        """Обрабатываем текущий ход."""
+        logger.info("Playing card {}", card)
+        self.deck.put_on_top(card)
+        player.hand.remove(card)
+        self.journal.set_actions(None)
+
+        card(self)
+
+        if len(player.hand) == 1:
+            self.journal.add("🌟 UNO!\n")
+
+        if len(player.hand) == 0:
+            self.journal.add(f"👑 {self.name} победил(а)!\n")
+            self.remove_player(self.user.id)
+            if not self.started:
+                self.journal.add(end_game_message(self))
+
+        elif all(card.cost == TWIST_HAND_NUM, self.rules.twist_hand):
+            self.journal.add(f"✨ {self.name} Задумывается c кем обменяться.")
+            self.state = GameState.TWIST_HAND
+            self.journal.set_actions(select_player_markup(self))
+
+        elif all(self.rules.rotate_cards, self.deck.top.cost == 0):
+            self.rotate_cards()
+            self.journal.add(
+                "🤝 Все игроки обменялись картами по кругу.\n"
+                f"{get_room_players(self)}"
+            )
+
+        if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
+            self.journal.add(f"✨ {self.name} Задумывается о выборе цвета.")
+            self.state = GameState.CHOOSE_COLOR
+            self.journal.set_actions(
+                [
+                    EventAction(text="❤️", callback_data="color:0"),
+                    EventAction(text="💛", callback_data="color:1"),
+                    EventAction(text="💚", callback_data="color:2"),
+                    EventAction(text="💙", callback_data="color:3"),
+                ]
+            )
+
+        if any(
+            self.rules.random_color,
+            self.rules.choose_random_color,
+            self.rules.auto_choose_color,
+        ):
+            self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
+
+        if self.state == GameState.NEXT:
+            if self.rules.random_color:
+                self.deck.top.color = CardColor(randint(0, 3))
+            if self.deck.top.cost == 1 and self.rules.side_effect:
+                logger.info("Player continue turn")
+            else:
+                self.next_turn()

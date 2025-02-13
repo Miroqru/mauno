@@ -14,7 +14,6 @@ from mau.enums import GameState
 from mau.game import UnoGame
 from mau.player import Player
 from mau.session import SessionManager
-from mau.telegram.turn import process_turn
 from maubot import keyboards
 
 router = Router(name="Turn")
@@ -93,7 +92,7 @@ async def process_card_handler(
 
     card = card_from_str(result.result_id)
     if card is not None:
-        process_turn(game, card, player)
+        game.process_turn(card, player)
 
     if game.started and game.state == GameState.NEXT:
         game.journal.add(

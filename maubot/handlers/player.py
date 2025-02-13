@@ -22,9 +22,10 @@ from mau.exceptions import (
     NoGameInChatError,
 )
 from mau.game import UnoGame
+from mau.messages import end_game_message
 from mau.player import BaseUser, Player
 from mau.session import SessionManager
-from maubot import keyboards, messages
+from maubot import keyboards
 from maubot.messages import (
     NO_ROOM_MESSAGE,
     NOT_ENOUGH_PLAYERS,
@@ -101,9 +102,7 @@ async def leave_player(
         )
         await game.journal.send_journal()
     else:
-        status_message = (
-            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
-        )
+        status_message = f"{NOT_ENOUGH_PLAYERS}\n\n{end_game_message(game)}"
         sm.remove(message.chat.id)
         await message.answer(status_message)
 
@@ -215,7 +214,7 @@ async def shotgun_call(
         game.journal.add(f"🍰 Ладненько, следующим ходит {game.player.name}.")
         await game.journal.send_journal()
     else:
-        status = messages.end_game_message(game)
+        status = end_game_message(game)
         sm.remove(chat_id)
         await query.message.edit_text(text=status)
 
