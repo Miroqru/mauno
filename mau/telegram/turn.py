@@ -40,6 +40,7 @@ def process_turn(game: UnoGame, card: BaseCard, player: Player) -> None:
     elif all(card.cost == TWIST_HAND_NUM, game.rules.twist_hand):
         game.journal.add(f"✨ {game.name} Задумывается c кем обменяться.")
         game.state = GameState.TWIST_HAND
+        # TODO: update acton keyboard
         game.journal.set_actions(keyboards.select_player_markup(game))
 
     elif all(game.rules.rotate_cards, game.deck.top.cost == 0):
@@ -52,6 +53,7 @@ def process_turn(game: UnoGame, card: BaseCard, player: Player) -> None:
     if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
         game.journal.add(f"✨ {game.name} Задумывается о выборе цвета.")
         game.state = GameState.CHOOSE_COLOR
+        # TODO: update acton keyboard
         game.journal.set_actions(keyboards.COLOR_MARKUP)
 
     if any(

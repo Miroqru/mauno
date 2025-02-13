@@ -8,7 +8,7 @@ from loguru import logger
 from mau.card import TakeCard, TakeFourCard
 from mau.enums import GameState
 from mau.player import Player
-from maubot import keyboards
+from mau.telegram.journal import EventAction
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
@@ -45,7 +45,12 @@ async def call_take_cards(player: Player) -> None:
             "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
-        player.game.journal.set_actions(keyboards.SHOTGUN_REPLY)
+        player.game.journal.set_actions(
+            [
+                EventAction(text="Взять 🃏", callback_data="take"),
+                EventAction(text="🔫 Выстрелить", callback_data="shot"),
+            ]
+        )
 
     logger.info("{} take cards", player)
     take_counter = player.game.take_counter

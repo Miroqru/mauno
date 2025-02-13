@@ -95,3 +95,7 @@ class SessionManager:
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError()
+
+
+# Привязанный к платформе менеджер сессий
+# =======================================

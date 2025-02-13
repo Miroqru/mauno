@@ -20,30 +20,6 @@ from mau.player import Player
 from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
 
-# Кнопка для совершения хода игроком
-# Будет прикрепляться к игровым сообщениям
-TURN_MARKUP = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="🎮 Разыграть 🃏", switch_inline_query_current_chat=""
-            )
-        ]
-    ]
-)
-
-# Клавиатура для режима игры с револьвером
-# Пользователь может взят карты или попробовать выстрелить
-# Если ему повезёт, брать будет уже не он
-SHOTGUN_REPLY = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
-            InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
-        ]
-    ]
-)
-
 # Используется при выборе цвета для специальных карт
 COLOR_MARKUP = InlineKeyboardMarkup(
     inline_keyboard=[

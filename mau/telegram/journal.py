@@ -13,7 +13,7 @@ from enum import IntEnum
 from typing import NamedTuple
 
 from aiogram import Bot
-from aiogram.types import InlineKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 # Вспомогательные классы
 # ======================
@@ -87,7 +87,7 @@ class BaseJournal(ABC):
         pass
 
     @abstractmethod
-    def set_actions(self, actions: InlineKeyboardMarkup | None = None) -> None:
+    def set_actions(self, actions: list[EventAction] | None = None) -> None:
         """Устанавливает доступные действия для журнала при отправку журнала."""
         pass
 
@@ -126,27 +126,44 @@ class TelegramJournal:
     def __init__(self, chat_id: str, bot: Bot) -> None:
         self.game: str = chat_id
         self.bot: Bot = bot
+        self.default_action = [
+            InlineKeyboardButton(
+                text="🎮 Разыграть 🃏", switch_inline_query_current_chat=""
+            )
+        ]
+
         self.events: list[Event] = []
-        self.actions: InlineKeyboardMarkup | None = None
+        self.actions: list[EventAction | InlineKeyboardButton] = (
+            self.default_action.copy()
+        )
         self.message: Message | None = None
 
     # Управление журналом
     # ===================
 
+    def _actions_to_reply_markup(self) -> InlineKeyboardMarkup:
+        pass
+        inline_keyboard = []
+        for i, action in enumerate(self.actions):
+            if i % 3 == 0:
+                inline_keyboard.append([])
+
+            if isinstance(action, EventAction):
+                inline_keyboard[-1].append(
+                    InlineKeyboardButton(
+                        text=action.name, callback_data=action.callback_data
+                    )
+                )
+            else:
+                inline_keyboard.append(action)
+        return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
     def add(
-        self,
-        text: str,
-        # icon: str | None = None,
-        # priority: EventPriority | int = EventPriority.INFO
+        self, text: str, priority: EventPriority | int = EventPriority.INFO
     ) -> None:
         """Добавляет новое событие в журнал."""
         self.events.append(
-            Event(
-                date=datetime.now(),
-                text=text,
-                # icon=icon,
-                # priority=priority
-            )
+            Event(date=datetime.now(), text=text, priority=priority)
         )
 
     # def get_event(self, index: int) -> Event | None:
@@ -158,7 +175,7 @@ class TelegramJournal:
     # def remove_event(self, index: int) -> None:
     #     pass
 
-    def set_actions(self, actions: InlineKeyboardMarkup | None = None) -> None:
+    def set_actions(self, actions: list[EventAction] | None = None) -> None:
         """Устанавливает клавиатуру для бота при отправку журнала."""
         self.actions = actions
 
@@ -169,6 +186,7 @@ class TelegramJournal:
             res += f"{event}\n"
         return res
 
+    # TODO: Удаление журнала чтобы было меньше сообщений
     # async def delete_journal(self):
     #     if self.message is None:
     #         return
@@ -192,18 +210,19 @@ class TelegramJournal:
             self.message = await self.bot.send_message(
                 chat_id=self.chat_id,
                 text=journal_message,
-                reply_markup=self.actions,
+                reply_markup=self._actions_to_reply_markup(self.actions),
             )
         else:
             await self.message.edit_text(
-                text=journal_message, reply_markup=self.actions
+                text=journal_message,
+                reply_markup=self._actions_to_reply_markup(self.actions),
             )
 
     def clear(self) -> None:
         """Очищает журнал событий."""
         # await self.delete_journal()
         self.events.clear()
-        self.actions = None
+        self.actions = self.default_action.copy()
         self.message = None
 
     # Магические методы
