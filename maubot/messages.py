@@ -6,12 +6,9 @@
 
 from datetime import datetime
 
-from mau.game import RULES, UnoGame
+from mau.game import UnoGame
 from mau.messages import get_room_players
 from maubot.config import config
-
-# Статические сообщения
-# =====================
 
 # Когда пользователь пишет сообщение /help
 # Немного рассказывает про бота и как им пользоваться
@@ -125,9 +122,8 @@ def get_room_rules(game: UnoGame) -> str:
     """
     rule_list = ""
     active_rules = 0
-    for rule in RULES:
-        status = getattr(game.rules, rule.key, False)
-        if status:
+    for rule in game.rules:
+        if rule.status:
             active_rules += 1
             rule_list += f"\n- {rule.name}"
 
@@ -191,7 +187,7 @@ def get_room_status(game: UnoGame) -> str:
             "- /start для начала веселья!🍰"
         )
 
-    if game.rules.single_shotgun:
+    if game.rules.single_shotgun.status:
         shotgun_stats = f"🔫 <b>Револьвер</b>: {game.shotgun_current} / 8"
     else:
         shotgun_stats = ""

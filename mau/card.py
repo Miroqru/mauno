@@ -310,13 +310,13 @@ class ChooseColorCard(BaseCard):
             game (UnoGame): Текущая сессия игры.
 
         """
-        if game.rules.auto_choose_color:
+        if game.rules.auto_choose_color.status:
             logger.info("Auto choose color for card")
             if game.reverse:
                 self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
-        elif game.rules.choose_random_color:
+        elif game.rules.choose_random_color.status:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
         else:
@@ -354,13 +354,13 @@ class TakeFourCard(BaseCard):
             game (UnoGame): Текущая сессия игры.
 
         """
-        if game.rules.auto_choose_color:
+        if game.rules.auto_choose_color.status:
             logger.info("Auto choose color for card")
             if game.reverse:
                 self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
-        elif game.rules.choose_random_color:
+        elif game.rules.choose_random_color.status:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
         else:

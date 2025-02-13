@@ -15,7 +15,7 @@ from aiogram.types import (
 
 from mau.card import TakeFourCard
 from mau.enums import GameState
-from mau.game import RULES, GameRules, UnoGame
+from mau.game import GameRules, Rule, UnoGame
 from mau.player import Player
 from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
@@ -181,7 +181,7 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
     result = []
-    if not player.is_current and not player.game.rules.intervention:
+    if not player.is_current and not player.game.rules.intervention.status:
         return get_all_hand_cards(player)
 
     elif player.game.state == GameState.CHOOSE_COLOR:
@@ -232,20 +232,17 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
 # =========================
 
 
-def create_button(rule: str, status: bool) -> InlineKeyboardButton:
+def create_button(rule: Rule) -> InlineKeyboardButton:
     """Создает кнопку для заданного правила."""
-    status_sim = "🌟" if status else ""
+    status_sim = "🌟" if rule.status else ""
     return InlineKeyboardButton(
         text=f"{status_sim}{rule.name}",
-        callback_data=f"set:{rule.key}:{not status}",
+        callback_data=f"set:{rule.key}:{not rule.status}",
     )
 
 
-# TODO: Когда наконец игровые правила станут просто списком
 def generate_buttons(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Генерирует кнопки на основе правил игры."""
-    buttons = [
-        [create_button(rule, getattr(game_rules, rule.key, False))]
-        for rule in RULES
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[create_button(rule)] for rule in game_rules]
+    )

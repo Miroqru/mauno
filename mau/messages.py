@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from mau.game import UnoGame
 
 
-def end_game_message(game: UnoGame) -> str:
+def end_game_message(game: "UnoGame") -> str:
     """Сообщение об окончании игры.
 
     Отображает список победителей текущей комнаты и проигравших.
@@ -36,7 +36,7 @@ def get_room_players(game: "UnoGame") -> str:
     reverse_sim = "🔺" if game.reverse else "🔻"
     players_list = f"✨ Игроки ({len(game.players)}{reverse_sim}):\n"
     for i, player in enumerate(game.players):
-        if game.rules.shotgun:
+        if game.rules.shotgun.status:
             shotgun_stat = f" {player.shotgun_current} / 8 🔫"
         else:
             shotgun_stat = ""

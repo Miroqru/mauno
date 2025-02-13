@@ -8,6 +8,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
+from typing import NamedTuple
 
 from loguru import logger
 
@@ -27,49 +28,31 @@ from mau.player import BaseUser, Player
 TWIST_HAND_NUM = 2
 
 
-# TODO: Давайте заменим вот этот бред на что-то нормальное
 @dataclass(slots=True)
-class GameRules:
-    """Набор игровых правил, которые можно менять при запуске игры."""
-
-    wild: bool = False
-    auto_choose_color: bool = False
-    choose_random_color: bool = False
-    random_color: bool = False
-    debug_cards: bool = False
-    twist_hand: bool = False
-    rotate_cards: bool = False
-    take_until_cover: bool = False
-    shotgun: bool = False
-    single_shotgun: bool = False
-    ahead_of_curve: bool = False
-    side_effect: bool = False
-    intervention: bool = False
-
-
-@dataclass(frozen=True, slots=True)
 class Rule:
     """Правило для игры."""
 
-    key: str
     name: str
+    status: bool
 
 
-RULES = (
-    Rule("twist_hand", "🤝 Обмен руками"),
-    Rule("rotate_cards", "🧭 Обмен телами."),
-    Rule("take_until_cover", "🍷 Беру до последнего."),
-    Rule("single_shotgun", "🎲 Общий револьвер."),
-    Rule("shotgun", "🔫 Рулетка."),
-    Rule("wild", "🐉 Дикие карты"),
-    Rule("auto_choose_color", "🃏 самоцвет"),
-    Rule("choose_random_color", "🎨 Случайный цвет"),
-    Rule("random_color", "🎨 Какой цвет дальше?"),
-    Rule("debug_cards", "🦝 Отладочные карты!"),
-    Rule("side_effect", "🌀 Побочный выброс"),
-    Rule("ahead_of_curve", "🔪 На опережение 🔧"),
-    Rule("intervention", "😈 Вмешательство 🔧"),
-)
+# TODO: Давайте заменим вот этот бред на что-то нормальное
+class GameRules(NamedTuple):
+    """Набор игровых правил, которые можно менять при запуске игры."""
+
+    twist_hand = Rule("🤝 Обмен руками", False)
+    rotate_cards = Rule("🧭 Обмен телами.", False)
+    take_until_cover = Rule("🍷 Беру до последнего.", False)
+    single_shotgun = Rule("🎲 Общий револьвер.", False)
+    shotgun = Rule("🔫 Рулетка.", False)
+    wild = Rule("🐉 Дикие карты", False)
+    auto_choose_color = Rule("🃏 самоцвет", False)
+    choose_random_color = Rule("🎨 Случайный цвет", False)
+    random_color = Rule("🎨 Какой цвет дальше?", False)
+    debug_cards = Rule("🦝 Отладочные карты!", False)
+    side_effect = Rule("🌀 Побочный выброс", False)
+    ahead_of_curve = Rule("🔪 На опережение 🔧", False)
+    intervention = Rule("😈 Вмешательство 🔧", False)
 
 
 class UnoGame:
@@ -142,12 +125,12 @@ class UnoGame:
         self.started = True
         shuffle(self.players)
 
-        if self.rules.wild:
+        if self.rules.wild.status:
             self.deck.fill_wild()
         else:
             self.deck.fill_classic()
 
-        if self.rules.single_shotgun:
+        if self.rules.single_shotgun.status:
             self.shotgun_lose = randint(1, 8)
 
         for player in self.players:
@@ -277,12 +260,12 @@ class UnoGame:
             if not self.started:
                 self.journal.add(end_game_message(self))
 
-        elif all(card.cost == TWIST_HAND_NUM, self.rules.twist_hand):
+        elif all(card.cost == TWIST_HAND_NUM, self.rules.twist_hand.status):
             self.journal.add(f"✨ {self.name} Задумывается c кем обменяться.")
             self.state = GameState.TWIST_HAND
             self.journal.set_actions(select_player_markup(self))
 
-        elif all(self.rules.rotate_cards, self.deck.top.cost == 0):
+        elif all(self.rules.rotate_cards.status, self.deck.top.cost == 0):
             self.rotate_cards()
             self.journal.add(
                 "🤝 Все игроки обменялись картами по кругу.\n"
@@ -302,16 +285,16 @@ class UnoGame:
             )
 
         if any(
-            self.rules.random_color,
-            self.rules.choose_random_color,
-            self.rules.auto_choose_color,
+            self.rules.random_color.status,
+            self.rules.choose_random_color.status,
+            self.rules.auto_choose_color.status,
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
 
         if self.state == GameState.NEXT:
-            if self.rules.random_color:
+            if self.rules.random_color.status:
                 self.deck.top.color = CardColor(randint(0, 3))
-            if self.deck.top.cost == 1 and self.rules.side_effect:
+            if self.deck.top.cost == 1 and self.rules.side_effect.status:
                 logger.info("Player continue turn")
             else:
                 self.next_turn()

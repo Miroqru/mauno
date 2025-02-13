@@ -120,7 +120,7 @@ async def choose_color_call(  # noqa
     """Игрок выбирает цвет по нажатию на кнопку."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve and game.player != player:
+    if not game.rules.ahead_of_curve.status and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     color = CardColor(int(color.groups()[0]))
@@ -150,7 +150,7 @@ async def select_player_call(
     """Действие при выборе игрока для обмена картами."""
     if game is None or player is None:
         return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve and game.player != player:
+    if not game.rules.ahead_of_curve.status and game.player != player:
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     other_player = game.players[int(index.groups()[0])]

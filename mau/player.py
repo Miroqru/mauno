@@ -86,7 +86,7 @@ class Player:
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
-        if self.game.rules.debug_cards:
+        if self.game.rules.debug_cards.status:
             logger.debug("{} Draw debug first hand for player", self._user_name)
             self.hand = [
                 TakeFourCard(),
@@ -182,7 +182,7 @@ class Player:
         if self.game.state == GameState.SHOTGUN:
             return SortedCards([], self.hand)
 
-        if self.game.rules.intervention and self.game.player != self:
+        if self.game.rules.intervention.status and self.game.player != self:
             return self._get_equal_cards(top)
         return self._sort_hand_cards(top)
 
@@ -210,7 +210,7 @@ class Player:
 
     def shotgun(self) -> bool:
         """Выстрелить из револьвера."""
-        if self.game.rules.single_shotgun:
+        if self.game.rules.single_shotgun.status:
             self.game.shotgun_current += 1
             is_fired = self.game.shotgun_current >= self.game.shotgun_lose
             if is_fired:
@@ -267,18 +267,21 @@ class Player:
         - Брать карты сейчас.
         - Выстрелить, чтобы взял следующий игрок.
         """
-        if self.game.rules.take_until_cover and self.game.take_counter == 0:
+        if (
+            self.game.rules.take_until_cover.status
+            and self.game.take_counter == 0
+        ):
             self.game.take_counter = self.game.deck.count_until_cover()
             self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
 
         if any(
             self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
-            self.game.rules.shotgun,
-            self.game.rules.single_shotgun,
+            self.game.rules.shotgun.status,
+            self.game.rules.single_shotgun.status,
         ):
             current = (
                 self.game.shotgun_current
-                if self.game.rules.single_shotgun
+                if self.game.rules.single_shotgun.status
                 else self.shotgun_current
             )
             self.game.journal.add(

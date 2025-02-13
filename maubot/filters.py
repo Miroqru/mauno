@@ -34,7 +34,7 @@ class NowPlaying(Filter):
             await query.answer("🍉 А вы точно сейчас играете?")
             return False
 
-        if game.player == player or game.rules.ahead_of_curve:
+        if game.player == player or game.rules.ahead_of_curve.status:
             return True
 
         await query.answer("🍉 А сейчас точно ваш ход?")
