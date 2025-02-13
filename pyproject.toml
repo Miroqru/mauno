@@ -10,7 +10,7 @@ readme = "README.md"
 # Dependencies ---------------------------------------------------------
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 loguru = "^0.7"
 aiogram = "^3.17"
 tortoise-orm = "^0.21.7"
