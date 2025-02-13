@@ -45,7 +45,7 @@ async def call_take_cards(player: Player) -> None:
             "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
-        player.game.journal.set_markup(keyboards.SHOTGUN_REPLY)
+        player.game.journal.set_actions(keyboards.SHOTGUN_REPLY)
 
     logger.info("{} take cards", player)
     take_counter = player.game.take_counter

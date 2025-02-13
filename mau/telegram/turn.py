@@ -22,7 +22,7 @@ def process_turn(game: UnoGame, card: BaseCard, player: Player) -> None:
     logger.info("Playing card {}", card)
     game.deck.put_on_top(card)
     player.hand.remove(card)
-    game.journal.set_markup(None)
+    game.journal.set_actions(None)
 
     card(game)
 
@@ -40,7 +40,7 @@ def process_turn(game: UnoGame, card: BaseCard, player: Player) -> None:
     elif all(card.cost == TWIST_HAND_NUM, game.rules.twist_hand):
         game.journal.add(f"✨ {game.name} Задумывается c кем обменяться.")
         game.state = GameState.TWIST_HAND
-        game.journal.set_markup(keyboards.select_player_markup(game))
+        game.journal.set_actions(keyboards.select_player_markup(game))
 
     elif all(game.rules.rotate_cards, game.deck.top.cost == 0):
         game.rotate_cards()
@@ -52,7 +52,7 @@ def process_turn(game: UnoGame, card: BaseCard, player: Player) -> None:
     if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
         game.journal.add(f"✨ {game.name} Задумывается о выборе цвета.")
         game.state = GameState.CHOOSE_COLOR
-        game.journal.set_markup(keyboards.COLOR_MARKUP)
+        game.journal.set_actions(keyboards.COLOR_MARKUP)
 
     if any(
         game.rules.random_color,

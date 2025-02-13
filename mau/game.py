@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
 
-from aiogram import Bot
 from loguru import logger
 
 from mau.card import CardColor
@@ -21,9 +20,10 @@ from mau.exceptions import (
     NoGameInChatError,
 )
 from mau.player import BaseUser, Player
-from mau.telegram.journal import Journal
+from mau.telegram.journal import BaseJournal
 
 
+# TODO: Давайте заменим вот этот бред на что-то нормальное
 @dataclass(slots=True)
 class GameRules:
     """Набор игровых правил, которые можно менять при запуске игры."""
@@ -75,12 +75,11 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, bot: Bot, chat_id: int) -> None:
+    def __init__(self, journal: BaseJournal, chat_id: int) -> None:
         self.chat_id = chat_id
         self.rules = GameRules()
         self.deck = Deck()
-        # FIXME: Отвязать игру от бота, ввести абстрактный журнал
-        self.journal = Journal(self, bot)
+        self.journal: BaseJournal = journal
 
         # Игроки Uno
         self.current_player: int = 0

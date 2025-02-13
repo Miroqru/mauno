@@ -103,7 +103,7 @@ async def process_card_handler(
             else f"🍰 <b>Следующий ходит</b>: {game.player.name}"
         )
         if game.journal.reply_markup is None:
-            game.journal.set_markup(keyboards.TURN_MARKUP)
+            game.journal.set_actions(keyboards.TURN_MARKUP)
 
     await game.journal.send_journal()
 
@@ -129,13 +129,13 @@ async def choose_color_call(  # noqa
 
     color = CardColor(int(color.groups()[0]))
     game.journal.add(f"🎨 Я выбираю цвет.. {color}\n")
-    game.journal.set_markup(None)
+    game.journal.set_actions(None)
     await game.journal.send_journal()
     game.choose_color(color)
 
     if game.started:
         game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
         sm.remove(player.game.chat_id)
@@ -167,12 +167,12 @@ async def select_player_call(
             f"и {other_player.name} ({other_hand} карт) "
             "обменялись руками.\n"
         )
-        game.journal.set_markup(None)
+        game.journal.set_actions(None)
         await game.journal.send_journal()
         player.twist_hand(other_player)
     else:
         game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
     game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
-    game.journal.set_markup(keyboards.TURN_MARKUP)
+    game.journal.set_actions(keyboards.TURN_MARKUP)
     await game.journal.send_journal()

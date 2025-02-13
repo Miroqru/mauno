@@ -13,6 +13,7 @@ from mau.exceptions import (
 )
 from mau.game import UnoGame
 from mau.player import BaseUser, Player
+from mau.telegram.journal import TelegramJournal
 
 
 class SessionManager:
@@ -77,7 +78,7 @@ class SessionManager:
     def create(self, chat_id: int) -> UnoGame:
         """Создает новую игру в чате."""
         logger.info("Create new session in chat {}", chat_id)
-        game = UnoGame(self.bot, chat_id)
+        game = UnoGame(TelegramJournal(chat_id, self.bot), chat_id)
         self.games[chat_id] = game
         return game
 

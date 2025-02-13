@@ -85,7 +85,7 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         game.start()
         await message.answer_sticker(stickers.normal[game.deck.top.to_str()])
         game.journal.add(messages.get_new_game_message(game))
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
 
 
@@ -196,7 +196,7 @@ async def kick_player(
     )
     if game.started:
         game.journal.add(f"🍰 Ладненько, следующих ход за {game.player.name}.")
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
         await message.answer(
@@ -234,7 +234,7 @@ async def skip_player(
         "🍰 Ладненько, следующих ход за "
         f"{game.player.name}."
     )
-    game.journal.set_markup(keyboards.TURN_MARKUP)
+    game.journal.set_actions(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 
@@ -257,7 +257,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     await query.message.answer_sticker(stickers.normal[game.deck.top.to_str()])
 
     game.journal.add(messages.get_new_game_message(game))
-    game.journal.set_markup(keyboards.TURN_MARKUP)
+    game.journal.set_actions(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 

@@ -99,7 +99,7 @@ async def leave_player(
         game.journal.add(
             text=(f"🍰 Ладненько, следующих ход за {game.player.name}.")
         )
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
         status_message = (
@@ -166,13 +166,13 @@ async def take_cards_call(
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
     if isinstance(game.deck.top, TakeCard | TakeFourCard) and take_counter:
-        game.journal.set_markup(None)
+        game.journal.set_actions(None)
         game.next_turn()
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
     else:
         game.journal.add(f"☕ {game.player.name} <b>продолжает</b>.")
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 
@@ -190,7 +190,7 @@ async def shotgun_call(
         return await query.answer("🍉 А вы точно сейчас ходите?")
 
     res = player.shotgun()
-    game.journal.set_markup(None)
+    game.journal.set_actions(None)
     if not res:
         game.take_counter = round(game.take_counter * 1.5)
         game.journal.add(
@@ -216,7 +216,7 @@ async def shotgun_call(
 
     if game.started:
         game.journal.add(f"🍰 Ладненько, следующим ходит {game.player.name}.")
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
         status = messages.end_game_message(game)
@@ -244,7 +244,7 @@ async def on_user_leave(
 
     if game.started:
         game.journal.add(f"Ладненько, следующих ход за {game.player.name}.")
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.set_actions(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
     else:
         status_message = NOT_ENOUGH_PLAYERS

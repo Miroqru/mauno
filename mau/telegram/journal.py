@@ -7,43 +7,48 @@ TODO: Что за суета происходит тут в журнале?
 FIXME: Журнал слишком привязан к Telegram, его бы более абстрактным сделать
 """
 
+from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, NamedTuple
+from enum import IntEnum
+from typing import NamedTuple
 
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, Message
 
-if TYPE_CHECKING:
-    from mau.game import UnoGame
-
 # Вспомогательные классы
 # ======================
 
-# PRIORITY_ICONS = ("⚙️", "☕", "🍰", "👀", "⚠️")
 
-# class EventPriority(IntEnum):
-#     """Приоритет события.
+class EventPriority(IntEnum):
+    """Приоритет события.
 
-#     У каждого события есть некоторый приоритет, который определяет
-#     насколько это событие важно.
-#     Если сообщение содержит приоритетные события, оно не будет удалено.
+    У каждого события есть некоторый приоритет, который определяет
+    насколько это событие важно.
+    Если сообщение содержит приоритетные события, оно не будет удалено.
 
-#     - DEBUG: Отладочная информация для разработки
-#     - INFO: Основные события по ходу игры
-#     - SUCCESS: Более важные действие, как например взятие карт.
-#     - WARNING: Контролируемые проблемы, как например опустошение колоды.
-#     - ERROR: Ошибки во время работы, которые не удаётся решить самому.
-#     """
+    - DEBUG: Отладочная информация для разработки
+    - INFO: Основные события по ходу игры
+    - SUCCESS: Более важные действие, как например взятие карт.
+    - WARNING: Контролируемые проблемы, как например опустошение колоды.
+    - ERROR: Ошибки во время работы, которые не удаётся решить самому.
+    """
 
-#     DEBUG = 0
-#     INFO = 1
-#     SUCCESS = 2
-#     WARNING = 3
-#     ERROR = 4
+    DEBUG = 0
+    INFO = 1
+    SUCCESS = 2
+    WARNING = 3
+    ERROR = 4
 
-#     def __str__(self) -> str:
-#         """представление приоритета в виде символа."""
-#         return PRIORITY_ICONS[self.value]
+
+class EventAction(NamedTuple):
+    """Callback кнопочки для событий журнала.
+
+    Абстрактное представление действий, которые пользователь может
+    совершить в данный момент.
+    """
+
+    name: str
+    callback_data: str
 
 
 class Event(NamedTuple):
@@ -59,20 +64,57 @@ class Event(NamedTuple):
 
     date: datetime
     text: str
-    # icon: str | None
-    # priority: EventPriority
+    priority: EventPriority
 
     def __str__(self) -> str:
         """Представление события в виде строки."""
-        # icon = self.icon if self.icon is not None else self.priority
-        return f"{self.text}\n"
+        return self.text
+
+
+# абстрактный класс журнала
+# =========================
+
+
+class BaseJournal(ABC):
+    """Абстрактный журнал событий.
+
+    Позволяет записывать игровые события, а после отправлять их по надобности.
+    """
+
+    @abstractmethod
+    def add(self) -> None:
+        """Добавляет новое событие в журнал."""
+        pass
+
+    @abstractmethod
+    def set_actions(self, actions: InlineKeyboardMarkup | None = None) -> None:
+        """Устанавливает доступные действия для журнала при отправку журнала."""
+        pass
+
+    @abstractmethod
+    def get_journal_message(self) -> str:
+        """Собирает сообщение журнала из всех событий."""
+        pass
+
+    @abstractmethod
+    async def send_journal(self) -> None:
+        """Отправляет сообщение журнала.
+
+        Это может быть как чат telegram, так и к примеру консоль.
+        """
+        pass
+
+    @abstractmethod
+    def clear(self) -> None:
+        """Очищает журнал событий."""
+        pass
 
 
 # Основной класс
 # ==============
 
 
-class Journal:
+class TelegramJournal:
     """Класс журнала игровых событий.
 
     Используется для отслеживания статуса игры и оправки игровых
@@ -81,11 +123,11 @@ class Journal:
     зависимости от действий участников.
     """
 
-    def __init__(self, game: "UnoGame", bot: Bot) -> None:
-        self.game: UnoGame = game
+    def __init__(self, chat_id: str, bot: Bot) -> None:
+        self.game: str = chat_id
         self.bot: Bot = bot
         self.events: list[Event] = []
-        self.reply_markup: InlineKeyboardMarkup | None = None
+        self.actions: InlineKeyboardMarkup | None = None
         self.message: Message | None = None
 
     # Управление журналом
@@ -116,17 +158,15 @@ class Journal:
     # def remove_event(self, index: int) -> None:
     #     pass
 
-    def set_markup(
-        self, reply_markup: InlineKeyboardMarkup | None = None
-    ) -> None:
+    def set_actions(self, actions: InlineKeyboardMarkup | None = None) -> None:
         """Устанавливает клавиатуру для бота при отправку журнала."""
-        self.reply_markup = reply_markup
+        self.actions = actions
 
     def get_journal_message(self) -> str:
         """Собирает сообщение журнала из всех событий."""
         res = ""
         for event in self.events:
-            res += str(event)
+            res += f"{event}\n"
         return res
 
     # async def delete_journal(self):
@@ -150,20 +190,20 @@ class Journal:
         journal_message = self.get_journal_message()
         if self.message is None:
             self.message = await self.bot.send_message(
-                chat_id=self.game.chat_id,
+                chat_id=self.chat_id,
                 text=journal_message,
-                reply_markup=self.reply_markup,
+                reply_markup=self.actions,
             )
         else:
             await self.message.edit_text(
-                text=journal_message, reply_markup=self.reply_markup
+                text=journal_message, reply_markup=self.actions
             )
 
     def clear(self) -> None:
         """Очищает журнал событий."""
         # await self.delete_journal()
         self.events.clear()
-        self.reply_markup = None
+        self.actions = None
         self.message = None
 
     # Магические методы
@@ -180,5 +220,7 @@ class Journal:
     def __setitem__(self, i: int, event: Event) -> None:
         """Изменяет событие по индексу."""
         if not isinstance(event, Event):
-            return ValueError("Journal can only contains Event instances")
+            return ValueError(
+                "TelegramJournal can only contains Event instances"
+            )
         self.events[i] = event
