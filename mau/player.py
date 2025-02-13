@@ -17,6 +17,7 @@ from mau.card import (
 )
 from mau.enums import GameState
 from mau.exceptions import DeckEmptyError
+from mau.telegram.journal import EventAction
 
 if TYPE_CHECKING:
     from mau.game import UnoGame
@@ -24,6 +25,8 @@ if TYPE_CHECKING:
 
 # Дополнительные типы данных
 # ==========================
+
+_MIN_SHOTGUN_TAKE_COUNTER = 3
 
 
 @dataclass(frozen=True)
@@ -252,6 +255,60 @@ class Player:
         # Завершаем текущий ход
         await self.game.journal.send_journal()
         self.game.next_turn()
+
+    async def call_take_cards(self) -> None:
+        """Действия игрока при взятии карты.
+
+        В зависимости от правил, можно взять не одну карту, а сразу
+        несколько.
+        Если включен револьвер, то при взятии нескольких карт будет
+        выбор:
+
+        - Брать карты сейчас.
+        - Выстрелить, чтобы взял следующий игрок.
+        """
+        if self.game.rules.take_until_cover and self.game.take_counter == 0:
+            self.game.take_counter = self.game.deck.count_until_cover()
+            self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
+
+        if any(
+            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER,
+            self.game.rules.shotgun,
+            self.game.rules.single_shotgun,
+        ):
+            current = (
+                self.game.shotgun_current
+                if self.game.rules.single_shotgun
+                else self.shotgun_current
+            )
+            self.game.journal.add(
+                "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
+                f"Вы можете <b>взять свои карты</b> "
+                "или же попробовать <b>выстрелить из револьвера</b>.\n"
+                "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+                f"🔫 Из револьвера стреляли {current} / 8 раз\n."
+            )
+            self.game.journal.set_actions(
+                [
+                    EventAction(text="Взять 🃏", callback_data="take"),
+                    EventAction(text="🔫 Выстрелить", callback_data="shot"),
+                ]
+            )
+
+        logger.info("{} take cards", self)
+        take_counter = self.game.take_counter
+        self.take_cards()
+        if len(self.game.deck.cards) == 0:
+            self.game.journal.add("🃏 В колоде не осталось карт для игрока.")
+
+        # Если пользователь выбрал взять карты, то он пропускает свой ход
+        if (
+            isinstance(self.game.deck.top, TakeCard | TakeFourCard)
+            and take_counter
+        ):
+            self.game.next_turn()
+        else:
+            self.game.state = GameState.NEXT
 
     # Магические методы
     # =================

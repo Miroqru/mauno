@@ -14,7 +14,6 @@ from mau.enums import GameState
 from mau.game import UnoGame
 from mau.player import Player
 from mau.session import SessionManager
-from mau.telegram.player import call_take_cards
 from mau.telegram.turn import process_turn
 from maubot import keyboards
 
@@ -68,7 +67,7 @@ async def process_card_handler(
         game.next_turn()
 
     elif result.result_id == "take":
-        call_take_cards(player)
+        player.call_take_cards()
 
     elif result.result_id == "bluff":
         await player.call_bluff()
