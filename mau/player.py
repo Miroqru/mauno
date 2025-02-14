@@ -77,15 +77,6 @@ class Player:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
 
-    # TODO: game.owner.id
-    # TODO: Если owner станет Player, то данный метод исчезнет
-    @property
-    def is_owner(self) -> bool:
-        """Является ли текущий пользователь автором комнаты."""
-        if self.game.start_player is None:
-            return False
-        return self.user_id == self.game.start_player.id
-
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)

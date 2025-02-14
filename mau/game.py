@@ -10,7 +10,6 @@ from datetime import datetime
 from random import randint, shuffle
 from typing import NamedTuple
 
-from aiogram.types import User
 from loguru import logger
 
 from mau.card import BaseCard, CardColor, CardType
@@ -68,7 +67,9 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, journal: BaseJournal, room_id: str) -> None:
+    def __init__(
+        self, journal: BaseJournal, room_id: str, owner: BaseUser
+    ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
         self.deck = Deck()
@@ -76,11 +77,9 @@ class UnoGame:
 
         # Игроки Uno
         self.current_player: int = 0
-        # TODO: Переименовать start player в owner
-        # TODO: Изменить на экземпляр игрока, на будущее
-        self.start_player: User | None = None
+        self.owner = Player(self, owner.id, owner.name)
         self.bluff_player: Player | None = None
-        self.players: list[Player] = []
+        self.players: list[Player] = [self.owner]
         self.winners: list[Player] = []
         self.losers: list[Player] = []
 
@@ -204,7 +203,7 @@ class UnoGame:
         player = self.get_player(user_id)
         if player is None:
             # TODO: Тту должно быть более конкретное исключение
-            raise NoGameInChatError()
+            raise NoGameInChatError
 
         if player == self.player:
             # Скорее всего игрок застрелился, больше карты не берём

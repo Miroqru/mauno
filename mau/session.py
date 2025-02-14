@@ -75,14 +75,15 @@ class SessionManager:
     # Управление сессиями
     # ===================
 
-    def create(self, room_id: str) -> UnoGame:
+    def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""
         if self.bot is None:
-            raise ValueError("Ypu must set bot instance to create games")
+            raise ValueError("You must set bot instance to create games")
 
-        logger.info("Create new session in chat {}", room_id)
-        game = UnoGame(TelegramJournal(room_id, self.bot), room_id)
+        logger.info("User {} Create new game session in {}", user, room_id)
+        game = UnoGame(TelegramJournal(room_id, self.bot), room_id, user)
         self.games[room_id] = game
+        self.user_to_chat[user.id] = room_id
         return game
 
     def remove(self, room_id: str) -> None:

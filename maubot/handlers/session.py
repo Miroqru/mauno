@@ -19,6 +19,7 @@ from mau.exceptions import (
 )
 from mau.game import UnoGame
 from mau.messages import end_game_message
+from mau.player import BaseUser
 from mau.session import SessionManager
 from maubot import keyboards, messages
 from maubot.config import config, stickers
@@ -48,9 +49,15 @@ async def create_game(
 
     # Если игра ещё не началась, получаем её
     if game is None:
-        game = sm.create(str(message.chat.id))
-        # FIXME: И вновь game.owner
-        game.start_player = message.from_user  # type: ignore
+        if message.from_user is None:
+            raise ValueError("None User tries create new game")
+
+        game = sm.create(
+            str(message.chat.id),
+            BaseUser(
+                str(message.from_user.id), message.from_user.mention_html()
+            ),
+        )
     elif game.started:
         game.journal.add(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
@@ -105,7 +112,7 @@ async def stop_gama(
         raise NoGameInChatError
 
     player = game.get_player(str(message.from_user.id))
-    if player is None or not player.is_owner:
+    if player is None or not player == game.owner:
         raise NotGameOwnerError
 
     sm.remove(game.room_id)
@@ -128,7 +135,7 @@ async def open_gama(
         raise NoGameInChatError
 
     player = game.get_player(str(message.from_user.id))
-    if player is None or not player.is_owner:
+    if player is None or not player == game.owner:
         raise NotGameOwnerError
 
     game.open = True
@@ -146,7 +153,7 @@ async def close_gama(
         raise NoGameInChatError
 
     player = game.get_player(str(message.from_user.id))
-    if player is None or not player.is_owner:
+    if player is None or not player == game.owner:
         raise NotGameOwnerError
 
     game.open = False
@@ -171,7 +178,7 @@ async def kick_player(
         raise GameNotStartedError
 
     player = game.get_player(str(message.from_user.id))
-    if player is None or not player.is_owner:
+    if player is None or not player == game.owner:
         raise NotGameOwnerError
 
     if (
@@ -186,8 +193,7 @@ async def kick_player(
     game.remove_player(str(kicked_user.id))
 
     game.journal.add(
-        # TODO: game.owner тут должен быть
-        f"🧹 {game.start_player.mention_html()} выгнал "  # type: ignore
+        f"🧹 {game.owner.name} выгнал "
         f"{kicked_user} из игры за плохое поведение.\n"
     )
     if game.started:
@@ -213,7 +219,7 @@ async def skip_player(
         raise GameNotStartedError
 
     player = game.get_player(str(message.from_user.id))
-    if player is None or not player.is_owner:
+    if player is None or not player == game.owner:
         raise NotGameOwnerError
 
     game.take_counter += 1
