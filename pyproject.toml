@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maubot"
-version = "1.9b"
+version = "1.9-b2"
 description = "Play Uno with your friends in Telegram chats."
 authors = ["Milinuri Nirvalen <pentergust@mail.ru>"]
 license = "AGPL-3.0-or-later"
@@ -14,6 +14,7 @@ python = "^3.11"
 loguru = "^0.7"
 aiogram = "^3.17"
 tortoise-orm = "^0.21.7"
+pydantic-settings = "^2.7.1"
 
 
 # Development dependencies ---------------------------------------------
