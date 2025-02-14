@@ -18,7 +18,8 @@ router = Router(name="simple commands")
 async def get_help(message: Message, bot: Bot) -> None:
     """Помогает пользователю начать работать с ботом."""
     if message.chat.type == "private":
-        return await message.answer(HELP_MESSAGE)
+        await message.answer(HELP_MESSAGE)
+        return None
 
     try:
         await message.delete()
@@ -29,8 +30,9 @@ async def get_help(message: Message, bot: Bot) -> None:
         )
 
     try:
-        await bot.send_message(message.from_user.id, HELP_MESSAGE)
-        await message.answer("✨ Помощь отправлена в личные сообщения.")
+        if message.from_user is not None:
+            await bot.send_message(message.from_user.id, HELP_MESSAGE)
+            await message.answer("✨ Помощь отправлена в личные сообщения.")
     except Exception as e:
         logger.warning("Unable to send private message: {}", e)
         await message.answer("👀 Я не могу написать вам первым.")

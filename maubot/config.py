@@ -28,7 +28,7 @@ class Config(BaseSettings):
     )
 
 
-config: Config = Config()
+config = Config()  # type: ignore
 
 # Настройка стикеров
 # ==================

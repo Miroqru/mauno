@@ -14,6 +14,7 @@ from loguru import logger
 from mau.exceptions import (
     GameNotStartedError,
     NoGameInChatError,
+    NotEnoughPlayersError,
     NotGameOwnerError,
 )
 from mau.game import UnoGame
@@ -43,12 +44,13 @@ async def create_game(
 ) -> None:
     """Создаёт новую комнату."""
     if message.chat.type == "private":
-        return await message.answer("👀 Игры создаются в групповом чате.")
+        await message.answer("👀 Игры создаются в групповом чате.")
 
     # Если игра ещё не началась, получаем её
     if game is None:
-        game = sm.create(message.chat.id)
-        game.start_player = message.from_user
+        game = sm.create(str(message.chat.id))
+        # FIXME: И вновь game.owner
+        game.start_player = message.from_user  # type: ignore
     elif game.started:
         game.journal.add(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
@@ -67,7 +69,8 @@ async def create_game(
 async def start_gama(message: Message, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
-        return await message.answer(HELP_MESSAGE)
+        await message.answer(HELP_MESSAGE)
+        return None
 
     if game is None:
         await message.answer(NO_ROOM_MESSAGE)
@@ -76,7 +79,7 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         await message.answer("👀 Игра уже началась ранее.")
 
     elif len(game.players) < config.min_players:
-        await message.answer9(NOT_ENOUGH_PLAYERS)
+        raise NotEnoughPlayersError
 
     else:
         try:
@@ -98,16 +101,14 @@ async def stop_gama(
     message: Message, game: UnoGame | None, sm: SessionManager
 ) -> None:
     """Принудительно завершает текущую игру."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+    if game is None or message.from_user is None:
+        raise NoGameInChatError
 
-    player = game.get_player(message.from_user.id)
+    player = game.get_player(str(message.from_user.id))
     if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может завершить игру."
-        )
+        raise NotGameOwnerError
 
-    sm.remove(game.chat_id)
+    sm.remove(game.room_id)
     await message.answer(
         "🧹 Игра была добровольно-принудительно остановлена.\n"
         f"{end_game_message(game)}"
@@ -123,14 +124,12 @@ async def open_gama(
     message: Message, game: UnoGame | None, sm: SessionManager
 ) -> None:
     """Открывает игровую комнату для всех участников чата."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+    if game is None or message.from_user is None:
+        raise NoGameInChatError
 
-    player = game.get_player(message.from_user.id)
+    player = game.get_player(str(message.from_user.id))
     if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может открыть комнату."
-        )
+        raise NotGameOwnerError
 
     game.open = True
     await message.answer(
@@ -143,14 +142,12 @@ async def close_gama(
     message: Message, game: UnoGame | None, sm: SessionManager
 ) -> None:
     """Закрывает игровую комнату для всех участников чата."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+    if game is None or message.from_user is None:
+        raise NoGameInChatError
 
-    player = game.get_player(message.from_user.id)
+    player = game.get_player(str(message.from_user.id))
     if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может закрыть комнату."
-        )
+        raise NotGameOwnerError
 
     game.open = False
     await message.answer(
@@ -167,35 +164,30 @@ async def kick_player(
     message: Message, game: UnoGame | None, sm: SessionManager
 ) -> None:
     """Выкидывает участника из комнаты."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+    if game is None or message.from_user is None:
+        raise NoGameInChatError
 
     if not game.started:
-        return await message.answer(
-            "🍰 Игра ещё не началась, пока рано выкидывать участников."
-        )
+        raise GameNotStartedError
 
-    player = game.get_player(message.from_user.id)
+    player = game.get_player(str(message.from_user.id))
     if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может выгнать участника."
-        )
+        raise NotGameOwnerError
 
-    if message.reply_to_message is None:
-        return await message.answer(
+    if (
+        message.reply_to_message is None
+        or message.reply_to_message.from_user is None
+    ):
+        raise NoGameInChatError(
             "🍷 Перешлите сообщение негодника, которого нужно исключить."
         )
 
     kicked_user = message.reply_to_message.from_user
-    try:
-        game.remove_player(kicked_user.id)
-    except NoGameInChatError:
-        return message.answer(
-            "👀 Указанный пользователь даже не играет с нами."
-        )
+    game.remove_player(str(kicked_user.id))
 
     game.journal.add(
-        f"🧹 {game.start_player.mention_html()} выгнал "
+        # TODO: game.owner тут должен быть
+        f"🧹 {game.start_player.mention_html()} выгнал "  # type: ignore
         f"{kicked_user} из игры за плохое поведение.\n"
     )
     if game.started:
@@ -213,13 +205,14 @@ async def skip_player(
     message: Message, game: UnoGame | None, sm: SessionManager
 ) -> None:
     """пропускает участника за долгое бездействие."""
-    if game is None:
+    # FIXME: Чутка костыльно получилось
+    if game is None or message.from_user is None:
         raise NoGameInChatError
 
     if not game.started:
         raise GameNotStartedError
 
-    player = game.get_player(message.from_user.id)
+    player = game.get_player(str(message.from_user.id))
     if player is None or not player.is_owner:
         raise NotGameOwnerError
 

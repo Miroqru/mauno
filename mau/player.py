@@ -78,6 +78,7 @@ class Player:
         return self == self.game.player
 
     # TODO: game.owner.id
+    # TODO: Если owner станет Player, то данный метод исчезнет
     @property
     def is_owner(self) -> bool:
         """Является ли текущий пользователь автором комнаты."""

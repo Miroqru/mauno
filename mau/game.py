@@ -10,6 +10,7 @@ from datetime import datetime
 from random import randint, shuffle
 from typing import NamedTuple
 
+from aiogram.types import User
 from loguru import logger
 
 from mau.card import BaseCard, CardColor, CardType
@@ -34,25 +35,30 @@ class Rule:
 
     name: str
     status: bool
+    key: str
 
 
 # TODO: Давайте заменим вот этот бред на что-то нормальное
 class GameRules(NamedTuple):
     """Набор игровых правил, которые можно менять при запуске игры."""
 
-    twist_hand: Rule = Rule("🤝 Обмен руками", False)
-    rotate_cards: Rule = Rule("🧭 Обмен телами.", False)
-    take_until_cover: Rule = Rule("🍷 Беру до последнего.", False)
-    single_shotgun: Rule = Rule("🎲 Общий револьвер.", False)
-    shotgun: Rule = Rule("🔫 Рулетка.", False)
-    wild: Rule = Rule("🐉 Дикие карты", False)
-    auto_choose_color: Rule = Rule("🃏 самоцвет", False)
-    choose_random_color: Rule = Rule("🎨 Случайный цвет", False)
-    random_color: Rule = Rule("🎨 Какой цвет дальше?", False)
-    debug_cards: Rule = Rule("🦝 Отладочные карты!", False)
-    side_effect: Rule = Rule("🌀 Побочный выброс", False)
-    ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False)
-    intervention: Rule = Rule("😈 Вмешательство 🔧", False)
+    twist_hand: Rule = Rule("🤝 Обмен руками", False, "twist_hand")
+    rotate_cards: Rule = Rule("🧭 Обмен телами.", False, "rotate_cards")
+    take_until_cover: Rule = Rule(
+        "🍷 Беру до последнего.", False, "take_until_cover"
+    )
+    single_shotgun: Rule = Rule("🎲 Общий револьвер.", False, "single_shotgun")
+    shotgun: Rule = Rule("🔫 Рулетка.", False, "shotgun")
+    wild: Rule = Rule("🐉 Дикие карты", False, "wild")
+    auto_choose_color: Rule = Rule("🃏 самоцвет", False, "auto_choose_color")
+    choose_random_color: Rule = Rule(
+        "🎨 Случайный цвет", False, "choose_random_color"
+    )
+    random_color: Rule = Rule("🎨 Какой цвет дальше?", False, "random_color")
+    debug_cards: Rule = Rule("🦝 Отладочные карты!", False, "debug_cards")
+    side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
+    ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False, "ahead_of_curve")
+    intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
 
 
 class UnoGame:
@@ -72,7 +78,7 @@ class UnoGame:
         self.current_player: int = 0
         # TODO: Переименовать start player в owner
         # TODO: Изменить на экземпляр игрока, на будущее
-        self.start_player = None
+        self.start_player: User | None = None
         self.bluff_player: Player | None = None
         self.players: list[Player] = []
         self.winners: list[Player] = []
@@ -94,7 +100,7 @@ class UnoGame:
         self.turn_start = datetime.now()
 
         # TODO: Вот вы не знали, а оно существует
-        self.lobby_message = None
+        self.lobby_message: None | int = None
 
     @property
     def player(self) -> Player:
@@ -197,6 +203,7 @@ class UnoGame:
 
         player = self.get_player(user_id)
         if player is None:
+            # TODO: Тту должно быть более конкретное исключение
             raise NoGameInChatError()
 
         if player == self.player:

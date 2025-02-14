@@ -66,7 +66,7 @@ def get_closed_room_message(game: UnoGame) -> str:
     """Когда пользователь пытается подключиться в закрытую комнату."""
     return (
         "🔒 К сожалению данная комната <b>закрыта</b>.\n"
-        f"Вы можете попросить {game.start_player.mention_html()} открыть"
+        f"Вы можете попросить {game.start_player.mention_html()} открыть"  # type: ignore
         "комнату или дождаться окончания игра."
     )
 
@@ -178,8 +178,9 @@ def get_room_status(game: UnoGame) -> str:
     """
     if not game.started:
         return (
+            # TODO: game.owner
             f"☕ Новая <b>Игровая комната</b>!\n"
-            f"🪄 <b>Создатель</b>: {game.start_player.mention_html()}\n\n"
+            f"🪄 <b>Создатель</b>: {game.start_player.mention_html()}\n\n"  # type: ignore
             f"{get_all_room_players(game)}\n"
             "⚙️ Игровые <b>правила</b> позволяют сделать игру более весёлой.\n"
             "- /settings настройки игровых правил комнаты\n"
@@ -196,7 +197,8 @@ def get_room_status(game: UnoGame) -> str:
     game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
     turn_delta = get_str_timedelta(int((now - game.turn_start).total_seconds()))
     return (
-        f"☕ <b>Игровая комната</b> {game.start_player.first_name}:\n"
+        # TODO: game.owner
+        f"☕ <b>Игровая комната</b> {game.start_player.first_name}:\n"  # type: ignore
         f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
         f"🦝 <b>Сейчас ход</b> {game.player.name} "
         f"(прошло {turn_delta})\n\n"

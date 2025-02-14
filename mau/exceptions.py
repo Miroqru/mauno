@@ -3,6 +3,8 @@
 Собраны в одном месте для удобства.
 """
 
+# TODO: Сделать исключение более конкретными
+
 
 class NoGameInChatError(Exception):
     """If there is no active game created in the chat.
@@ -50,4 +52,6 @@ class GameNotStartedError(Exception):
 
 
 class NotGameOwnerError(Exception):
+    """When user tries to user room owner action."""
+
     pass

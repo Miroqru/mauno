@@ -3,7 +3,7 @@
 В тои числе клавиатура для Inline Query.
 """
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -21,7 +21,9 @@ from maubot.config import config, stickers
 from maubot.messages import get_room_status, take_cards_message
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
-NO_GAME_QUERY = [
+NO_GAME_QUERY: Sequence[
+    InlineQueryResultArticle | InlineQueryResultCachedSticker
+] = (
     InlineQueryResultArticle(
         id="nogame",
         title="В чате ещё нет игровой комнаты",
@@ -32,8 +34,8 @@ NO_GAME_QUERY = [
                 "А после воспользуйтесь /join чтобы присоединиться к комнате. "
             )
         ),
-    )
-]
+    ),
+)
 
 
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
@@ -177,27 +179,29 @@ def _add_sticker(
     )
 
 
-def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
+def get_hand_query(
+    player: Player,
+) -> Sequence[InlineQueryResultCachedSticker | InlineQueryResultArticle]:
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
     result = []
     if not player.is_current and not player.game.rules.intervention.status:
-        return get_all_hand_cards(player)
+        return list(get_all_hand_cards(player))
 
     elif player.game.state == GameState.CHOOSE_COLOR:
-        return get_color_query(player)
+        return list(get_color_query(player))
 
     elif player.game.state == GameState.TWIST_HAND:
         return select_player_query(player)
 
     elif player.game.take_flag:
         result = [
-            _add_sticker("pass", stickers.OPTIONS.next_turn, "🃏 Пропускаю.")
+            _add_sticker("pass", stickers.options.next_turn, "🃏 Пропускаю.")
         ]
     elif player.is_current:
         result = [
             _add_sticker(
-                "take", stickers.OPTIONS.draw, take_cards_message(player.game)
+                "take", stickers.options.draw, take_cards_message(player.game)
             )
         ]
 
@@ -208,7 +212,7 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
         result.append(
             _add_sticker(
                 "bluff",
-                stickers.OPTIONS.bluff,
+                stickers.options.bluff,
                 "🍷 Ты блефуешь, показывай карты!",
             )
         )
@@ -220,7 +224,7 @@ def get_hand_query(player: Player) -> list[InlineQueryResultCachedSticker]:
     result.append(
         _add_sticker(
             "status",
-            stickers.OPTIONS.info,
+            stickers.options.info,
             get_room_status(player.game),
         )
     )

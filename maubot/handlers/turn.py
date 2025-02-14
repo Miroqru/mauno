@@ -6,7 +6,11 @@
 import re
 
 from aiogram import Bot, F, Router
-from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
+from aiogram.types import (
+    CallbackQuery,
+    ChosenInlineResult,
+    InlineQuery,
+)
 from loguru import logger
 
 from mau.card import CardColor, card_from_str
@@ -15,6 +19,7 @@ from mau.game import UnoGame
 from mau.player import Player
 from mau.session import SessionManager
 from maubot import keyboards
+from maubot.filters import NowPlaying
 
 router = Router(name="Turn")
 
@@ -30,12 +35,12 @@ async def inline_handler(
 
     Здесь предоставляется клавиатура со всеми вашими картами.
     """
-    if game is None or player is None:
-        result = keyboards.NO_GAME_QUERY
+    if game is None or player is None or query.from_user is None:
+        res = keyboards.NO_GAME_QUERY
     else:
-        result = keyboards.get_hand_query(game.get_player(query.from_user.id))
+        res = keyboards.get_hand_query(player)
 
-    await query.answer(result, cache_time=1, is_personal=True)
+    await query.answer(list(res), cache_time=1, is_personal=True)
 
 
 @router.chosen_inline_result()
@@ -50,13 +55,13 @@ async def process_card_handler(
     logger.info("Process result {} in game {}", result, game)
     # Пропускаем если нам передали не действительные значения игрока и игры
     # Нам не нужно повторно отправлять сообщения если это статус игры
-    if any(
-        player is None,
-        game is None,
-        result.result_id in ("status", "nogame"),
-        re.match(r"status:\d", result.result_id),
+    if (
+        player is None
+        or game is None
+        or result.result_id in ("status", "nogame")
+        or re.match(r"status:\d", result.result_id)
     ):
-        return
+        return None
 
     if player != game.player:
         game.journal.add(f"😈 {player.name} вмешался в игру.")
@@ -66,7 +71,7 @@ async def process_card_handler(
         game.next_turn()
 
     elif result.result_id == "take":
-        player.call_take_cards()
+        await player.call_take_cards()
 
     elif result.result_id == "bluff":
         await player.call_bluff()
@@ -108,51 +113,34 @@ async def process_card_handler(
 # ======================
 
 
-@router.callback_query(F.data.regexp(r"color:([0-3])").as_("color"))
-async def choose_color_call(  # noqa
+@router.callback_query(
+    F.data.regexp(r"color:([0-3])").as_("color"), NowPlaying()
+)
+async def choose_color_call(
     query: CallbackQuery,
-    game: UnoGame | None,
-    player: Player | None,
+    game: UnoGame,
+    player: Player,
     color: re.Match[str],
-    sm: SessionManager,
-    bot: Bot,
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
-    if game is None or player is None:
-        return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve.status and game.player != player:
-        return await query.answer("🍉 А вы точно сейчас ходите?")
-
-    color = CardColor(int(color.groups()[0]))
-    game.journal.add(f"🎨 Я выбираю цвет.. {color}\n")
-    game.journal.set_actions(None)
+    card_color = CardColor(int(color.groups()[0]))
+    game.choose_color(card_color)
+    game.journal.add(f"🎨 Я выбираю цвет.. {card_color}\n")
+    game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
     await game.journal.send_journal()
-    game.choose_color(color)
-
-    if game.started:
-        game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
-        await game.journal.send_journal()
-    else:
-        sm.remove(player.game.chat_id)
-
-    return await query.answer(f"🎨 Вы выбрали {color}.")
+    await query.answer(f"🎨 Вы выбрали {card_color}.")
 
 
 @router.callback_query(
-    F.data.regexp(r"select_player:(\d)").as_("index"),
+    F.data.regexp(r"select_player:(\d)").as_("index"), NowPlaying()
 )
 async def select_player_call(
     query: CallbackQuery,
-    game: UnoGame | None,
-    player: Player | None,
-    index: re.Match[int],
+    game: UnoGame,
+    player: Player,
+    index: re.Match,
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
-    if game is None or player is None:
-        return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve.status and game.player != player:
-        return await query.answer("🍉 А вы точно сейчас ходите?")
-
     other_player = game.players[int(index.groups()[0])]
     if game.state == GameState.TWIST_HAND:
         player_hand = len(player.hand)
@@ -170,3 +158,4 @@ async def select_player_call(
 
     game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
     await game.journal.send_journal()
+    await query.answer(f"🤝 Вы обменялись с {other_player}.")
