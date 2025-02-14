@@ -11,10 +11,12 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from mau.exceptions import NoGameInChatError
+from mau.exceptions import NoGameInChatError, NotEnoughPlayersError
 from mau.game import UnoGame
+from mau.messages import end_game_message
+from mau.player import BaseUser
 from mau.session import SessionManager
-from maubot import keyboards, messages
+from maubot import filters, keyboards, messages
 from maubot.config import config, stickers
 from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
 
@@ -38,12 +40,19 @@ async def create_game(
 ) -> None:
     """Создаёт новую комнату."""
     if message.chat.type == "private":
-        return await message.answer("👀 Игры создаются в групповом чате.")
+        await message.answer("👀 Игры создаются в групповом чате.")
 
     # Если игра ещё не началась, получаем её
     if game is None:
-        game = sm.create(message.chat.id)
-        game.start_player = message.from_user
+        if message.from_user is None:
+            raise ValueError("None User tries create new game")
+
+        game = sm.create(
+            str(message.chat.id),
+            BaseUser(
+                str(message.from_user.id), message.from_user.mention_html()
+            ),
+        )
     elif game.started:
         game.journal.add(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
@@ -62,7 +71,8 @@ async def create_game(
 async def start_gama(message: Message, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
-        return await message.answer(HELP_MESSAGE)
+        await message.answer(HELP_MESSAGE)
+        return None
 
     if game is None:
         await message.answer(NO_ROOM_MESSAGE)
@@ -71,7 +81,7 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         await message.answer("👀 Игра уже началась ранее.")
 
     elif len(game.players) < config.min_players:
-        await message.answer9(NOT_ENOUGH_PLAYERS)
+        raise NotEnoughPlayersError
 
     else:
         try:
@@ -85,28 +95,18 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         game.start()
         await message.answer_sticker(stickers.normal[game.deck.top.to_str()])
         game.journal.add(messages.get_new_game_message(game))
-        game.journal.set_markup(keyboards.TURN_MARKUP)
         await game.journal.send_journal()
 
 
-@router.message(Command("stop"))
+@router.message(Command("stop"), filters.GameOwner())
 async def stop_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Принудительно завершает текущую игру."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
-    player = game.get_player(message.from_user.id)
-    if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может завершить игру."
-        )
-
-    sm.remove(game.chat_id)
+    sm.remove(game.room_id)
     await message.answer(
         "🧹 Игра была добровольно-принудительно остановлена.\n"
-        f"{messages.end_game_message(game)}"
+        f"{end_game_message(game)}"
     )
 
 
@@ -114,40 +114,22 @@ async def stop_gama(
 # ==============================
 
 
-@router.message(Command("open"))
+@router.message(Command("open"), filters.GameOwner())
 async def open_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Открывает игровую комнату для всех участников чата."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
-    player = game.get_player(message.from_user.id)
-    if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может открыть комнату."
-        )
-
     game.open = True
     await message.answer(
         "🍰 Комната <b>открыта</b>!\n любой участник может зайти (/join)."
     )
 
 
-@router.message(Command("close"))
+@router.message(Command("close"), filters.GameOwner())
 async def close_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Закрывает игровую комнату для всех участников чата."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
-    player = game.get_player(message.from_user.id)
-    if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может закрыть комнату."
-        )
-
     game.open = False
     await message.answer(
         "🔒 Комната <b>закрыта</b>.\nНикто не помешает вам доиграть."
@@ -158,85 +140,51 @@ async def close_gama(
 # ================================
 
 
-@router.message(Command("kick"))
+@router.message(Command("kick"), filters.GameOwner())
 async def kick_player(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Выкидывает участника из комнаты."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
-    if not game.started:
-        return await message.answer(
-            "🍰 Игра ещё не началась, пока рано выкидывать участников."
-        )
-
-    player = game.get_player(message.from_user.id)
-    if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может выгнать участника."
-        )
-
-    if message.reply_to_message is None:
-        return await message.answer(
+    if (
+        message.reply_to_message is None
+        or message.reply_to_message.from_user is None
+    ):
+        raise ValueError(
             "🍷 Перешлите сообщение негодника, которого нужно исключить."
         )
 
     kicked_user = message.reply_to_message.from_user
-    try:
-        game.remove_player(kicked_user.id)
-    except NoGameInChatError:
-        return message.answer(
-            "👀 Указанный пользователь даже не играет с нами."
-        )
+    game.remove_player(str(kicked_user.id))
 
     game.journal.add(
-        f"🧹 {game.start_player.mention_html()} выгнал "
-        f"{kicked_user.mention_html()} из игры за плохое поведение.\n"
+        f"🧹 {game.owner.name} выгнал "
+        f"{kicked_user} из игры за плохое поведение.\n"
     )
     if game.started:
-        game.journal.add(
-            f"🍰 Ладненько, следующих ход за {game.player.user.mention_html()}."
-        )
-        game.journal.set_markup(keyboards.TURN_MARKUP)
+        game.journal.add(f"🍰 Ладненько, следующих ход за {game.player.name}.")
         await game.journal.send_journal()
     else:
         await message.answer(
-            f"{NOT_ENOUGH_PLAYERS}\n\n{messages.end_game_message(game)}"
+            f"{NOT_ENOUGH_PLAYERS}\n\n{end_game_message(game)}"
         )
-        sm.remove(message.chat.id)
+        sm.remove(str(message.chat.id))
 
 
-@router.message(Command("skip"))
+@router.message(Command("skip"), filters.GameOwner())
 async def skip_player(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """пропускает участника за долгое бездействие."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
-    if not game.started:
-        return await message.answer(
-            "🍰 Игра ещё не началась, пока рано выкидывать участников."
-        )
-
-    player = game.get_player(message.from_user.id)
-    if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может пропустить игрока."
-        )
-
     game.take_counter += 1
     game.player.take_cards()
     skip_player = game.player
     game.next_turn()
     game.journal.add(
-        f"☕ {skip_player.user.mention_html()} потерял свои ку.. карты.\n"
+        f"☕ {skip_player.name} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
         "🍰 Ладненько, следующих ход за "
-        f"{game.player.user.mention_html()}."
+        f"{game.player.name}."
     )
-    game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 
@@ -247,6 +195,9 @@ async def skip_player(
 @router.callback_query(F.data == "start_game")
 async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
+    if not isinstance(query.message, Message):
+        raise ValueError("Query.message is not a Message")
+
     try:
         await query.message.delete()
     except Exception as e:
@@ -255,11 +206,13 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
             "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
         )
 
+    if game is None:
+        raise NoGameInChatError
+
     game.start()
     await query.message.answer_sticker(stickers.normal[game.deck.top.to_str()])
 
     game.journal.add(messages.get_new_game_message(game))
-    game.journal.set_markup(keyboards.TURN_MARKUP)
     await game.journal.send_journal()
 
 
@@ -267,28 +220,22 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 # =================
 
 
-@router.message(Command("settings"))
-async def settings_menu(message: Message, game: UnoGame | None) -> None:
+@router.message(Command("settings"), filters.ActiveGame())
+async def settings_menu(message: Message, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
-
     await message.answer(
         ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
     )
 
 
-@router.callback_query(F.data == "room_settings")
-async def settings_menu_call(
-    query: CallbackQuery, game: UnoGame | None
-) -> None:
+@router.callback_query(F.data == "room_settings", filters.ActiveGame())
+async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
-    if game is None:
-        return await query.message.answer(NO_ROOM_MESSAGE)
-
-    await query.message.answer(
-        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
-    )
+    if isinstance(query.message, Message):
+        await query.message.edit_text(
+            ROOM_SETTINGS,
+            reply_markup=keyboards.get_settings_markup(game.rules),
+        )
     await query.answer()
 
 
@@ -299,15 +246,15 @@ class SettingsCallback(CallbackData, prefix="set"):
     value: bool
 
 
-@router.callback_query(SettingsCallback.filter())
+@router.callback_query(SettingsCallback.filter(), filters.ActiveGame())
 async def edit_room_settings_call(
-    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame | None
+    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame
 ) -> None:
     """Изменяет настройки для текущей комнаты."""
-    if game is None:
-        return await query.message.answer(NO_ROOM_MESSAGE)
-
-    setattr(game.rules, callback_data.key, callback_data.value)
-    await query.message.edit_text(
-        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
-    )
+    getattr(game.rules, callback_data.key).status = callback_data.value
+    if isinstance(query.message, Message):
+        await query.message.edit_text(
+            ROOM_SETTINGS,
+            reply_markup=keyboards.get_settings_markup(game.rules),
+        )
+    await query.answer()

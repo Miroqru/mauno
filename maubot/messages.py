@@ -6,11 +6,9 @@
 
 from datetime import datetime
 
-from mau.game import RULES, UnoGame
+from mau.game import UnoGame
+from mau.messages import get_room_players
 from maubot.config import config
-
-# Статические сообщения
-# =====================
 
 # Когда пользователь пишет сообщение /help
 # Немного рассказывает про бота и как им пользоваться
@@ -53,6 +51,13 @@ NO_ROOM_MESSAGE = (
     "🍰 Вы можете <b>создайте новую</b> при помощи команды /game."
 )
 
+NO_JOIN_MESSAGE = (
+    "🍓 Для начала надо <b>зайти в комнату</b>.\n"
+    "🍰 Сделать это можно командой /join.\n"
+    "🔑 Если комната <b>закрыта</b> дождитесь окончания игры."
+)
+
+
 # Когда недостаточно игроков для продолжения/начала игры
 NOT_ENOUGH_PLAYERS = (
     f"🌳 <b>Недостаточно игроков</b> (минимум {config.min_players}) для "
@@ -63,12 +68,11 @@ NOT_ENOUGH_PLAYERS = (
 )
 
 
-# TODO: player.owner.name
 def get_closed_room_message(game: UnoGame) -> str:
     """Когда пользователь пытается подключиться в закрытую комнату."""
     return (
         "🔒 К сожалению данная комната <b>закрыта</b>.\n"
-        f"Вы можете попросить {game.start_player.mention_html()} открыть"
+        f"Вы можете попросить {game.owner.name} открыть"
         "комнату или дождаться окончания игра."
     )
 
@@ -124,9 +128,8 @@ def get_room_rules(game: UnoGame) -> str:
     """
     rule_list = ""
     active_rules = 0
-    for rule in RULES:
-        status = getattr(game.rules, rule.key, False)
-        if status:
+    for rule in game.rules:
+        if rule.status:
             active_rules += 1
             rule_list += f"\n- {rule.name}"
 
@@ -149,32 +152,6 @@ def get_all_room_players(game: UnoGame) -> str:
     players_list = f"✨ всего игроков {len(game.players)}:\n"
     for player in game.players:
         players_list += f"- {player.name}\n"
-    return players_list
-
-
-def get_room_players(game: UnoGame) -> str:
-    """Собирает список игроков для текущей комнаты.
-
-    Отображает порядок хода, список всех игроков.
-    Активного игрока помечает жирным шрифтом.
-    Также указывает количество карт и выстрелов из револьвера.
-    """
-    reverse_sim = "🔺" if game.reverse else "🔻"
-    players_list = f"✨ Игроки ({len(game.players)}{reverse_sim}):\n"
-    for i, player in enumerate(game.players):
-        if game.rules.shotgun:
-            shotgun_stat = f" {player.shotgun_current} / 8 🔫"
-        else:
-            shotgun_stat = ""
-
-        if i == game.current_player:
-            players_list += (
-                f"- <b>{player.name}</b> 🃏{len(player.hand)} {shotgun_stat}\n"
-            )
-        else:
-            players_list += (
-                f"- {player.name} 🃏{len(player.hand)} {shotgun_stat}\n"
-            )
     return players_list
 
 
@@ -208,7 +185,7 @@ def get_room_status(game: UnoGame) -> str:
     if not game.started:
         return (
             f"☕ Новая <b>Игровая комната</b>!\n"
-            f"🪄 <b>Создатель</b>: {game.start_player.mention_html()}\n\n"
+            f"🪄 <b>Создатель</b>: {game.owner.name}\n\n"
             f"{get_all_room_players(game)}\n"
             "⚙️ Игровые <b>правила</b> позволяют сделать игру более весёлой.\n"
             "- /settings настройки игровых правил комнаты\n"
@@ -216,7 +193,7 @@ def get_room_status(game: UnoGame) -> str:
             "- /start для начала веселья!🍰"
         )
 
-    if game.rules.single_shotgun:
+    if game.rules.single_shotgun.status:
         shotgun_stats = f"🔫 <b>Револьвер</b>: {game.shotgun_current} / 8"
     else:
         shotgun_stats = ""
@@ -225,7 +202,7 @@ def get_room_status(game: UnoGame) -> str:
     game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
     turn_delta = get_str_timedelta(int((now - game.turn_start).total_seconds()))
     return (
-        f"☕ <b>Игровая комната</b> {game.start_player.first_name}:\n"
+        f"☕ <b>Игровая комната</b> {game.owner.name}:\n"
         f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
         f"🦝 <b>Сейчас ход</b> {game.player.name} "
         f"(прошло {turn_delta})\n\n"
@@ -235,20 +212,3 @@ def get_room_status(game: UnoGame) -> str:
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
         f"{len(game.deck.used_cards)} использовано.\n{shotgun_stats}"
     )
-
-
-def end_game_message(game: UnoGame) -> str:
-    """Сообщение об окончании игры.
-
-    Отображает список победителей текущей комнаты и проигравших.
-    Ну и полезные команды, если будет нужно создать новую игру.
-    """
-    res = "✨ <b>Игра завершилась</b>!\n"
-    for i, winner in enumerate(game.winners):
-        res += f"{i + 1}. {winner.name}\n"
-    res += "\n👀 Проигравшие:\n"
-    for i, loser in enumerate(game.losers):
-        res += f"{i + 1}. {loser.name}\n"
-
-    res += "\n🍰 /game - чтобы создать новую комнату!"
-    return res

@@ -32,7 +32,14 @@ class Deck:
     def __init__(self) -> None:
         self.cards: list[BaseCard] = []
         self.used_cards: list[BaseCard] = []
-        self.top: BaseCard | None = None
+        self._top: BaseCard | None = None
+
+    @property
+    def top(self) -> BaseCard:
+        """Возвращает верхнюю карту из колоды."""
+        if self._top is None:
+            raise ValueError("Top card not be None, is deck fill?")
+        return self._top
 
     # Работа с целой колодой
     # ======================
@@ -41,7 +48,7 @@ class Deck:
         """Очищает колоду карт."""
         self.cards.clear()
         self.used_cards.clear()
-        self.top = None
+        self._top = None
         logger.info("Deck cleared")
 
     def shuffle(self) -> None:
@@ -107,11 +114,11 @@ class Deck:
 
     def put_on_top(self, card: BaseCard) -> None:
         """Ложит карту на вершину стопки."""
-        if self.top is None:
-            self.top = card
+        if self._top is None:
+            self._top = card
 
-        self.used_cards.append(self.top)
-        self.top = card
+        self.used_cards.append(self._top)
+        self._top = card
 
     # Наполнение колоды
     # =================

@@ -20,14 +20,14 @@ from aiogram.types import (
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
-from mau.session import SessionManager
+from mau.session import TelegramSessionManager
 from maubot.config import config, default
 from maubot.handlers import ROUTERS
 
 # Константы
 # =========
 
-sm = SessionManager()
+sm = TelegramSessionManager()
 dp = Dispatcher(sm=sm)
 
 
@@ -43,11 +43,11 @@ LOG_FORMAT = (
 # ==========
 
 
-@dp.message.middleware()
-@dp.inline_query.middleware()
-@dp.callback_query.middleware()
-@dp.chat_member.middleware()
-@dp.chosen_inline_result.middleware()
+@dp.message.middleware()  # type: ignore
+@dp.inline_query.middleware()  # type: ignore
+@dp.callback_query.middleware()  # type: ignore
+@dp.chat_member.middleware()  # type: ignore
+@dp.chosen_inline_result.middleware()  # type: ignore
 async def game_middleware(
     handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
     event: Update,
@@ -55,24 +55,29 @@ async def game_middleware(
 ) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
     if isinstance(event, Message | ChatMemberUpdated):
-        game = sm.games.get(event.chat.id)
+        game = sm.games.get(str(event.chat.id))
     elif isinstance(event, CallbackQuery):
         if event.message is None:
-            chat_id = sm.user_to_chat.get(event.from_user.id)
+            chat_id = sm.user_to_chat.get(str(event.from_user.id))
             game = None if chat_id is None else sm.games.get(chat_id)
         else:
             game = sm.games.get(event.message.chat.id)
     elif isinstance(event, InlineQuery | ChosenInlineResult):
-        chat_id = sm.user_to_chat.get(event.from_user.id)
+        chat_id = sm.user_to_chat.get(str(event.from_user.id))
         game = None if chat_id is None else sm.games.get(chat_id)
+    else:
+        raise ValueError("Unknown update type")
 
     data["game"] = game
     data["player"] = (
-        None if game is None else game.get_player(event.from_user.id)
+        None
+        if game is None or event.from_user is None
+        else game.get_player(str(event.from_user.id))
     )
     return await handler(event, data)
 
 
+# TODO: Вот тут было бы неплохо обработать глобальные ошибки и не повторяться
 @dp.errors()
 async def catch_errors(event: ErrorEvent) -> None:
     """Простой обработчик для ошибок."""

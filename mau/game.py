@@ -8,12 +8,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
+from typing import NamedTuple
 
-from aiogram import Bot
-from aiogram.types import User
 from loguru import logger
 
-from mau.card import CardColor
+from mau.card import BaseCard, CardColor, CardType
 from mau.deck import Deck
 from mau.enums import GameState
 from mau.exceptions import (
@@ -21,52 +20,45 @@ from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
-from mau.player import Player
-from mau.telegram.journal import Journal
+from mau.journal import BaseJournal, EventAction
+from mau.keyboards import select_player_markup
+from mau.messages import end_game_message, get_room_players
+from mau.player import BaseUser, Player
+
+TWIST_HAND_NUM = 2
 
 
 @dataclass(slots=True)
-class GameRules:
-    """Набор игровых правил, которые можно менять при запуске игры."""
-
-    wild: bool = False
-    auto_choose_color: bool = False
-    choose_random_color: bool = False
-    random_color: bool = False
-    debug_cards: bool = False
-    twist_hand: bool = False
-    rotate_cards: bool = False
-    take_until_cover: bool = False
-    shotgun: bool = False
-    single_shotgun: bool = False
-    ahead_of_curve: bool = False
-    side_effect: bool = False
-    intervention: bool = False
-
-
-@dataclass(frozen=True, slots=True)
 class Rule:
     """Правило для игры."""
 
-    key: str
     name: str
+    status: bool
+    key: str
 
 
-RULES = (
-    Rule("twist_hand", "🤝 Обмен руками"),
-    Rule("rotate_cards", "🧭 Обмен телами."),
-    Rule("take_until_cover", "🍷 Беру до последнего."),
-    Rule("single_shotgun", "🎲 Общий револьвер."),
-    Rule("shotgun", "🔫 Рулетка."),
-    Rule("wild", "🐉 Дикие карты"),
-    Rule("auto_choose_color", "🃏 самоцвет"),
-    Rule("choose_random_color", "🎨 Случайный цвет"),
-    Rule("random_color", "🎨 Какой цвет дальше?"),
-    Rule("debug_cards", "🦝 Отладочные карты!"),
-    Rule("side_effect", "🌀 Побочный выброс"),
-    Rule("ahead_of_curve", "🔪 На опережение 🔧"),
-    Rule("intervention", "😈 Вмешательство 🔧"),
-)
+# TODO: Давайте заменим вот этот бред на что-то нормальное
+class GameRules(NamedTuple):
+    """Набор игровых правил, которые можно менять при запуске игры."""
+
+    twist_hand: Rule = Rule("🤝 Обмен руками", False, "twist_hand")
+    rotate_cards: Rule = Rule("🧭 Обмен телами.", False, "rotate_cards")
+    take_until_cover: Rule = Rule(
+        "🍷 Беру до последнего.", False, "take_until_cover"
+    )
+    single_shotgun: Rule = Rule("🎲 Общий револьвер.", False, "single_shotgun")
+    shotgun: Rule = Rule("🔫 Рулетка.", False, "shotgun")
+    wild: Rule = Rule("🐉 Дикие карты", False, "wild")
+    auto_choose_color: Rule = Rule("🃏 самоцвет", False, "auto_choose_color")
+    choose_random_color: Rule = Rule(
+        "🎨 Случайный цвет", False, "choose_random_color"
+    )
+    random_color: Rule = Rule("🎨 Какой цвет дальше?", False, "random_color")
+    debug_cards: Rule = Rule("🦝 Отладочные карты!", False, "debug_cards")
+    side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
+    ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False, "ahead_of_curve")
+    intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
+    twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
 
 
 class UnoGame:
@@ -76,19 +68,19 @@ class UnoGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, bot: Bot, chat_id: int) -> None:
-        self.chat_id = chat_id
+    def __init__(
+        self, journal: BaseJournal, room_id: str, owner: BaseUser
+    ) -> None:
+        self.room_id = room_id
         self.rules = GameRules()
         self.deck = Deck()
-        self.journal = Journal(self, bot)
+        self.journal: BaseJournal = journal
 
         # Игроки Uno
         self.current_player: int = 0
-        # TODO: Переименовать start player в owner
-        # TODO: Изменить на экземпляр игрока, на будущее
-        self.start_player = None
-        self.bluff_player: Player = None
-        self.players: list[Player] = []
+        self.owner = Player(self, owner.id, owner.name)
+        self.bluff_player: Player | None = None
+        self.players: list[Player] = [self.owner]
         self.winners: list[Player] = []
         self.losers: list[Player] = []
 
@@ -107,6 +99,9 @@ class UnoGame:
         self.game_start = datetime.now()
         self.turn_start = datetime.now()
 
+        # TODO: Вот вы не знали, а оно существует
+        self.lobby_message: None | int = None
+
     @property
     def player(self) -> Player:
         """Возвращает текущего игрока."""
@@ -121,7 +116,7 @@ class UnoGame:
             prev_index = (self.current_player - 1) % len(self.players)
         return self.players[prev_index]
 
-    def get_player(self, user_id: int) -> Player | None:
+    def get_player(self, user_id: str) -> Player | None:
         """Получает игрока среди списка игроков по его ID."""
         for player in self.players:
             if player.user_id == user_id:
@@ -133,18 +128,18 @@ class UnoGame:
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
-        logger.info("Start new game in chat {}", self.chat_id)
+        logger.info("Start new game in chat {}", self.room_id)
         self.winners.clear()
         self.losers.clear()
         self.started = True
         shuffle(self.players)
 
-        if self.rules.wild:
+        if self.rules.wild.status:
             self.deck.fill_wild()
         else:
             self.deck.fill_classic()
 
-        if self.rules.single_shotgun:
+        if self.rules.single_shotgun.status:
             self.shotgun_lose = randint(1, 8)
 
         for player in self.players:
@@ -175,7 +170,7 @@ class UnoGame:
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
-        logger.info("Next Player")
+        logger.info("Next Pltopayer")
         self.state = GameState.NEXT
         self.take_flag = False
         self.turn_start = datetime.now()
@@ -185,9 +180,9 @@ class UnoGame:
     # Управление списком игроков
     # ==========================
 
-    def add_player(self, user: User) -> None:
+    def add_player(self, user: BaseUser) -> None:
         """Добавляет игрока в игру."""
-        logger.info("Joining {} in game with id {}", user, self.chat_id)
+        logger.info("Joining {} in game with id {}", user, self.room_id)
         if not self.open:
             raise LobbyClosedError()
 
@@ -195,20 +190,21 @@ class UnoGame:
         if player is not None:
             raise AlreadyJoinedError()
 
-        player = Player(self, user.id, user.mention_html())
+        player = Player(self, user.id, user.name)
         player.on_leave()
         if self.started:
             player.take_first_hand()
 
         self.players.append(player)
 
-    def remove_player(self, user_id: int) -> None:
+    def remove_player(self, user_id: str) -> None:
         """Удаляет пользователя из игры."""
-        logger.info("Leaving {} game with id {}", user_id, self.chat_id)
+        logger.info("Leaving {} game with id {}", user_id, self.room_id)
 
         player = self.get_player(user_id)
         if player is None:
-            raise NoGameInChatError()
+            # TODO: Тту должно быть более конкретное исключение
+            raise NoGameInChatError
 
         if player == self.player:
             # Скорее всего игрок застрелился, больше карты не берём
@@ -255,3 +251,62 @@ class UnoGame:
             if player == pl:
                 self.current_player = i
                 return
+
+    def process_turn(self, card: BaseCard, player: Player) -> None:
+        """Обрабатываем текущий ход."""
+        logger.info("Playing card {}", card)
+        self.deck.put_on_top(card)
+        player.hand.remove(card)
+        self.journal.set_actions(None)
+
+        card(self)
+
+        if len(player.hand) == 1:
+            self.journal.add("🌟 UNO!\n")
+
+        if len(player.hand) == 0:
+            self.journal.add(f"👑 {player.name} победил(а)!\n")
+            self.remove_player(player.user_id)
+            if not self.started:
+                self.journal.add(end_game_message(self))
+
+        elif card.cost == TWIST_HAND_NUM or self.rules.twist_hand.status:
+            self.journal.add(f"✨ {player.name} Задумывается c кем обменяться.")
+            self.state = GameState.TWIST_HAND
+            self.journal.set_actions(select_player_markup(self))
+
+        elif self.rules.rotate_cards.status or self.deck.top.cost == 0:
+            self.rotate_cards()
+            self.journal.add(
+                "🤝 Все игроки обменялись картами по кругу.\n"
+                f"{get_room_players(self)}"
+            )
+
+        if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
+            self.journal.add(f"✨ {player.name} Задумывается о выборе цвета.")
+            self.state = GameState.CHOOSE_COLOR
+            self.journal.set_actions(
+                [
+                    EventAction(text="❤️", callback_data="color:0"),
+                    EventAction(text="💛", callback_data="color:1"),
+                    EventAction(text="💚", callback_data="color:2"),
+                    EventAction(text="💙", callback_data="color:3"),
+                ]
+            )
+
+        if any(
+            (
+                self.rules.random_color.status,
+                self.rules.choose_random_color.status,
+                self.rules.auto_choose_color.status,
+            )
+        ):
+            self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
+
+        if self.state == GameState.NEXT:
+            if self.rules.random_color.status:
+                self.deck.top.color = CardColor(randint(0, 3))
+            if self.deck.top.cost == 1 and self.rules.side_effect.status:
+                logger.info("Player continue turn")
+            else:
+                self.next_turn()
