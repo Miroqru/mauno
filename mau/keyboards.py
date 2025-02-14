@@ -25,4 +25,7 @@ def select_player_markup(game: "UnoGame") -> list[EventAction]:
             )
         )
 
+    if game.rules.twist_hand_pass:
+        res.append(EventAction(text="🍷 Пропустить", callback_data="pss"))
+
     return res

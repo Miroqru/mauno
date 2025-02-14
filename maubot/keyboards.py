@@ -100,42 +100,6 @@ def get_color_query(player: Player) -> list[InlineQueryResultArticle]:
     return result
 
 
-# TODO: А может убрать эту функцию совсем
-def select_player_query(
-    player: Player, add_pass_button: bool = False
-) -> list[InlineQueryResultArticle]:
-    """Клавиатура для выбора игрока."""
-    result = []
-
-    for i, pl in enumerate(player.game.players):
-        if i == player.game.current_player:
-            continue
-
-        result.append(
-            InlineQueryResultArticle(
-                id=f"select_player:{i}",
-                title=f"{pl.name} ({len(pl.hand)} карт)",
-                input_message_content=InputTextMessageContent(
-                    message_text=(f"🔪 Я <b>выбираю</b> {pl.name}.")
-                ),
-            )
-        )
-
-    # TODO: Этой кнопкой так никто и не воспользовался, блин
-    if add_pass_button:
-        result.append(
-            InlineQueryResultArticle(
-                id="pass",
-                title="Пропустить ход",
-                input_message_content=InputTextMessageContent(
-                    message_text=("🍷 В этот раз я оставлю всё как есть.")
-                ),
-            )
-        )
-
-    return result
-
-
 def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
@@ -190,9 +154,6 @@ def get_hand_query(
 
     elif player.game.state == GameState.CHOOSE_COLOR:
         return list(get_color_query(player))
-
-    elif player.game.state == GameState.TWIST_HAND:
-        return select_player_query(player)
 
     elif player.game.take_flag:
         result = [
