@@ -10,24 +10,12 @@ from loguru import logger
 
 from mau.card import TakeCard, TakeFourCard
 from mau.enums import GameState
-from mau.exceptions import (
-    AlreadyJoinedError,
-    DeckEmptyError,
-    LobbyClosedError,
-    NoGameInChatError,
-)
 from mau.game import UnoGame
 from mau.messages import end_game_message
 from mau.player import BaseUser, Player
 from mau.session import SessionManager
-from maubot import keyboards
-from maubot.filters import NowPlaying
-from maubot.messages import (
-    NO_ROOM_MESSAGE,
-    NOT_ENOUGH_PLAYERS,
-    get_closed_room_message,
-    get_room_status,
-)
+from maubot import filters, keyboards
+from maubot.messages import NOT_ENOUGH_PLAYERS, get_room_status
 
 router = Router(name="Player")
 
@@ -35,71 +23,51 @@ router = Router(name="Player")
 # ===========
 
 
-@router.message(Command("join"))
+@router.message(Command("join"), filters.ActiveGame())
 async def join_player(
-    message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
+    message: Message, sm: SessionManager, game: UnoGame, bot: Bot
 ) -> None:
     """Подключает пользователя к игре."""
     if message.from_user is None:
         raise ValueError("User can`t be none")
-    if game is None:
-        raise NoGameInChatError
+
+    # TODO: Предложение о глобальной обработке ошибок в силе!
+    sm.join(
+        str(message.chat.id),
+        BaseUser(str(message.from_user.id), message.from_user.mention_html()),
+    )
 
     try:
-        sm.join(
-            str(message.chat.id),
-            BaseUser(
-                str(message.from_user.id), message.from_user.mention_html()
-            ),
+        await message.delete()
+    except Exception as e:
+        logger.warning("Unable to delete message: {}", e)
+        await message.answer(
+            "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
         )
-    except NoGameInChatError:
-        await message.answer(NO_ROOM_MESSAGE)
-    except LobbyClosedError:
-        await message.answer(get_closed_room_message(game))
-    except AlreadyJoinedError:
-        await message.answer("🍰 Вы уже с нами в комнате.")
-    except DeckEmptyError:
-        await message.answer("👀 К сожалению у нас не осталось для вас карт.")
+
+    if not game.started:
+        await bot.edit_message_text(
+            text=get_room_status(game),
+            chat_id=game.room_id,
+            message_id=game.lobby_message,
+            reply_markup=keyboards.get_room_markup(game),
+        )
     else:
-        try:
-            await message.delete()
-        except Exception as e:
-            logger.warning("Unable to delete message: {}", e)
-            await message.answer(
-                "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
-            )
-
-    if game is not None and game.lobby_message is not None:
-        if not game.started:
-            await bot.edit_message_text(
-                text=get_room_status(game),
-                chat_id=game.room_id,
-                message_id=game.lobby_message,
-                reply_markup=keyboards.get_room_markup(game),
-            )
-        else:
-            game.journal.add(
-                "🍰 Добро пожаловать в игру, "
-                f"{message.from_user.mention_html()}!"
-            )
-            await game.journal.send_journal()
+        game.journal.add(
+            f"🍰 Добро пожаловать в игру, {message.from_user.mention_html()}!"
+        )
+        await game.journal.send_journal()
 
 
-@router.message(Command("leave"))
+@router.message(Command("leave"), filters.ActivePlayer())
 async def leave_player(
     message: Message,
     sm: SessionManager,
-    game: UnoGame | None,
-    player: Player | None,
+    game: UnoGame,
+    player: Player,
 ) -> None:
     """Выход пользователя из игры."""
-    if game is None or player is None:
-        raise NoGameInChatError
-
-    try:
-        sm.leave(player)
-    except NoGameInChatError:
-        await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
+    sm.leave(player)
 
     if game.started:
         game.journal.add(
@@ -116,35 +84,25 @@ async def leave_player(
 # ======================
 
 
-@router.callback_query(F.data == "join")
+@router.callback_query(F.data == "join", filters.ActiveGame())
 async def join_callback(
-    query: CallbackQuery, sm: SessionManager, game: UnoGame | None
+    query: CallbackQuery, sm: SessionManager, game: UnoGame
 ) -> None:
     """Добавляет игрока в текущую комнату."""
-    if game is None or not isinstance(query.message, Message):
-        raise NoGameInChatError
+    # TODO: Тут тоже глобальный отлов ошибочек
+    sm.join(
+        str(query.message.chat.id),
+        BaseUser(str(query.from_user.id), query.from_user.mention_html()),
+    )
 
-    try:
-        sm.join(
-            str(query.message.chat.id),
-            BaseUser(str(query.from_user.id), query.from_user.mention_html()),
-        )
-    except LobbyClosedError:
-        await query.message.answer(get_closed_room_message(game))
-    except AlreadyJoinedError:
-        await query.answer("🍰 Вы уже и без того с нами в комнате.")
-    except DeckEmptyError:
-        await query.message.answer(
-            "👀 К сожалению у нас не осталось для вас карт."
-        )
-    else:
+    if isinstance(query.message, Message):
         await query.message.edit_text(
             text=get_room_status(game),
             reply_markup=keyboards.get_room_markup(game),
         )
 
 
-@router.callback_query(F.data == "take", NowPlaying())
+@router.callback_query(F.data == "take", filters.NowPlaying())
 async def take_cards_call(
     query: CallbackQuery,
     sm: SessionManager,
@@ -152,7 +110,6 @@ async def take_cards_call(
     player: Player,
 ) -> None:
     """Игрок выбирает взять карты."""
-    take_counter = game.take_counter
     if game.player == player:
         game.journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
     else:
@@ -166,8 +123,7 @@ async def take_cards_call(
         )
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
-    if isinstance(game.deck.top, TakeCard | TakeFourCard) and take_counter:
-        game.journal.set_actions(None)
+    if isinstance(game.deck.top, TakeCard | TakeFourCard) and game.take_counter:
         game.next_turn()
         game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
     else:
@@ -175,7 +131,7 @@ async def take_cards_call(
     await game.journal.send_journal()
 
 
-@router.callback_query(F.data == "shot", NowPlaying())
+@router.callback_query(F.data == "shot", filters.NowPlaying())
 async def shotgun_call(
     query: CallbackQuery,
     sm: SessionManager,

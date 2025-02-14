@@ -11,17 +11,12 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from mau.exceptions import (
-    GameNotStartedError,
-    NoGameInChatError,
-    NotEnoughPlayersError,
-    NotGameOwnerError,
-)
+from mau.exceptions import NoGameInChatError, NotEnoughPlayersError
 from mau.game import UnoGame
 from mau.messages import end_game_message
 from mau.player import BaseUser
 from mau.session import SessionManager
-from maubot import keyboards, messages
+from maubot import filters, keyboards, messages
 from maubot.config import config, stickers
 from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, NOT_ENOUGH_PLAYERS
 
@@ -103,18 +98,11 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         await game.journal.send_journal()
 
 
-@router.message(Command("stop"))
+@router.message(Command("stop"), filters.GameOwner())
 async def stop_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Принудительно завершает текущую игру."""
-    if game is None or message.from_user is None:
-        raise NoGameInChatError
-
-    player = game.get_player(str(message.from_user.id))
-    if player is None or not player == game.owner:
-        raise NotGameOwnerError
-
     sm.remove(game.room_id)
     await message.answer(
         "🧹 Игра была добровольно-принудительно остановлена.\n"
@@ -126,36 +114,22 @@ async def stop_gama(
 # ==============================
 
 
-@router.message(Command("open"))
+@router.message(Command("open"), filters.GameOwner())
 async def open_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Открывает игровую комнату для всех участников чата."""
-    if game is None or message.from_user is None:
-        raise NoGameInChatError
-
-    player = game.get_player(str(message.from_user.id))
-    if player is None or not player == game.owner:
-        raise NotGameOwnerError
-
     game.open = True
     await message.answer(
         "🍰 Комната <b>открыта</b>!\n любой участник может зайти (/join)."
     )
 
 
-@router.message(Command("close"))
+@router.message(Command("close"), filters.GameOwner())
 async def close_gama(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Закрывает игровую комнату для всех участников чата."""
-    if game is None or message.from_user is None:
-        raise NoGameInChatError
-
-    player = game.get_player(str(message.from_user.id))
-    if player is None or not player == game.owner:
-        raise NotGameOwnerError
-
     game.open = False
     await message.answer(
         "🔒 Комната <b>закрыта</b>.\nНикто не помешает вам доиграть."
@@ -166,26 +140,16 @@ async def close_gama(
 # ================================
 
 
-@router.message(Command("kick"))
+@router.message(Command("kick"), filters.GameOwner())
 async def kick_player(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """Выкидывает участника из комнаты."""
-    if game is None or message.from_user is None:
-        raise NoGameInChatError
-
-    if not game.started:
-        raise GameNotStartedError
-
-    player = game.get_player(str(message.from_user.id))
-    if player is None or not player == game.owner:
-        raise NotGameOwnerError
-
     if (
         message.reply_to_message is None
         or message.reply_to_message.from_user is None
     ):
-        raise NoGameInChatError(
+        raise ValueError(
             "🍷 Перешлите сообщение негодника, которого нужно исключить."
         )
 
@@ -206,22 +170,11 @@ async def kick_player(
         sm.remove(message.chat.id)
 
 
-@router.message(Command("skip"))
+@router.message(Command("skip"), filters.GameOwner())
 async def skip_player(
-    message: Message, game: UnoGame | None, sm: SessionManager
+    message: Message, game: UnoGame, sm: SessionManager
 ) -> None:
     """пропускает участника за долгое бездействие."""
-    # FIXME: Чутка костыльно получилось
-    if game is None or message.from_user is None:
-        raise NoGameInChatError
-
-    if not game.started:
-        raise GameNotStartedError
-
-    player = game.get_player(str(message.from_user.id))
-    if player is None or not player == game.owner:
-        raise NotGameOwnerError
-
     game.take_counter += 1
     game.player.take_cards()
     skip_player = game.player
@@ -267,25 +220,17 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 # =================
 
 
-@router.message(Command("settings"))
-async def settings_menu(message: Message, game: UnoGame | None) -> None:
+@router.message(Command("settings"), filters.ActiveGame())
+async def settings_menu(message: Message, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
-    if game is None:
-        raise NoGameInChatError
-
     await message.answer(
         ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
     )
 
 
-@router.callback_query(F.data == "room_settings")
-async def settings_menu_call(
-    query: CallbackQuery, game: UnoGame | None
-) -> None:
+@router.callback_query(F.data == "room_settings", filters.ActiveGame())
+async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
-    if game is None:
-        raise NoGameInChatError
-
     if isinstance(query.message, Message):
         await query.message.edit_text(
             ROOM_SETTINGS,
@@ -301,14 +246,11 @@ class SettingsCallback(CallbackData, prefix="set"):
     value: bool
 
 
-@router.callback_query(SettingsCallback.filter())
+@router.callback_query(SettingsCallback.filter(), filters.ActiveGame())
 async def edit_room_settings_call(
-    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame | None
+    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame
 ) -> None:
     """Изменяет настройки для текущей комнаты."""
-    if game is None:
-        raise NoGameInChatError
-
     getattr(game.rules, callback_data.key).status = callback_data.value
     if isinstance(query.message, Message):
         await query.message.edit_text(
