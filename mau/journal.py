@@ -259,3 +259,76 @@ class TelegramJournal(BaseJournal):
                 "TelegramJournal can only contains Event instances"
             )
         self.events[i] = event
+
+
+class DebugJournal(BaseJournal):
+    """Отладочный журнал игровых событий.
+
+    Используется для отслеживания статуса игры и оправки игровых
+    событий в консоль.
+    """
+
+    def __init__(self) -> None:
+        self.events: list[Event] = []
+        self.actions: list[EventAction] | None = []
+
+    # Управление журналом
+    # ===================
+
+    def add(
+        self, text: str, priority: EventPriority | int = EventPriority.INFO
+    ) -> None:
+        """Добавляет новое событие в журнал."""
+        self.events.append(
+            Event(
+                date=datetime.now(), text=text, priority=EventPriority(priority)
+            )
+        )
+
+    def set_actions(self, actions: list[EventAction] | None = None) -> None:
+        """Устанавливает клавиатуру для бота при отправку журнала."""
+        self.actions = actions
+
+    def get_journal_message(self) -> str:
+        """Собирает сообщение журнала из всех событий."""
+        res = ""
+        for event in self.events:
+            res += f"{event}\n"
+        return res
+
+    async def send_journal(self) -> None:
+        """Отправляет журнал в чат.
+
+        Если до этого журнал не отправлялся, будет создано отправлено
+        новое сообщение с журналом.
+        Если же журнал привязан, то изменится текст сообщения.
+        По умолчанию журнал очищается при каждом новом ходе игрока.
+        """
+        journal_message = self.get_journal_message()
+        print(journal_message)
+
+    def clear(self) -> None:
+        """Очищает журнал событий."""
+        # await self.delete_journal()
+        self.events.clear()
+        self.actions = []
+        self.message = None
+
+    # Магические методы
+    # =================
+
+    def __len__(self) -> int:
+        """Возвращает количество записей в журнале."""
+        return len(self.events)
+
+    def __getitem__(self, i: int) -> Event:
+        """Получает событие по индексу."""
+        return self.events[i]
+
+    def __setitem__(self, i: int, event: Event) -> None:
+        """Изменяет событие по индексу."""
+        if not isinstance(event, Event):
+            return ValueError(
+                "TelegramJournal can only contains Event instances"
+            )
+        self.events[i] = event

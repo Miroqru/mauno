@@ -20,14 +20,14 @@ from aiogram.types import (
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
-from mau.session import SessionManager
+from mau.session import TelegramSessionManager
 from maubot.config import config, default
 from maubot.handlers import ROUTERS
 
 # Константы
 # =========
 
-sm = SessionManager()
+sm = TelegramSessionManager()
 dp = Dispatcher(sm=sm)
 
 

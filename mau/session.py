@@ -12,7 +12,7 @@ from mau.exceptions import (
     NoGameInChatError,
 )
 from mau.game import UnoGame
-from mau.journal import TelegramJournal
+from mau.journal import DebugJournal, TelegramJournal
 from mau.player import BaseUser, Player
 
 
@@ -24,8 +24,6 @@ class SessionManager:
     """
 
     def __init__(self) -> None:
-        # FIXME: Отвязать от бота
-        self.bot: Bot | None = None
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[str, str] = {}
 
@@ -77,11 +75,8 @@ class SessionManager:
 
     def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""
-        if self.bot is None:
-            raise ValueError("You must set bot instance to create games")
-
         logger.info("User {} Create new game session in {}", user, room_id)
-        game = UnoGame(TelegramJournal(room_id, self.bot), room_id, user)
+        game = UnoGame(DebugJournal(), room_id, user)
         self.games[room_id] = game
         self.user_to_chat[user.id] = room_id
         return game
@@ -103,3 +98,27 @@ class SessionManager:
 
 # Привязанный к платформе менеджер сессий
 # =======================================
+
+
+class TelegramSessionManager(SessionManager):
+    """Менеджер сессия для telegram чатов.
+
+    Автоматически подставляет бота и telegram журнал событий.
+    Предоставляет методы для создания и завершения сессий.
+    Каждая сессия привязывается к telegram чату.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.bot: Bot | None = None
+
+    def create(self, room_id: str, user: BaseUser) -> UnoGame:
+        """Создает новую игру в telegram чате."""
+        if self.bot is None:
+            raise ValueError("You must set bot instance to create games")
+
+        logger.info("User {} Create new game session in {}", user, room_id)
+        game = UnoGame(TelegramJournal(room_id, self.bot), room_id, user)
+        self.games[room_id] = game
+        self.user_to_chat[user.id] = room_id
+        return game
