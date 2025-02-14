@@ -11,7 +11,11 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from mau.exceptions import NoGameInChatError
+from mau.exceptions import (
+    GameNotStartedError,
+    NoGameInChatError,
+    NotGameOwnerError,
+)
 from mau.game import UnoGame
 from mau.messages import end_game_message
 from mau.session import SessionManager
@@ -210,18 +214,14 @@ async def skip_player(
 ) -> None:
     """пропускает участника за долгое бездействие."""
     if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+        raise NoGameInChatError
 
     if not game.started:
-        return await message.answer(
-            "🍰 Игра ещё не началась, пока рано выкидывать участников."
-        )
+        raise GameNotStartedError
 
     player = game.get_player(message.from_user.id)
     if player is None or not player.is_owner:
-        return await message.answer(
-            "👀 Только создатель комнаты может пропустить игрока."
-        )
+        raise NotGameOwnerError
 
     game.take_counter += 1
     game.player.take_cards()
@@ -243,6 +243,9 @@ async def skip_player(
 @router.callback_query(F.data == "start_game")
 async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
+    if not isinstance(query.message, Message):
+        raise ValueError("Query.message is not a Message")
+
     try:
         await query.message.delete()
     except Exception as e:
@@ -250,6 +253,9 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
         await query.message.answer(
             "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
         )
+
+    if game is None:
+        raise NoGameInChatError
 
     game.start()
     await query.message.answer_sticker(stickers.normal[game.deck.top.to_str()])
@@ -266,7 +272,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 async def settings_menu(message: Message, game: UnoGame | None) -> None:
     """Отображает настройки для текущей комнаты."""
     if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+        raise NoGameInChatError
 
     await message.answer(
         ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
@@ -279,11 +285,13 @@ async def settings_menu_call(
 ) -> None:
     """Отображает настройки для текущей комнаты."""
     if game is None:
-        return await query.message.answer(NO_ROOM_MESSAGE)
+        raise NoGameInChatError
 
-    await query.message.answer(
-        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
-    )
+    if isinstance(query.message, Message):
+        await query.message.edit_text(
+            ROOM_SETTINGS,
+            reply_markup=keyboards.get_settings_markup(game.rules),
+        )
     await query.answer()
 
 
@@ -300,9 +308,12 @@ async def edit_room_settings_call(
 ) -> None:
     """Изменяет настройки для текущей комнаты."""
     if game is None:
-        return await query.message.answer(NO_ROOM_MESSAGE)
+        raise NoGameInChatError
 
-    setattr(game.rules, callback_data.key, callback_data.value)
-    await query.message.edit_text(
-        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
-    )
+    getattr(game.rules, callback_data.key).status = callback_data.value
+    if isinstance(query.message, Message):
+        await query.message.edit_text(
+            ROOM_SETTINGS,
+            reply_markup=keyboards.get_settings_markup(game.rules),
+        )
+    await query.answer()

@@ -241,7 +241,7 @@ def create_button(rule: Rule) -> InlineKeyboardButton:
     )
 
 
-def generate_buttons(game_rules: GameRules) -> InlineKeyboardMarkup:
+def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Генерирует кнопки на основе правил игры."""
     return InlineKeyboardMarkup(
         inline_keyboard=[[create_button(rule)] for rule in game_rules]

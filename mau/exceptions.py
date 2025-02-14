@@ -41,3 +41,13 @@ class ClassCoverError(Exception):
     """When the user tries to cover with the wrong card."""
 
     pass
+
+
+class GameNotStartedError(Exception):
+    """When the user tries to action in not started game."""
+
+    pass
+
+
+class NotGameOwnerError(Exception):
+    pass

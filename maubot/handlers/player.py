@@ -4,13 +4,8 @@
 """
 
 from aiogram import Bot, F, Router
-from aiogram.filters import (
-    IS_MEMBER,
-    IS_NOT_MEMBER,
-    ChatMemberUpdatedFilter,
-    Command,
-)
-from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
 from mau.card import TakeCard, TakeFourCard
@@ -26,6 +21,7 @@ from mau.messages import end_game_message
 from mau.player import BaseUser, Player
 from mau.session import SessionManager
 from maubot import keyboards
+from maubot.filters import NowPlaying
 from maubot.messages import (
     NO_ROOM_MESSAGE,
     NOT_ENOUGH_PLAYERS,
@@ -44,10 +40,17 @@ async def join_player(
     message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
 ) -> None:
     """Подключает пользователя к игре."""
+    if message.from_user is None:
+        raise ValueError("User can`t be none")
+    if game is None:
+        raise NoGameInChatError
+
     try:
         sm.join(
-            message.chat.id,
-            BaseUser(message.from_user.id, message.from_user.mention_html()),
+            str(message.chat.id),
+            BaseUser(
+                str(message.from_user.id), message.from_user.mention_html()
+            ),
         )
     except NoGameInChatError:
         await message.answer(NO_ROOM_MESSAGE)
@@ -66,11 +69,11 @@ async def join_player(
                 "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
             )
 
-    if game is not None:
+    if game is not None and game.lobby_message is not None:
         if not game.started:
             await bot.edit_message_text(
                 text=get_room_status(game),
-                chat_id=game.chat_id,
+                chat_id=game.room_id,
                 message_id=game.lobby_message,
                 reply_markup=keyboards.get_room_markup(game),
             )
@@ -84,17 +87,19 @@ async def join_player(
 
 @router.message(Command("leave"))
 async def leave_player(
-    message: Message, sm: SessionManager, game: UnoGame | None
+    message: Message,
+    sm: SessionManager,
+    game: UnoGame | None,
+    player: Player | None,
 ) -> None:
     """Выход пользователя из игры."""
-    if game is None:
-        return await message.answer(NO_ROOM_MESSAGE)
+    if game is None or player is None:
+        raise NoGameInChatError
 
     try:
-        game.remove_player(message.from_user.id)
-        sm.user_to_chat.pop(message.from_user.id)
+        sm.leave(player)
     except NoGameInChatError:
-        return await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
+        await message.answer("👀 Вас нет в комнате чтобы выйти из неё.")
 
     if game.started:
         game.journal.add(
@@ -103,7 +108,7 @@ async def leave_player(
         await game.journal.send_journal()
     else:
         status_message = f"{NOT_ENOUGH_PLAYERS}\n\n{end_game_message(game)}"
-        sm.remove(message.chat.id)
+        sm.remove(str(message.chat.id))
         await message.answer(status_message)
 
 
@@ -116,10 +121,13 @@ async def join_callback(
     query: CallbackQuery, sm: SessionManager, game: UnoGame | None
 ) -> None:
     """Добавляет игрока в текущую комнату."""
+    if game is None or not isinstance(query.message, Message):
+        raise NoGameInChatError
+
     try:
         sm.join(
-            query.message.chat.id,
-            BaseUser(query.from_user.id, query.from_user.mention_html()),
+            str(query.message.chat.id),
+            BaseUser(str(query.from_user.id), query.from_user.mention_html()),
         )
     except LobbyClosedError:
         await query.message.answer(get_closed_room_message(game))
@@ -136,19 +144,14 @@ async def join_callback(
         )
 
 
-@router.callback_query(F.data == "take")
+@router.callback_query(F.data == "take", NowPlaying())
 async def take_cards_call(
     query: CallbackQuery,
     sm: SessionManager,
-    game: UnoGame | None,
-    player: Player | None,
+    game: UnoGame,
+    player: Player,
 ) -> None:
     """Игрок выбирает взять карты."""
-    if game is None or player is None:
-        return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve.status and game.player != player:
-        return await query.answer("🍉 А вы точно сейчас ходите?")
-
     take_counter = game.take_counter
     if game.player == player:
         game.journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
@@ -172,19 +175,14 @@ async def take_cards_call(
     await game.journal.send_journal()
 
 
-@router.callback_query(F.data == "shot")
+@router.callback_query(F.data == "shot", NowPlaying())
 async def shotgun_call(
     query: CallbackQuery,
     sm: SessionManager,
-    game: UnoGame | None,
-    player: Player | None,
+    game: UnoGame,
+    player: Player,
 ) -> None:
     """Игрок выбирает взять карты."""
-    if game is None or player is None:
-        return await query.answer("🍉 А вы точно сейчас играете?")
-    if not game.rules.ahead_of_curve.status and game.player != player:
-        return await query.answer("🍉 А вы точно сейчас ходите?")
-
     res = player.shotgun()
     game.journal.set_actions(None)
     if not res:
@@ -207,40 +205,13 @@ async def shotgun_call(
             game.journal.add(f"😴 {player.name} попал под пулю..\n")
 
         await game.journal.send_journal()
-        game.remove_player(query.from_user.id)
-        chat_id = sm.user_to_chat.pop(query.from_user.id)
+        sm.leave(player)
 
     if game.started:
         game.journal.add(f"🍰 Ладненько, следующим ходит {game.player.name}.")
         await game.journal.send_journal()
     else:
         status = end_game_message(game)
-        sm.remove(chat_id)
-        await query.message.edit_text(text=status)
-
-
-# Обработчики событий
-# ===================
-
-
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
-async def on_user_leave(
-    event: ChatMemberUpdated, game: UnoGame | None, sm: SessionManager
-) -> None:
-    """Исключаем пользователя, если тот осмелился выйти из чата."""
-    if game is None:
-        return
-
-    try:
-        game.remove_player(event.from_user.id)
-        sm.user_to_chat.pop(event.from_user.id)
-    except NoGameInChatError:
-        pass
-
-    if game.started:
-        game.journal.add(f"Ладненько, следующих ход за {game.player.name}.")
-        await game.journal.send_journal()
-    else:
-        status_message = NOT_ENOUGH_PLAYERS
-        sm.remove(event.chat.id)
-        await event.answer(status_message)
+        sm.remove(game.room_id)
+        if isinstance(query.message, Message):
+            await query.message.edit_text(text=status)

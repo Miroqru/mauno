@@ -12,6 +12,8 @@ from aiogram.types import CallbackQuery
 from mau.game import UnoGame
 from mau.player import Player
 
+# TODO: Ждём фильтра на наличие игры и активной игры, для безопасности
+
 
 # TODO: Возможно он даже не работает нормально, да вот только почему??
 class NowPlaying(Filter):

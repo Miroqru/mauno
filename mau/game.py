@@ -93,6 +93,9 @@ class UnoGame:
         self.game_start = datetime.now()
         self.turn_start = datetime.now()
 
+        # TODO: Вот вы не знали, а оно существует
+        self.lobby_message = None
+
     @property
     def player(self) -> Player:
         """Возвращает текущего игрока."""
