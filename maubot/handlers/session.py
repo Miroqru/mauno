@@ -167,7 +167,7 @@ async def kick_player(
         await message.answer(
             f"{NOT_ENOUGH_PLAYERS}\n\n{end_game_message(game)}"
         )
-        sm.remove(message.chat.id)
+        sm.remove(str(message.chat.id))
 
 
 @router.message(Command("skip"), filters.GameOwner())

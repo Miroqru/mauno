@@ -132,7 +132,7 @@ async def choose_color_call(
 
 
 @router.callback_query(
-    F.data.regexp(r"selecNowPlayingt_player:(\d)").as_("index"), NowPlaying()
+    F.data.regexp(r"select_player:(\d)").as_("index"), NowPlaying()
 )
 async def select_player_call(
     query: CallbackQuery,

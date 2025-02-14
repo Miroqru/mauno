@@ -90,16 +90,18 @@ async def join_callback(
 ) -> None:
     """Добавляет игрока в текущую комнату."""
     # TODO: Тут тоже глобальный отлов ошибочек
+    if not isinstance(query.message, Message):
+        raise ValueError("Query message should be Message instance")
+
     sm.join(
         str(query.message.chat.id),
         BaseUser(str(query.from_user.id), query.from_user.mention_html()),
     )
 
-    if isinstance(query.message, Message):
-        await query.message.edit_text(
-            text=get_room_status(game),
-            reply_markup=keyboards.get_room_markup(game),
-        )
+    await query.message.edit_text(
+        text=get_room_status(game),
+        reply_markup=keyboards.get_room_markup(game),
+    )
 
 
 @router.callback_query(F.data == "take", filters.NowPlaying())
