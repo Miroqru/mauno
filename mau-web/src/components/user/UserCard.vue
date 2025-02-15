@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User } from '@/types'
+import type { User } from '@/share/api/types'
 import { Gem, Sparkle, User2 } from 'lucide-vue-next'
 
 const { user, topIndex } = defineProps<{ user: User, topIndex: number }>()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Category } from '@/api'
+import type { Category } from '@/share/api/api'
 import FilterButton from './FilterButton.vue'
 
 const categoryButtons: { name: string, category: Category }[] = [

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { User } from '@/types'
+import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { changeUserPassword, updateUser } from '@/api'
-import { useUserStore } from '@/stores/user'
+import { changeUserPassword, updateUser } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { Check } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 

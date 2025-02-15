@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Room } from '@/types'
+import type { Room } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRooms } from '@/api'
-import { useSettingsStore } from '@/stores/settings'
+import { getRooms } from '@/share/api/api'
+import { useSettingsStore } from '@/share/stores/settings'
 import { Squirrel } from 'lucide-vue-next'
 import { ref, watchEffect } from 'vue'
 import NewGame from '../buttons/NewGame.vue'

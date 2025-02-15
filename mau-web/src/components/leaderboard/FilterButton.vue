@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Category } from '@/api'
-import { useSettingsStore } from '@/stores/settings'
+import type { Category } from '@/share/api/api'
+import { useSettingsStore } from '@/share/stores/settings'
 
 const props = defineProps<{
   name: string

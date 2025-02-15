@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Notify } from '@/stores/notify'
+import type { Notify } from '@/share/stores/notify'
 import { CheckCircle, CircleAlert, CircleX, Info, XIcon } from 'lucide-vue-next'
 
 const { notify } = defineProps<{ notify: Notify }>()

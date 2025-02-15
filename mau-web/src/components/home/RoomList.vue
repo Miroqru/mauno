@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Room } from '@/types'
+import type { Room } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRooms } from '@/api'
+import { getRooms } from '@/share/api/api'
 import { Squirrel } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import NewGame from '../buttons/NewGame.vue'

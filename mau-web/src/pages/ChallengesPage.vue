@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { getChallenges } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
+import { getChallenges } from '@/share/api/api'
 import ChallengeCard from '../components/home/ChallengeCard.vue'
 
 const challenges = getChallenges()

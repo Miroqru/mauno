@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UserDataIn } from '@/types'
+import type { UserDataIn } from '@/share/api/types'
 
 const { active, user } = defineProps<{ active: boolean, user: UserDataIn }>()
 const emit = defineEmits<{ submit: [UserDataIn] }>()

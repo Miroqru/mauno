@@ -1,5 +1,5 @@
-import type { Category } from '@/api'
-import type { RoomFilter, RoomOrder } from '@/types'
+import type { Category } from '@/share/api/api'
+import type { RoomFilter, RoomOrder } from '@/share/api/types'
 import type { Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'

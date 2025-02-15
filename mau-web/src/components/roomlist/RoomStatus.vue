@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoomStatus } from '@/types'
+import type { RoomStatus } from '@/share/api/types'
 
 const { status } = defineProps<{ status: RoomStatus }>()
 </script>

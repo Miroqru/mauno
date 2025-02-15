@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Category } from '@/api'
-import type { User } from '@/types'
+import type { Category } from '@/share/api/api'
+import type { User } from '@/share/api/types'
 import { Book, Gamepad2, Gem, Sparkle } from 'lucide-vue-next'
 import UserAvatar from '../user/UserAvatar.vue'
 

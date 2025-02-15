@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { createRoom } from '@/api'
-import { useUserStore } from '@/stores/user'
+import { createRoom } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { Plus } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 

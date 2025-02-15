@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { User } from '@/types'
+import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getLeaderboardIndex, getUserById } from '@/api'
+import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
+import GetGems from '@/components/user/GetGems.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
-import { useNotifyStore } from '@/stores/notify'
-import { useUserStore } from '@/stores/user'
+import UserStats from '@/components/user/UserStats.vue'
+import { getLeaderboardIndex, getUserById } from '@/share/api/api'
+import { useNotifyStore } from '@/share/stores/notify'
+import { useUserStore } from '@/share/stores/user'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import HomeButton from '../components/buttons/HomeButton.vue'
-import GetGems from '../components/user/GetGems.vue'
-import UserStats from '../components/user/UserStats.vue'
 
 const route = useRoute()
 const userStore = useUserStore()

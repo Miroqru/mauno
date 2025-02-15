@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/share/stores/user'
 import { LogOut } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 

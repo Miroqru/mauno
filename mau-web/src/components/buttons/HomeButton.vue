@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Home } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
-/* PartiallyEnd: #3632/scriptSetup.vue */
+
 const { showName } = defineProps<{ showName?: boolean }>()
 </script>
 

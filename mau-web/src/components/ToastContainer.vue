@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NotifyCard from '@/components/NotifyCard.vue'
-import { useNotifyStore } from '@/stores/notify'
+import { useNotifyStore } from '@/share/stores/notify'
 
 const notifyState = useNotifyStore()
 </script>

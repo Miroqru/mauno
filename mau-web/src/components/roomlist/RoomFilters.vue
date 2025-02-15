@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RoomOrder } from '@/types'
-import { useSettingsStore } from '@/stores/settings'
+import type { RoomOrder } from '@/share/api/types'
+import { useSettingsStore } from '@/share/stores/settings'
 import { ArrowDownNarrowWide, ArrowDownWideNarrow } from 'lucide-vue-next'
 import FilterButton from './FilterButton.vue'
 

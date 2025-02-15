@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { User } from '@/types'
-import { useUserStore } from '@/stores/user'
+import type { User } from '@/share/api/types'
+import { useUserStore } from '@/share/stores/user'
 import { Gem, Sparkle, User2 } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 import LogOutButton from '../buttons/LogOutButton.vue'

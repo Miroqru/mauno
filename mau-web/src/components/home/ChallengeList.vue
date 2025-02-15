@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { getChallenges } from '@/api'
 import CardHeader from '@/components/home/CardHeader.vue'
+import { getChallenges } from '@/share/api/api'
 import { ref } from 'vue'
-import ChallengeCard from './ChallengeCard.vue' /* PartiallyEnd: #3632/scriptSetup.vue */
+import ChallengeCard from './ChallengeCard.vue'
 
 const challenges = ref(getChallenges())
 </script>

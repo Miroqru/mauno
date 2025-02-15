@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Room } from '@/types'
+import type { Room } from '@/share/api/types'
 import { Gem, User2 } from 'lucide-vue-next'
 
 const { room } = defineProps<{ room: Room }>()

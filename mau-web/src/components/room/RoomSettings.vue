@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Room, RoomDataIn } from '@/types'
+import type { Room, RoomDataIn } from '@/share/api/types'
 
 import type { Ref } from 'vue'
-import { updateRoom } from '@/api'
-import { useUserStore } from '@/stores/user'
+import { updateRoom } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { Check, CheckCircle, Circle } from 'lucide-vue-next'
 import { ref } from 'vue'
 import GemSelector from './GemSelector.vue'

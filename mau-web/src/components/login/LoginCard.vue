@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { UserDataIn } from '@/types'
-import { loginUser, registerUser } from '@/api'
-import { useUserStore } from '@/stores/user'
+import type { UserDataIn } from '@/share/api/types'
+import { loginUser, registerUser } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { User2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'

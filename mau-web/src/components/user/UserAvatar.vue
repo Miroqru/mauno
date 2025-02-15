@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User } from '@/types'
+import type { User } from '@/share/api/types'
 import { User2 } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 

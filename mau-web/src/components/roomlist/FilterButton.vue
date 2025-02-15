@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RoomOrder } from '@/types'
-import { useSettingsStore } from '@/stores/settings'
+import type { RoomOrder } from '@/share/api/types'
+import { useSettingsStore } from '@/share/stores/settings'
 
 const { name, orderBy } = defineProps<{ name: string, orderBy: RoomOrder }>()
 const settingState = useSettingsStore()

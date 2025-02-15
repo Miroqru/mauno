@@ -1,4 +1,4 @@
-import MainVew from '@/views/MainVew.vue'
+import LendingPage from '@/pages/LendingPage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -7,52 +7,52 @@ const router = createRouter({
     {
       path: '/',
       name: 'lending',
-      component: MainVew,
+      component: LendingPage,
     },
     {
       path: '/home/',
       name: 'home',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/pages/HomePage.vue'),
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/LoginView.vue'),
+      component: () => import('@/pages/LoginPage.vue'),
     },
     {
       path: '/user/:id',
       name: 'user',
-      component: () => import('@/views/UserView.vue'),
+      component: () => import('@/pages/UserPage.vue'),
     },
     {
       path: '/me',
       name: 'self',
-      component: () => import('@/views/UserView.vue'),
+      component: () => import('@/pages/UserPage.vue'),
     },
     {
       path: '/rooms',
       name: 'rooms',
-      component: () => import('@/views/RoomListView.vue'),
+      component: () => import('@/pages/RoomListPage.vue'),
     },
     {
       path: '/challenges',
       name: 'challenges',
-      component: () => import('@/views/ChallengesView.vue'),
+      component: () => import('@/pages/ChallengesPage.vue'),
     },
     {
       path: '/game/:id',
       name: 'game',
-      component: () => import('@/views/GameView.vue'),
+      component: () => import('@/pages/GamePage.vue'),
     },
     {
       path: '/top',
       name: 'leaderboard',
-      component: () => import('@/views/LeaderboardView.vue'),
+      component: () => import('@/pages/LeaderboardPage.vue'),
     },
     {
       path: '/room/:id',
       name: 'room',
-      component: () => import('@/views/RoomView.vue'),
+      component: () => import('@/pages/RoomPage.vue'),
     },
   ],
 })

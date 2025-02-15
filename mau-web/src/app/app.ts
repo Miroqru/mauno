@@ -1,11 +1,11 @@
+import App from '@/app/App.vue'
+
+import router from '@/app/router'
+import { useUserStore } from '@/share/stores/user'
+
 import { createPinia } from 'pinia'
-
 import { createApp } from 'vue'
-import App from './App.vue'
-
-import router from './router'
-import { useUserStore } from './stores/user'
-import './assets/main.css'
+import '@/app/main.css'
 
 const app = createApp(App)
 

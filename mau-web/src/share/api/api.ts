@@ -1,6 +1,6 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
-import type { Either } from './either'
+import type { Either } from '@/share/api/either'
 import type {
   Challenge,
   EditUserDataIn,
@@ -10,9 +10,9 @@ import type {
   RoomRuleData,
   User,
   UserDataIn,
-} from './types'
+} from '@/share/api/types'
+import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
-import { left, right } from './either'
 
 // Датасет различных безделушек
 // Заглушки на будущее

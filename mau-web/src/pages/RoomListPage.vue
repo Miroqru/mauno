@@ -3,7 +3,7 @@ import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomCard from '@/components/room/RoomCard.vue'
 import GameRooms from '@/components/roomlist/GameRooms.vue'
 import RoomButtons from '@/components/roomlist/RoomButtons.vue'
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/share/stores/user'
 
 const userState = useUserStore()
 const room = userState.getRoom()

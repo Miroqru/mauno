@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { User } from '@/types'
+import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getLeaderboardIndex, getLeaders } from '@/api'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
-import { useNotifyStore } from '@/stores/notify'
-import { useSettingsStore } from '@/stores/settings'
-import { useUserStore } from '@/stores/user'
+import { getLeaderboardIndex, getLeaders } from '@/share/api/api'
+import { useNotifyStore } from '@/share/stores/notify'
+import { useSettingsStore } from '@/share/stores/settings'
+import { useUserStore } from '@/share/stores/user'
 import { ref, watchEffect } from 'vue'
 
 const settingState = useSettingsStore()

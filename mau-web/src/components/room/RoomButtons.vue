@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Room } from '@/types'
-import { useUserStore } from '@/stores/user'
+import type { Room } from '@/share/api/types'
+import { useUserStore } from '@/share/stores/user'
 import { Flame, Link, LogOut, Play } from 'lucide-vue-next'
 import { computed } from 'vue'
 import HomeButton from '../buttons/HomeButton.vue'

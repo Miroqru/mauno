@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RoomRuleData } from '@/types'
+import type { RoomRuleData } from '@/share/api/types'
 import { CheckCircle, Circle } from 'lucide-vue-next'
 
 const { rule } = defineProps<{ rule: RoomRuleData }>()

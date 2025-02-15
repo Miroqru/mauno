@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Room, User } from '@/types'
-import { kickUserFromRoom, setOwnerInRoom } from '@/api'
-import { useUserStore } from '@/stores/user'
+import type { Room, User } from '@/share/api/types'
+import { kickUserFromRoom, setOwnerInRoom } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { CircleX, Crown } from 'lucide-vue-next'
 import UserStatus from '../home/UserStatus.vue'
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Challenge } from '@/types'
+import type { Challenge } from '@/share/api/types'
 import { Gem } from 'lucide-vue-next'
 
 const { challenge } = defineProps<{ challenge: Challenge }>()

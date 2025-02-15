@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FeatureCard from '../components/lending/FeatureCard.vue' /* PartiallyEnd: #3632/scriptSetup.vue */
-import ProjectRoadmap from '../components/lending/ProjectRoadmap.vue' /* PartiallyEnd: #3632/scriptSetup.vue */
+import FeatureCard from '../components/lending/FeatureCard.vue'
+import ProjectRoadmap from '../components/lending/ProjectRoadmap.vue'
 import UnoMain from '../components/lending/UnoMain.vue'
 
 // TODO: Ну написать что-нибудь более убедительное блин

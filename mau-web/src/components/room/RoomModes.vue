@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Room, RoomRuleData } from '@/types'
+import type { Room, RoomRuleData } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRoomModes, updateRoomRules } from '@/api'
-import { useUserStore } from '@/stores/user'
+import { getRoomModes, updateRoomRules } from '@/share/api/api'
+import { useUserStore } from '@/share/stores/user'
 import { Sparkle } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import RoomRule from './RoomRule.vue'

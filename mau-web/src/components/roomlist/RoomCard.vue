@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Room } from '@/types'
+import type { Room } from '@/share/api/types'
 import dayjs from 'dayjs'
 import { Gem, Lock, User2 } from 'lucide-vue-next'
 import UserAvatar from '../user/UserAvatar.vue'

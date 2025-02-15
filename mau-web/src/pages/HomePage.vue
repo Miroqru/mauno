@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { getLeaderboardIndex } from '@/api'
 import NewGame from '@/components/buttons/NewGame.vue'
 import RandomGame from '@/components/buttons/RandomGame.vue'
 import ChallengeList from '@/components/home/ChallengeList.vue'
 import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
+import { getLeaderboardIndex } from '@/share/api/api'
 
-import { useNotifyStore } from '@/stores/notify'
-import { useUserStore } from '@/stores/user'
+import { useNotifyStore } from '@/share/stores/notify'
+import { useUserStore } from '@/share/stores/user'
 import { onMounted, ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
 import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
