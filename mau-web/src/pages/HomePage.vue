@@ -5,7 +5,7 @@ import ChallengeList from '@/components/home/ChallengeList.vue'
 import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
-import { getLeaderboardIndex } from '@/share/api/api'
+import { fetchLeaderboardIndex } from '@/share/api/api'
 
 import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
@@ -15,7 +15,7 @@ import UserCardPlaceholder from '../components/user/UserCardPlaceholder.vue'
 
 const userStore = useUserStore()
 const me = userStore.getMe()
-const room = userStore.getRoom()
+const room = userStore.fetchRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 const topIndex = ref(0)
 const notifyState = useNotifyStore()
@@ -26,11 +26,10 @@ onMounted(async () => {
     return
   }
 
-  const res = await getLeaderboardIndex(me.value.username, 'gems')
+  const res = await fetchLeaderboardIndex(me.value.username, 'gems')
   if (res.type === 'right') {
     topIndex.value = res.value
-  }
-  else {
+  } else {
     notifyState.addNotify('Таблица лидеров', 'Mau сервер не отвечает', 'error')
   }
 })

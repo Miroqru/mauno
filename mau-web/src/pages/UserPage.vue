@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { User } from '@/share/api/types'
-import type { Ref } from 'vue'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import GetGems from '@/components/user/GetGems.vue'
 import UserProfileCard from '@/components/user/UserProfileCard.vue'
 import UserSettings from '@/components/user/UserSettings.vue'
 import UserStats from '@/components/user/UserStats.vue'
-import { getLeaderboardIndex, getUserById } from '@/share/api/api'
+import { fetchLeaderboardIndex, fetchUserById } from '@/share/api/api'
+import type { User } from '@/share/api/types'
 import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
+import type { Ref } from 'vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -29,21 +29,19 @@ if (!route.params.id) {
 
 onMounted(async () => {
   if (route.params.id) {
-    const res = await getUserById(route.params.id as string)
+    const res = await fetchUserById(route.params.id as string)
     if (res.type === 'right') {
       user.value = res.value
-    }
-    else {
+    } else {
       notifyState.addNotify('Пользователь', res.value, 'error')
     }
   }
 
   if (user.value !== null) {
-    const res = await getLeaderboardIndex(user.value.username, 'gems')
+    const res = await fetchLeaderboardIndex(user.value.username, 'gems')
     if (res.type === 'right') {
       userTop.value = res.value
-    }
-    else {
+    } else {
       notifyState.addNotify('Пользователь', res.value, 'error')
     }
   }
@@ -66,12 +64,8 @@ onMounted(async () => {
   <!-- Пока пользователь не успел загрузиться -->
   <section v-else>
     <div class="text-center justify-between bg-linear-160 from-violet-400/40 rounded-xl p-2 mb-4">
-      <h2 class="text-xl mb-2 font-bold">
-        Профиль пользователя
-      </h2>
-      <div class="text-stone-300">
-        Здесь вы можете просмотреть свою статистику.
-      </div>
+      <h2 class="text-xl mb-2 font-bold">Профиль пользователя</h2>
+      <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
     </div>
     <ErrorLoadingCard :block="true" />
   </section>

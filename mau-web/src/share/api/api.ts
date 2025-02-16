@@ -1,6 +1,7 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
 import type { Either } from '@/share/api/either'
+import { left, right } from '@/share/api/either'
 import type {
   Challenge,
   EditUserDataIn,
@@ -11,7 +12,6 @@ import type {
   User,
   UserDataIn,
 } from '@/share/api/types'
-import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
 
 // Датасет различных безделушек
@@ -74,7 +74,7 @@ export async function registerUser(
   })
 }
 
-export async function getUser(token: string): Promise<Either<any, User>> {
+export async function fetchUser(token: string): Promise<Either<any, User>> {
   return await useApi('/users/me', {
     headers: {
       'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ export async function changeUserPassword(
   })
 }
 
-export async function getUserById(username: string): Promise<Either<null, User>> {
+export async function fetchUserById(username: string): Promise<Either<null, User>> {
   return await useApi(`/users/${username}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export async function getUserById(username: string): Promise<Either<null, User>>
 
 // Комнаты -------------------------------------------------------------
 
-export async function getRooms(filter?: RoomFilter): Promise<Either<any, Room[]>> {
+export async function fetchRooms(filter?: RoomFilter): Promise<Either<any, Room[]>> {
   return await useApi(
     filter !== undefined
       ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}`
@@ -136,7 +136,7 @@ export async function getRooms(filter?: RoomFilter): Promise<Either<any, Room[]>
   )
 }
 
-export async function getRoomById(roomID: string): Promise<Either<any, Room>> {
+export async function fetchRoomById(roomID: string): Promise<Either<any, Room>> {
   return await useApi(`/rooms/${roomID}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export async function createRoom(token: string): Promise<Either<any, Room>> {
   })
 }
 
-export async function getRandomRoom(): Promise<Either<any, Room>> {
+export async function fetchRandomRoom(): Promise<Either<any, Room>> {
   return await useApi('/rooms/random', {
     headers: {
       'Content-Type': 'application/json',
@@ -234,7 +234,7 @@ export async function setOwnerInRoom(
   })
 }
 
-export async function getRoomModes(roomID: string): Promise<Either<any, RoomRuleData[]>> {
+export async function fetchRoomRules(roomID: string): Promise<Either<any, RoomRuleData[]>> {
   return await useApi(`/rooms/${roomID}/modes/`, {
     headers: {
       'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ export async function updateRoomRules(
 
 export type Category = 'gems' | `games` | `wins` | `cards`
 
-export async function getLeaders(category: Category): Promise<Either<null, User[]>> {
+export async function fetchLeaders(category: Category): Promise<Either<null, User[]>> {
   return await useApi(`/leaderboard/${category}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ export async function getLeaders(category: Category): Promise<Either<null, User[
   })
 }
 
-export async function getLeaderboardIndex(
+export async function fetchLeaderboardIndex(
   username: string,
   category: Category,
 ): Promise<Either<null, number>> {

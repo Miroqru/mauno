@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getRandomRoom } from '@/share/api/api'
+import { fetchRandomRoom } from '@/share/api/api'
 import { Shuffle } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
@@ -7,7 +7,7 @@ const { showName } = defineProps<{ showName?: boolean }>()
 const router = useRouter()
 
 async function randomRoom() {
-  const result = await getRandomRoom()
+  const result = await fetchRandomRoom()
   if (result.type === 'right') {
     await router.push(`/room/${result.value.id}`)
   }

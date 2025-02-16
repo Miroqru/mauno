@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Room } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRooms } from '@/share/api/api'
+import { fetchRooms } from '@/share/api/api'
 import { useSettingsStore } from '@/share/stores/settings'
 import { Squirrel } from 'lucide-vue-next'
 import { ref, watchEffect } from 'vue'
@@ -13,7 +13,7 @@ const settingState = useSettingsStore()
 const rooms: Ref<Room[]> = ref([])
 
 watchEffect(async () => {
-  const res = await getRooms(settingState.roomFilter)
+  const res = await fetchRooms(settingState.roomFilter)
   if (res.type === 'right') {
     rooms.value = res.value
   }

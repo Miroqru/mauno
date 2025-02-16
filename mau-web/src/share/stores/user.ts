@@ -1,6 +1,6 @@
 import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { fetchActiveRoom, getRoomById, getUser, joinToRoom, leaveFromRoom } from '@/share/api/api'
+import { fetchActiveRoom, fetchRoomById, fetchUser, joinToRoom, leaveFromRoom } from '@/share/api/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -34,7 +34,7 @@ export const useUserStore = defineStore('user', () => {
       return user
     }
 
-    getUser(userToken.value).then((res) => {
+    fetchUser(userToken.value).then((res) => {
       if (res.type === 'right') {
         user.value = res.value
       }
@@ -57,14 +57,14 @@ export const useUserStore = defineStore('user', () => {
     roomId.value = null
   }
 
-  function getRoom() {
+  function fetchRoom() {
     const room = ref(null)
     const roomId = getActiveRoom()
     if (roomId.value === null) {
       return room
     }
 
-    getRoomById(roomId.value).then((res) => {
+    fetchRoomById(roomId.value).then((res) => {
       if (res.type === 'left' || res.value.status === 'ended') {
         localStorage.removeItem('roomId')
         roomId.value = null
@@ -100,7 +100,7 @@ export const useUserStore = defineStore('user', () => {
     getMe,
     joinRoom,
     leaveRoom,
-    getRoom,
+    fetchRoom,
     getActiveRoom,
   }
 })

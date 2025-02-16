@@ -6,7 +6,7 @@ import RoomButtons from '@/components/roomlist/RoomButtons.vue'
 import { useUserStore } from '@/share/stores/user'
 
 const userState = useUserStore()
-const room = userState.getRoom()
+const room = userState.fetchRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 </script>
 

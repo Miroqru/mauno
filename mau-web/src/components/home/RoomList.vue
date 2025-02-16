@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Room } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRooms } from '@/share/api/api'
+import { fetchRooms } from '@/share/api/api'
 import { Squirrel } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import NewGame from '../buttons/NewGame.vue'
@@ -11,7 +11,7 @@ import CardHeader from './CardHeader.vue'
 const rooms: Ref<Room[]> = ref([])
 
 onMounted(async () => {
-  const res = await getRooms()
+  const res = await fetchRooms()
   if (res.type === 'right') {
     rooms.value = res.value
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Room, RoomRuleData } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { getRoomModes, updateRoomRules } from '@/share/api/api'
+import { fetchRoomRules, updateRoomRules } from '@/share/api/api'
 import { useUserStore } from '@/share/stores/user'
 import { Sparkle } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
@@ -13,7 +13,7 @@ const rules: Ref<RoomRuleData[]> = ref([])
 const userState = useUserStore()
 
 onMounted(async () => {
-  const res = await getRoomModes(room.id)
+  const res = await fetchRoomRules(room.id)
   if (res.type === 'right') {
     rules.value = res.value
   }
