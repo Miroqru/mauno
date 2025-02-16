@@ -1,12 +1,12 @@
 // Общие типы, используемые на сайте
 
 // Данные пользователя для регистрации / входа
-export type UserDataIn = {
+export interface UserDataIn {
   username: string
   password: string
 }
 
-export type EditUserDataIn = {
+export interface EditUserDataIn {
   name: string
   avatar_url: string
 }
@@ -28,7 +28,7 @@ export type EditUserDataIn = {
 // my_games: Созданные пользователем игры
 // win_games: в каких играх победил
 // lose_games: в каких играх проиграл
-export type User = {
+export interface User {
   username: string
   name: string
   avatar_url: string
@@ -50,7 +50,7 @@ export type User = {
 // Комнаты -------------------------------------------------------------
 
 // Данные комнаты, которые можно изменить
-export type RoomDataIn = {
+export interface RoomDataIn {
   name: string
   private: boolean
   room_password: string
@@ -61,12 +61,12 @@ export type RoomDataIn = {
 
 export type RoomOrder = 'create_time' | 'gems' | 'players'
 
-export type RoomFilter = {
+export interface RoomFilter {
   reverse: boolean
   orderBy: RoomOrder
 }
 
-export type RoomRuleData = {
+export interface RoomRuleData {
   key: string
   name: string
   status: boolean
@@ -89,7 +89,7 @@ export type RoomStatus = 'idle' | 'game' | 'ended'
 // gems - сколько гемов нужно заплатить за вход
 // status - В каком состоянии сейчас комната
 // status_updated - когда был обновлён статус комнаты
-export type Room = {
+export interface Room {
   id: string
   name: string
   create_time: string
@@ -116,7 +116,7 @@ export type Room = {
 // winners: список победителей
 // losers: список проигравших
 
-export type Game = {
+export interface Game {
   id: string
   create_time: string
   end_time: string
@@ -150,7 +150,7 @@ enum CardType {
 // card_type: Тип карты, число или активная карта
 // value: number
 // cost: number
-export type Card = {
+export interface Card {
   color: CardColor
   card_type: CardType
   value: number
@@ -160,7 +160,7 @@ export type Card = {
 // Колода карт
 // cards: сколько карт ещё доступно
 // used: Сколько карт было использовано
-export type Deck = {
+export interface Deck {
   cards: number
   used: null
 }
@@ -169,7 +169,7 @@ export type Deck = {
 // user_id: уникальный идентификатор
 // hand: Сколько карт осталось в руке
 // shotgun_current: Сколько раз стрелял из револьвера
-export type OtherPlayer = {
+export interface OtherPlayer {
   user_id: number
   hand: number
   shotgun_current: number
@@ -179,7 +179,7 @@ export type OtherPlayer = {
 // user_id: уникальный идентификатор
 // hand: список ваших карт
 // shotgun_current: Сколько раз стрелял из револьвера
-export type Plyer = {
+export interface Plyer {
   user_id: number
   hand: Card[]
   shotgun_current: number
@@ -207,7 +207,7 @@ export type Plyer = {
 // take_flag: Берёт ли кто-то
 // take_counter: счётчик карт для взятия
 // shotgun_current: Сколько раз стреляли из револьвера
-export type ActiveGame = {
+export interface ActiveGame {
   // Основная информация
   room_id: string
   rules: RoomRuleData[]
@@ -233,7 +233,7 @@ export type ActiveGame = {
 // Игровой контекст
 // game: Текущая игра
 // player: текущий игрок
-export type GameContext = {
+export interface GameContext {
   game: Game | null
   player: Plyer | null
 }
@@ -247,7 +247,7 @@ export type GameContext = {
 // total - сколько необходимо сделать
 // reward - сколько будет гемов по завершению работы
 
-export type Challenge = {
+export interface Challenge {
   name: string
   now: number
   total: number

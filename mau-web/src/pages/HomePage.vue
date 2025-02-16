@@ -29,7 +29,8 @@ onMounted(async () => {
   const res = await fetchLeaderboardIndex(me.value.username, 'gems')
   if (res.type === 'right') {
     topIndex.value = res.value
-  } else {
+  }
+  else {
     notifyState.addNotify('Таблица лидеров', 'Mau сервер не отвечает', 'error')
   }
 })

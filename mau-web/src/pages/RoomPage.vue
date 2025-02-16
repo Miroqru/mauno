@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Room } from '@/share/api/types'
+import type { Ref } from 'vue'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import RoomButtons from '@/components/room/RoomButtons.vue'
 import RoomOwner from '@/components/room/RoomOwner.vue'
@@ -6,10 +8,8 @@ import RoomPlayers from '@/components/room/RoomPlayers.vue'
 import RoomRuleList from '@/components/room/RoomRuleList.vue'
 import RoomSettings from '@/components/room/RoomSettings.vue'
 import { fetchRoomById } from '@/share/api/api'
-import type { Room } from '@/share/api/types'
 import { useUserStore } from '@/share/stores/user'
 import { Squirrel } from 'lucide-vue-next'
-import type { Ref } from 'vue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -51,8 +51,12 @@ onMounted(async () => {
     >
       <Squirrel :size="64" />
       <div>
-        <h2 class="text-xl mb-2 font-bold">А где комната?</h2>
-        <div class="text-stone-300">Кажется что-то пошло не так.</div>
+        <h2 class="text-xl mb-2 font-bold">
+          А где комната?
+        </h2>
+        <div class="text-stone-300">
+          Кажется что-то пошло не так.
+        </div>
       </div>
     </section>
 

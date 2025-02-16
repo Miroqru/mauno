@@ -1,6 +1,12 @@
 import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
-import { fetchActiveRoom, fetchRoomById, fetchUser, joinToRoom, leaveFromRoom } from '@/share/api/api'
+import {
+  fetchActiveRoom,
+  fetchRoomById,
+  fetchUser,
+  joinToRoom,
+  leaveFromRoom,
+} from '@/share/api/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
