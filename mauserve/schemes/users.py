@@ -32,6 +32,6 @@ class EditUserDataIn(BaseModel):
     отдельная процедура.
     """
 
-    username: str = Field(default=None, max_length=16)
-    name: str = Field(default=None, min_length=4, max_length=64)
+    username: str | None = Field(default=None, max_length=16)
+    name: str | None = Field(default=None, min_length=4, max_length=64)
     avatar_url: str | None = None

@@ -12,7 +12,7 @@
 from tortoise import Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-from mauserve.models import RoomModel, UserModel
+from mauserve.models import GameModel, RoomModel, UserModel
 
 # Конвертированные модели
 # =======================
@@ -25,8 +25,26 @@ Tortoise.init_models(["mauserve.models"], "models")
 UserData = pydantic_model_creator(
     UserModel, name="UserData", exclude=["id", "password_hash"]
 )
+
+# Более сокращённая версия данных пользователя
+UserMinData = pydantic_model_creator(
+    UserModel,
+    name="UserData",
+    exclude=[
+        "id",
+        "password_hash",
+        "my_games",
+        "lose_games",
+        "win_games",
+        "my_rooms",
+        "rooms",
+    ],
+)
+
+
 RoomData = pydantic_model_creator(
     RoomModel,
     name="RoomData",
     exclude=["owner.password_hash", "players.password_hash"],
 )
+GameData = pydantic_model_creator(GameModel, name="GameData")

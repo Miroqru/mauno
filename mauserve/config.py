@@ -6,9 +6,10 @@
 """
 
 from pydantic import PostgresDsn
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from redis.asyncio.client import Redis
 
+from mau.session import SessionManager
 from mauserve.token import SimpleTokenManager
 
 
@@ -31,6 +32,8 @@ class Config(BaseSettings):
     redis_url: str
     debug: bool
 
+    model_config = SettingsConfigDict(extra="allow")
+
 
 # Создаём экземпляр настроек
 config = Config(_env_file=".env")
@@ -39,3 +42,5 @@ stm = SimpleTokenManager(config.jwt_key, ttl=86_400)
 redis = Redis.from_url(
     config.redis_url, encoding="utf-8", decode_responses=True
 )
+
+sm = SessionManager()

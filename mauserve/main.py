@@ -60,7 +60,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="mauserve",
     debug=config.debug,
-    version="v0.3.2",
+    version="v0.4",
     root_path="/api",
 )
 
