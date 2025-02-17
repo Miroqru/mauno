@@ -40,7 +40,7 @@ const router = createRouter({
       component: () => import('@/pages/ChallengesPage.vue'),
     },
     {
-      path: '/game/:id',
+      path: '/game/',
       name: 'game',
       component: () => import('@/pages/GamePage.vue'),
     },

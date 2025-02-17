@@ -1,34 +1,48 @@
 <script setup lang="ts">
+import { startGame } from '@/share/api/api'
 import type { Room } from '@/share/api/types'
+import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
 import { Flame, Link, LogOut, Play } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import HomeButton from '../buttons/HomeButton.vue'
 
 const { room } = defineProps<{ room: Room }>()
 
+const router = useRouter()
+const notifyState = useNotifyStore()
 const userState = useUserStore()
 const me = userState.getMe()
 const activeRoom = userState.getActiveRoom()
 
 const canJoin = computed(
   () =>
-    !activeRoom.value
-    && room.players.length < room.max_players
-    && me.value !== null
-    && me.value.gems >= room.gems,
+    !activeRoom.value &&
+    room.players.length < room.max_players &&
+    me.value !== null &&
+    me.value.gems >= room.gems,
 )
 const canLeave = computed(() => activeRoom.value !== null && room.id === activeRoom.value)
 const canStart = computed(
   () =>
-    activeRoom.value !== null
-    && room.owner.username === userState.userId
-    && room.players.length >= room.min_players
-    && room.players.length <= room.max_players,
+    activeRoom.value !== null &&
+    room.owner.username === userState.userId &&
+    room.players.length >= room.min_players &&
+    room.players.length <= room.max_players,
 )
 
 async function shareLink() {
   await navigator.clipboard.writeText(window.location.href)
+}
+
+async function startGameCall() {
+  const res = await startGame(userState.userToken as string)
+  if (res.type == 'left') {
+    notifyState.addNotify('Новая игра', res.value, 'error')
+  } else {
+    await router.push('/game/')
+  }
 }
 </script>
 
@@ -65,7 +79,7 @@ async function shareLink() {
       <div>Зайти</div>
     </div>
 
-    <button v-if="canStart" class="bg-stone-700 p-4 rounded-full flex gap-2">
+    <button v-if="canStart" class="bg-stone-700 p-4 rounded-full flex gap-2" @click="startGameCall">
       <Play :size="24" /> Начать
     </button>
   </section>
