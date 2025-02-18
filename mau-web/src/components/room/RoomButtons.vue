@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { startGame } from '@/share/api/api'
 import type { Room } from '@/share/api/types'
+import { startGame } from '@/share/api/api'
 import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
 import { Flame, Link, LogOut, Play } from 'lucide-vue-next'
@@ -18,18 +18,18 @@ const activeRoom = userState.getActiveRoom()
 
 const canJoin = computed(
   () =>
-    !activeRoom.value &&
-    room.players.length < room.max_players &&
-    me.value !== null &&
-    me.value.gems >= room.gems,
+    !activeRoom.value
+    && room.players.length < room.max_players
+    && me.value !== null
+    && me.value.gems >= room.gems,
 )
 const canLeave = computed(() => activeRoom.value !== null && room.id === activeRoom.value)
 const canStart = computed(
   () =>
-    activeRoom.value !== null &&
-    room.owner.username === userState.userId &&
-    room.players.length >= room.min_players &&
-    room.players.length <= room.max_players,
+    activeRoom.value !== null
+    && room.owner.username === userState.userId
+    && room.players.length >= room.min_players
+    && room.players.length <= room.max_players,
 )
 
 async function shareLink() {
@@ -40,7 +40,8 @@ async function startGameCall() {
   const res = await startGame(userState.userToken as string)
   if (res.type == 'left') {
     notifyState.addNotify('Новая игра', res.value, 'error')
-  } else {
+  }
+  else {
     await router.push('/game/')
   }
 }
