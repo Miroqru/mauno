@@ -1,14 +1,25 @@
 """Схемы, используемые во время игры."""
 
+from dataclasses import dataclass
 from datetime import datetime
-from typing import NamedTuple
 
 from pydantic import BaseModel
 
-from mau.card import BaseCard, CardColor, CardType
+from mau.card import (
+    BaseCard,
+    CardColor,
+    CardType,
+    ChooseColorCard,
+    NumberCard,
+    ReverseCard,
+    TakeCard,
+    TakeFourCard,
+    TurnCard,
+)
 from mau.deck import Deck
+from mau.enums import GameState
 from mau.game import Rule, UnoGame
-from mau.player import Player
+from mau.player import Player, SortedCards
 from mauserve.models import RoomModel, UserModel
 from mauserve.schemes.roomlist import RoomMode
 
@@ -26,7 +37,6 @@ class CardData(BaseModel):
     color: CardColor
     card_type: CardType
     value: int
-    cost: int
 
 
 class CardDeckData(BaseModel):
@@ -36,8 +46,16 @@ class CardDeckData(BaseModel):
     использовано,
     """
 
+    top: CardData
     cards: int
     used: int
+
+
+class SortedCardsData(BaseModel):
+    """Описание карт в руке игрока."""
+
+    cover: list[CardData]
+    uncover: list[CardData]
 
 
 class PlayerData(BaseModel):
@@ -56,7 +74,8 @@ class PlayerData(BaseModel):
     """
 
     user_id: str
-    hand: int | list[CardData]
+    name: str
+    hand: int | SortedCardsData
     shotgun_current: int
 
 
@@ -76,19 +95,17 @@ class GameData(BaseModel):
     losers: list[PlayerData]
     current_player: int
 
-    # Состояние комнаты    pass
-
+    # Состояние комнаты
     deck: CardDeckData
     reverse: bool
-    bluff_flag: bool
     take_flag: bool
     take_counter: int
-
-    # Револьвер
     shotgun_current: int
+    state: GameState
 
 
-class GameContext(NamedTuple):
+@dataclass(slots=True)
+class GameContext:
     """Игровой контекст."""
 
     user: UserModel
@@ -108,19 +125,30 @@ class ContextData(BaseModel):
 # ===================
 
 
-def card_to_model(card: BaseCard) -> CardData:
+def card_to_data(card: BaseCard) -> CardData:
     """Преобразуем экземпляр карты в её схему."""
     return CardData(
         color=card.color,
         card_type=card.card_type,
         value=card.value,
-        cost=card.cost,
     )
 
 
 def deck_to_data(deck: Deck) -> CardDeckData:
     """Преобразует колоду карт в схему, оставляя только количество карт."""
-    return CardDeckData(len(deck.cards), len(deck.used_cards))
+    return CardDeckData(
+        top=card_to_data(deck.top),
+        cards=len(deck.cards),
+        used=len(deck.used_cards),
+    )
+
+
+def sorted_cards_to_data(player_hand: SortedCards) -> SortedCardsData:
+    """Перегоняет сортированные карты в схему."""
+    return SortedCardsData(
+        cover=[card_to_data(card) for card in player_hand.cover],
+        uncover=[card_to_data(card) for card in player_hand.uncover],
+    )
 
 
 def player_to_data(
@@ -134,7 +162,8 @@ def player_to_data(
     """
     return PlayerData(
         user_id=player.user_id,
-        hand=[card_to_model(card) for card in player.hand]
+        name=player.name,
+        hand=sorted_cards_to_data(player.get_cover_cards())
         if show_cards
         else len(player.hand),
         shotgun_current=player.shotgun_current,
@@ -160,10 +189,10 @@ def game_to_data(game: UnoGame) -> GameData:
         current_player=game.current_player,
         deck=deck_to_data(game.deck),
         reverse=game.reverse,
-        bluff_flag=game.bluff_player,
         take_flag=game.take_flag,
         take_counter=game.take_counter,
         shotgun_current=game.shotgun_current,
+        state=game.state,
     )
 
 
@@ -175,3 +204,19 @@ async def context_to_data(ctx: GameContext) -> ContextData:
         if ctx.player is None
         else player_to_data(ctx.player, show_cards=True),
     )
+
+
+def card_schema_to_card(card: CardData) -> BaseCard:
+    """Возвращает карту из запакованных данных."""
+    if card.card_type == CardType.NUMBER:
+        return NumberCard(card.color, card.value)
+    elif card.card_type == CardType.TAKE:
+        return TakeCard(card.color, card.value)
+    elif card.card_type == CardType.REVERSE:
+        return ReverseCard(card.color)
+    elif card.card_type == CardType.TURN:
+        return TurnCard(card.color, card.value)
+    elif card.card_type == CardType.CHOOSE_COLOR:
+        return ChooseColorCard()
+    elif card.card_type == CardType.TAKE_FOUR:
+        return TakeFourCard(card.value)

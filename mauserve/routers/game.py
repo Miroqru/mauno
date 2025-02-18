@@ -2,12 +2,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from mau.card import CardColor, TakeCard, TakeFourCard
+from mau.card import BaseCard, CardColor, TakeCard, TakeFourCard
 from mau.enums import GameState
 from mau.player import BaseUser
 from mauserve.config import sm, stm
 from mauserve.models import GameModel, RoomModel, UserModel
-from mauserve.schemes.game import ContextData, GameContext, context_to_data
+from mauserve.schemes.game import (
+    ContextData,
+    GameContext,
+    card_schema_to_card,
+    context_to_data,
+)
 
 router = APIRouter(prefix="/game", tags=["games"])
 
@@ -28,13 +33,14 @@ async def get_context(user: UserModel = Depends(stm.read_token)) -> GameContext:
         await RoomModel.filter(players=user)
         .exclude(status="ended")
         .get_or_none()
+        .prefetch_related("players")
     )
     if room is None:
         raise HTTPException(404, "user not in room, to join room game")
 
-    game = sm.games.get(room.id)
+    game = sm.games.get(str(room.id))
     if game is not None:
-        player = game.get_player(user.id)
+        player = game.get_player(user.username)
     else:
         player = None
 
@@ -60,7 +66,7 @@ async def join_player_to_game(
         raise HTTPException(409, "Player already join to room")
 
     # TODO: Ошибки кто обрабатывать будет? А?
-    sm.join(ctx.room.id, BaseUser(ctx.user.id, ctx.user.name))
+    sm.join(ctx.room.id, BaseUser(ctx.user.username, ctx.user.name))
 
     # TODO: Рассказываем всем в комнате что у нас новичок появился
     return await context_to_data(ctx)
@@ -96,7 +102,9 @@ async def leave_player_from_room(
 
 
 @router.get("/")
-async def get_context(ctx: GameContext = Depends(get_context)) -> ContextData:
+async def get_active_game(
+    ctx: GameContext = Depends(get_context),
+) -> ContextData:
     """Получает игровой контекст.
 
     Включает в себя данные о пользователе, комнате, текущей игре
@@ -122,13 +130,16 @@ async def start_room_game(
         raise HTTPException(401, "You are not a room owner to create new game")
 
     ctx.game = sm.create(
-        ctx.user.id,
-        BaseUser(ctx.user.id, ctx.user.name),
+        str(ctx.room.id),
+        BaseUser(ctx.user.username, ctx.user.name),
     )
 
     # Сразу добавляем всех игроков из комнаты
     for user in ctx.room.players:
-        sm.join(ctx.room.id, BaseUser(user.id, user.name))
+        if user.id == ctx.user.id:
+            continue
+
+        sm.join(str(ctx.room.id), BaseUser(user.username, user.name))
 
     ctx.game.start()
     # TODO: Оповещение о начале игры тут должно быть
@@ -341,9 +352,9 @@ async def select_card_color(
     return await context_to_data(ctx)
 
 
-@router.post("/player/{player}")
+@router.post("/player/{user_id}")
 async def select_player(
-    player: int, ctx: GameContext = Depends(get_context)
+    user_id: str, ctx: GameContext = Depends(get_context)
 ) -> ContextData:
     """Выбирает игрока, с кем можно обменяться картами."""
     if ctx.game is None:
@@ -351,17 +362,18 @@ async def select_player(
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
 
-    other_player = ctx.game.players[player]
+    other_player = ctx.game.get_player(user_id)
     if ctx.game.state == GameState.TWIST_HAND:
         # TODO: Произошёл обмен картами
-        player.twist_hand(other_player)
+        ctx.player.twist_hand(other_player)
 
     return await context_to_data(ctx)
 
 
-@router.post("/card/{card}")
-async def pust_card_from_hand(
-    card: str, ctx: GameContext = Depends(get_context)
+@router.post("/card/")
+async def push_card_from_hand(
+    card: BaseCard = Depends(card_schema_to_card),
+    ctx: GameContext = Depends(get_context),
 ) -> ContextData:
     """Разыгрывает карту из руки игрока."""
     if ctx.game is None:
