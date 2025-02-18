@@ -1,23 +1,42 @@
 <script setup lang="ts">
-const props = defineProps<{
-  name: string
-  avatarUrl: string
+import type { OtherPlayer, User } from '@/share/api/types'
+import type { Ref } from 'vue'
+import { fetchUserById } from '@/share/api/api'
+import { User2 } from 'lucide-vue-next'
+import { onMounted, ref } from 'vue'
+import Counter from './Counter.vue'
+
+const { player, active } = defineProps<{
   active: boolean
-  cards: number
+  player: OtherPlayer
 }>()
+
+const user: Ref<User | null> = ref(null)
+
+onMounted(async () => {
+  const res = await fetchUserById(player.user_id)
+  if (res.type === 'right') {
+    user.value = res.value
+  }
+})
 </script>
 
 <template>
-  <div
-    class="w-[64px] h-[64px] border-2 rounded-full border-stone-400 relative"
-    :class="{ 'border-teal-300': props.active }"
-  >
-    <img :src="props.avatarUrl" :alt="props.name" class="rounded-full border-2 border-stone-800">
+  <div>
     <div
-      class="absolute -bottom-1 -right-1 bg-stone-600 px-2 font-bold rounded-full"
-      :class="{ 'border-amber-500 border-2 text-amber-100': props.cards === 1 }"
+      class="w-[64px] h-[64px] border-2 rounded-full border-stone-400 relative"
+      :class="{ 'border-teal-300': active }"
     >
-      {{ props.cards }}
+      <img
+        v-if="user && user.avatar_url"
+        :src="user.avatar_url"
+        class="w-[64px] h-[64px] rounded-full"
+      >
+      <User2 v-else class="w-[52px] h-[52px] text-stone-500 relative" :stroke-width="1" />
+      <Counter :value="player.hand" />
+    </div>
+    <div class="text-center">
+      {{ player.name }}
     </div>
   </div>
 </template>

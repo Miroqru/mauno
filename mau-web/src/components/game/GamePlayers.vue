@@ -1,37 +1,17 @@
 <script setup lang="ts">
+import type { GameContext } from '@/share/api/types'
 import PlayerAvatar from './PlayerAvatar.vue'
 
-const players = [
-  {
-    name: 'Qq Uwu',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    active: false,
-    cards: 3,
-  },
-  {
-    name: 'Miroq',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    active: false,
-    cards: 1,
-  },
-  {
-    name: 'Qq Uwu',
-    avatarUrl: 'https://placewaifu.com/image/200',
-    active: true,
-    cards: 5,
-  },
-]
+const { context } = defineProps<{ context: GameContext }>()
 </script>
 
 <template>
-  <section class="flex justify-around my-4">
+  <section v-if="context.game" class="flex flex-wrap justify-center gap-2 md:gap-4 my-4">
     <PlayerAvatar
-      v-for="player in players"
-      :key="player.name"
-      :name="player.name"
-      :avatar-url="player.avatarUrl"
-      :active="player.active"
-      :cards="player.cards"
+      v-for="[index, player] in context.game.players.entries()"
+      :key="index"
+      :player="player"
+      :active="index == context.game.current_player"
     />
   </section>
 </template>
