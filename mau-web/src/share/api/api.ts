@@ -1,6 +1,7 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
 import type { Either } from '@/share/api/either'
+import { left, right } from '@/share/api/either'
 import type {
   Card,
   Challenge,
@@ -13,7 +14,6 @@ import type {
   User,
   UserDataIn,
 } from '@/share/api/types'
-import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
 
 // Датасет различных безделушек

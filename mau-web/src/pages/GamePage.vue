@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { GameContext } from '@/share/api/types'
-import type { Ref } from 'vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import GameButtons from '@/components/game/GameButtons.vue'
 import GameChat from '@/components/game/GameChat.vue'
@@ -8,18 +6,15 @@ import GameControls from '@/components/game/GameControls.vue'
 import GamePlayers from '@/components/game/GamePlayers.vue'
 import GameTable from '@/components/game/GameTable.vue'
 import UserCards from '@/components/game/UserCards.vue'
-import { fetchGame } from '@/share/api/api'
-import { useUserStore } from '@/share/stores/user'
+import { getGame } from '@/share/api'
+import type { GameContext } from '@/share/api/types'
+import type { Ref } from 'vue'
 import { onMounted, ref } from 'vue'
 
 const gameData: Ref<GameContext | null> = ref(null)
-const userState = useUserStore()
 
 onMounted(async () => {
-  const res = await fetchGame(userState.userToken as string)
-  if (res.type === 'right') {
-    gameData.value = res.value
-  }
+  gameData.value = await getGame()
 })
 </script>
 
@@ -40,12 +35,8 @@ onMounted(async () => {
 
   <section v-else>
     <div class="text-center justify-between bg-linear-160 from-violet-400/40 rounded-xl p-2 mb-4">
-      <h2 class="text-xl mb-2 font-bold">
-        Игра
-      </h2>
-      <div class="text-stone-300">
-        Здесь вы можете просмотреть свою статистику.
-      </div>
+      <h2 class="text-xl mb-2 font-bold">Игра</h2>
+      <div class="text-stone-300">Здесь вы можете просмотреть свою статистику.</div>
     </div>
     <ErrorLoadingCard :block="true" />
   </section>

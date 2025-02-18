@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import type { Room, RoomDataIn } from '@/share/api/types'
 
-import type { Ref } from 'vue'
-import { updateRoom } from '@/share/api/api'
-import { useUserStore } from '@/share/stores/user'
+import { updateRoom } from '@/share/api'
 import { Check, CheckCircle, Circle } from 'lucide-vue-next'
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 import GemSelector from './GemSelector.vue'
 import RangeSelector from './RangeSelector.vue'
 
 const { room } = defineProps<{ room: Room }>()
 
-const userState = useUserStore()
 const settings: Ref<RoomDataIn> = ref({
   name: room.name,
   private: room.private,
@@ -20,25 +18,16 @@ const settings: Ref<RoomDataIn> = ref({
   min_players: room.min_players,
   max_players: room.max_players,
 })
-const errorBadge = ref(null)
 
 async function updateRoomSubmit() {
-  const res = await updateRoom(room.id, userState.userToken as string, settings.value)
-  if (res.type === 'left') {
-    errorBadge.value = res.value
-  }
+  // TODO: глобальный контекст комнаты
+  await updateRoom(room.id, settings.value)
 }
 </script>
 
 <template>
   <section class="my-4 md:border-2 md:border-stone-700 rounded-md md:p-2">
-    <h2 class="text-xl font-bold mb-2 text-center">
-      Настройки комнаты
-    </h2>
-
-    <div v-if="errorBadge" class="bg-pink-800 p-2 border-2 border-pink-600 rounded-md mv-2">
-      {{ errorBadge }}
-    </div>
+    <h2 class="text-xl font-bold mb-2 text-center">Настройки комнаты</h2>
 
     <div class="flex flex-col gap-2 mb-2">
       <input
@@ -46,14 +35,14 @@ async function updateRoomSubmit() {
         type="text"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Имя комнаты"
-      >
+      />
 
       <input
         v-model="settings.room_password"
         type="password"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Пароль для входа"
-      >
+      />
     </div>
 
     <div class="flex gap-2 mb-2">

@@ -1,14 +1,12 @@
 <script setup lang="ts">
+import { kickPlayer } from '@/share/api'
 import type { OtherPlayer } from '@/share/api/types'
-import { kickPlayer } from '@/share/api/api'
-import { useUserStore } from '@/share/stores/user'
 import { User2 } from 'lucide-vue-next'
 
 const { player } = defineProps<{ player: OtherPlayer }>()
-const userState = useUserStore()
 
 async function kickCall() {
-  await kickPlayer(userState.userToken as string, player.user_id)
+  await kickPlayer(player.user_id)
 }
 </script>
 

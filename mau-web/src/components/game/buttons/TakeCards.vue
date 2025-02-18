@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import { shotgunTake, takeCards } from '@/share/api/api'
-import { useUserStore } from '@/share/stores/user'
+import { shotgunTake, takeCards } from '@/share/api'
 import { BookDown } from 'lucide-vue-next'
 
 const { shotgun } = defineProps<{ shotgun: boolean }>()
 
-const userState = useUserStore()
-
 async function takeCardsCallback() {
   if (shotgun) {
-    await shotgunTake(userState.userToken as string)
-  }
-  else {
-    await takeCards(userState.userToken as string)
+    await shotgunTake()
+  } else {
+    await takeCards()
   }
 }
 </script>

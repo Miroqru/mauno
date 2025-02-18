@@ -1,16 +1,12 @@
 <script setup lang="ts">
+import { updateUser, updateUserPassword } from '@/share/api'
 import type { User } from '@/share/api/types'
-import type { Ref } from 'vue'
-import { changeUserPassword, updateUser } from '@/share/api/api'
 import { useUserStore } from '@/share/stores/user'
 import { Check } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 const { user } = defineProps<{ user: User }>()
 const userStore = useUserStore()
-
-const errorBadge: Ref<any> = ref(null)
-const successBadge: Ref<any> = ref(null)
 
 const name = ref('')
 const avatar = ref('')
@@ -21,37 +17,25 @@ const confirmPassword = ref('')
 
 const isChangeActive = computed(() => {
   return (
-    oldPassword.value !== ''
-    && newPassword.value !== ''
-    && confirmPassword.value !== ''
-    && newPassword.value === confirmPassword.value
+    oldPassword.value !== '' &&
+    newPassword.value !== '' &&
+    confirmPassword.value !== '' &&
+    newPassword.value === confirmPassword.value
   )
 })
 
 async function updateProfile() {
-  errorBadge.value = null
-  successBadge.value = null
-
-  const res = await updateUser(userStore.userToken as string, {
+  await updateUser({
     name: name.value,
     avatar_url: avatar.value,
   })
 
   name.value = ''
   avatar.value = ''
-
-  if (res.type === 'left') {
-    errorBadge.value = res.value
-  }
-  else {
-    successBadge.value = res.value
-  }
 }
-async function changePassword() {
-  errorBadge.value = null
-  successBadge.value = null
 
-  const res = await changeUserPassword(userStore.userToken as string, {
+async function changePassword() {
+  await updateUserPassword({
     old_password: oldPassword.value,
     new_password: newPassword.value,
   })
@@ -59,13 +43,6 @@ async function changePassword() {
   oldPassword.value = ''
   newPassword.value = ''
   confirmPassword.value = ''
-
-  if (res.type === 'left') {
-    errorBadge.value = res.value
-  }
-  else {
-    successBadge.value = res.value
-  }
 }
 
 // TODO: Раздробить на множество компонентов
@@ -76,17 +53,7 @@ async function changePassword() {
     v-if="user.username === userStore.userId"
     class="p-2 border-2 border-stone-700 rounded-md my-4"
   >
-    <div v-if="errorBadge" class="bg-pink-900 p-2 border-2 border-pink-600 rounded-md mv-2">
-      {{ errorBadge }}
-    </div>
-
-    <div v-if="successBadge" class="bg-teal-900 p-2 border-2 border-teal-600 rounded-md mv-2">
-      {{ successBadge }}
-    </div>
-
-    <h2 class="text-lg font-bold mb-2">
-      Настройки пользователя
-    </h2>
+    <h2 class="text-lg font-bold mb-2">Настройки пользователя</h2>
 
     <div>
       <input
@@ -94,7 +61,7 @@ async function changePassword() {
         class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
         type="text"
         :placeholder="`Имя пользователя (${user.name})`"
-      >
+      />
     </div>
 
     <div>
@@ -103,7 +70,7 @@ async function changePassword() {
         class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
         type="text"
         placeholder="Ссылка на аватар"
-      >
+      />
     </div>
     <button
       class="bg-stone-700 hover:bg-stone-600 transition flex gap-2 p-1 rounded-md"
@@ -113,16 +80,14 @@ async function changePassword() {
       <div>Обновить</div>
     </button>
 
-    <h2 class="text-lg font-bold mb-2">
-      Смена пароля
-    </h2>
+    <h2 class="text-lg font-bold mb-2">Смена пароля</h2>
     <div>
       <input
         v-model="oldPassword"
         class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
         type="password"
         placeholder="Текущий пароль"
-      >
+      />
     </div>
 
     <div>
@@ -131,7 +96,7 @@ async function changePassword() {
         class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
         type="password"
         placeholder="Новый пароль"
-      >
+      />
     </div>
 
     <div>
@@ -140,7 +105,7 @@ async function changePassword() {
         class="invalid:border-pink-500 invalid:text-pink-600 focus:border-teal-500 focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-md"
         type="password"
         placeholder="Повтор пароля"
-      >
+      />
     </div>
 
     <button

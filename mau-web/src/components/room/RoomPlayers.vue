@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { kickRoomUser, setRoomOwner } from '@/share/api'
 import type { Room, User } from '@/share/api/types'
-import { kickUserFromRoom, setOwnerInRoom } from '@/share/api/api'
 import { useUserStore } from '@/share/stores/user'
 import { CircleX, Crown } from 'lucide-vue-next'
 import UserStatus from '../home/UserStatus.vue'
@@ -9,18 +9,18 @@ const { room } = defineProps<{ room: Room }>()
 const userState = useUserStore()
 
 async function kick(user: User) {
-  await kickUserFromRoom(userState.userToken as string, room.id, user.username)
+  await kickRoomUser(room.id, user.username)
 }
+
 async function setOwner(user: User) {
-  await setOwnerInRoom(userState.userToken as string, room.id, user.username)
+  // TODO: Глобальный контекст комнаты
+  await setRoomOwner(room.id, user.username)
 }
 </script>
 
 <template>
   <section class="my-4">
-    <h2 class="text-xl font-bold">
-      Игроки
-    </h2>
+    <h2 class="text-xl font-bold">Игроки</h2>
 
     <div v-for="player in room.players" :key="player.username" class="flex md:inline-flex gap-1">
       <Crown

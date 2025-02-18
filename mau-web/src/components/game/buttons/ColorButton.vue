@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { selectColor } from '@/share/api/api'
-import { useUserStore } from '@/share/stores/user'
+import { selectColor } from '@/share/api'
 import { Sparkle } from 'lucide-vue-next'
 
-const { color, colorName } = defineProps<{ color: number, colorName: string }>()
-const userState = useUserStore()
+const { color, colorName } = defineProps<{ color: number; colorName: string }>()
 
 async function selectColorCall() {
-  await selectColor(userState.userToken as string, color)
+  await selectColor(color)
 }
 </script>
 

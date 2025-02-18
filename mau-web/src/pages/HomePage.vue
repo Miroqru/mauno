@@ -5,8 +5,8 @@ import ChallengeList from '@/components/home/ChallengeList.vue'
 import LeaderBoard from '@/components/home/LeaderBoard.vue'
 import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
-import { fetchLeaderboardIndex } from '@/share/api/api'
 
+import { getRatingIndex } from '@/share/api'
 import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
 import { onMounted, ref } from 'vue'
@@ -22,17 +22,9 @@ const notifyState = useNotifyStore()
 
 onMounted(async () => {
   if (me.value == null) {
-    notifyState.addNotify('Оффлайн', 'Mau сервер не отвечает', 'error')
     return
   }
-
-  const res = await fetchLeaderboardIndex(me.value.username, 'gems')
-  if (res.type === 'right') {
-    topIndex.value = res.value
-  }
-  else {
-    notifyState.addNotify('Таблица лидеров', 'Mau сервер не отвечает', 'error')
-  }
+  topIndex.value = await getRatingIndex(me.value.username, 'gems')
 })
 </script>
 
