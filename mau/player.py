@@ -173,7 +173,15 @@ class Player:
         self.bluffing = False
         if isinstance(top, TakeFourCard) and self.game.take_counter:
             return SortedCards([], self.hand)
-        if self.game.state == GameState.SHOTGUN:
+
+        # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
+        # то нам сейчас карты нне очень важны
+        if self.game.state not in (GameState.NEXT, GameState.CONTINUE):
+            return SortedCards([], self.hand)
+
+        # Если сейчас не ход игрока, то активных карт нету
+        # Это для глупенького веб клиента будет полезно
+        if not self.is_current and not self.game.rules.intervention.status:
             return SortedCards([], self.hand)
 
         if self.game.rules.intervention.status and self.game.player != self:

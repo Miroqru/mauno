@@ -154,7 +154,9 @@ class UnoGame:
 
     def take_first_card(self) -> None:
         """Берёт первую карту для начали игры."""
-        while self.deck.top is None or self.deck.top.color == CardColor.BLACK:
+        # Здесь используется _top, потому что он может быть пустым
+        # TODO: Пусть тут будет нормально получение
+        while self.deck._top is None or self.deck._top.color == CardColor.BLACK:
             card = self.deck.take_one()
             if card.color == CardColor.BLACK:
                 self.deck.put(card)
@@ -170,7 +172,7 @@ class UnoGame:
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
-        logger.info("Next Pltopayer")
+        logger.info("Next Player!")
         self.state = GameState.NEXT
         self.take_flag = False
         self.turn_start = datetime.now()
