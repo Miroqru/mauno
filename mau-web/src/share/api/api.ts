@@ -1,8 +1,8 @@
 // Работа с API сервером, пока просто заглушки на будущее
 
 import type { Either } from '@/share/api/either'
-import { left, right } from '@/share/api/either'
 import type {
+  Card,
   Challenge,
   EditUserDataIn,
   GameContext,
@@ -13,6 +13,7 @@ import type {
   User,
   UserDataIn,
 } from '@/share/api/types'
+import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
 
 // Датасет различных безделушек
@@ -306,6 +307,7 @@ export async function joinGame(token: string): Promise<Either<any, GameContext>>
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -315,6 +317,7 @@ export async function leaveGame(token: string): Promise<Either<any, GameContext>
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -334,7 +337,7 @@ export async function startGame(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    method: "post"
+    method: 'post',
   })
 }
 
@@ -344,6 +347,7 @@ export async function endGame(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -353,6 +357,7 @@ export async function kickPlayer(token: string, player: string): Promise<Either<
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -362,6 +367,7 @@ export async function skipPlayer(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -372,6 +378,7 @@ export async function nextTurn(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -381,6 +388,7 @@ export async function takeCards(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -390,6 +398,7 @@ export async function shotgunTake(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -399,6 +408,7 @@ export async function shotgunShot(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -408,6 +418,7 @@ export async function bluffCard(token: string): Promise<Either<any, any>> {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
@@ -417,23 +428,27 @@ export async function selectColor(token: string, color: number): Promise<Either<
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
-export async function selectPlayer(token: string, player: number): Promise<Either<any, any>> {
+export async function selectPlayer(token: string, player: string): Promise<Either<any, any>> {
   return await useApi(`/game/player/${player}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
   })
 }
 
-export async function pushCard(token: string, card: string): Promise<Either<any, any>> {
-  return await useApi(`/game/card/${card}`, {
+export async function pushCard(token: string, card: Card): Promise<Either<any, any>> {
+  return await useApi(`/game/card`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    method: 'post',
+    body: JSON.stringify(card),
   })
 }

@@ -127,7 +127,7 @@ export interface Game {
 }
 
 // Доступные цвета карты
-enum CardColor {
+export enum CardColor {
   RED = 0,
   YELLOW = 1,
   GREEN = 2,
@@ -136,7 +136,7 @@ enum CardColor {
 }
 
 // Доступные типы карт
-enum CardType {
+export enum CardType {
   NUMBER = 0,
   TURN = 1,
   REVERSE = 2,
@@ -175,14 +175,27 @@ export interface OtherPlayer {
   shotgun_current: number
 }
 
+export interface SortedCards {
+  cover: Card[]
+  uncover: Card[]
+}
+
 // Данные вашего пользователя
 // user_id: уникальный идентификатор
 // hand: список ваших карт
 // shotgun_current: Сколько раз стрелял из револьвера
-export interface Plyer {
-  user_id: number
-  hand: Card[]
+export interface Player {
+  user_id: string
+  hand: SortedCards
   shotgun_current: number
+}
+
+export enum GameState {
+  NEXT = 0,
+  CHOOSE_COLOR = 1,
+  TWIST_HAND = 2,
+  SHOTGUN = 3,
+  CONTINUE = 4,
 }
 
 // Активная игровая комната
@@ -224,18 +237,18 @@ export interface ActiveGame {
   // Состояние комнаты
   deck: Deck
   reverse: boolean
-  bluff_flag: boolean
   take_flag: boolean
   take_counter: number
   shotgun_current: number
+  state: GameState
 }
 
 // Игровой контекст
 // game: Текущая игра
 // player: текущий игрок
 export interface GameContext {
-  game: Game | null
-  player: Plyer | null
+  game: ActiveGame | null
+  player: Player | null
 }
 
 // испытания -----------------------------------------------------------
