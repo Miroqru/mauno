@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import type { Player } from '@/share/api/types'
 import UnoCard from './UnoCard.vue'
+
+const { player } = defineProps<{ player: Player }>()
 
 const hand = [
   { name: '+2', image: 'b_take', active: true },
@@ -12,13 +15,18 @@ const hand = [
 </script>
 
 <template>
-  <section class="flex justify-center gap-2 flex-wrap overflow-x-auto h-[15vh]">
+  <section class="flex justify-center gap-2 flex-wrap overflow-x-auto h-[15vh] md:h-[30vh]">
     <UnoCard
-      v-for="[index, card] in hand.entries()"
+      v-for="[index, card] in player.hand.cover.entries()"
       :key="index"
-      :name="card.name"
-      :active="card.active"
-      :image="card.image"
+      :card="card"
+      :active="true"
+    />
+    <UnoCard
+      v-for="[index, card] in player.hand.uncover.entries()"
+      :key="index"
+      :card="card"
+      :active="false"
     />
   </section>
 </template>

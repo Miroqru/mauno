@@ -14,7 +14,7 @@ const messages = [
 </script>
 
 <template>
-  <section class="bg-stone-950 p-2 m-4 rounded-xl h-[20vh] overflow-y-auto">
+  <section class="bg-stone-950 p-2 m-4 rounded-xl h-[20vh] md:h-[30vh] overflow-y-auto">
     <ChatMessage
       v-for="[index, message] in messages.entries()"
       :key="index"
