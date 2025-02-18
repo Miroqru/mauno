@@ -38,7 +38,7 @@ async function shareLink() {
 
 async function startGameCall() {
   const res = await startGame(userState.userToken as string)
-  if (res.type == 'left') {
+  if (res.type === 'left') {
     notifyState.addNotify('Новая игра', res.value, 'error')
   }
   else {

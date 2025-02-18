@@ -9,7 +9,7 @@ import SkipButton from './buttons/SkipButton.vue'
 
 const { context } = defineProps<{ context: GameContext }>()
 
-const isOwner = computed(() => context.game?.owner_id == context.player?.user_id)
+const isOwner = computed(() => context.game?.owner_id === context.player?.user_id)
 </script>
 
 <template>

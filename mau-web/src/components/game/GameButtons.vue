@@ -12,11 +12,11 @@ import TakeCards from './buttons/TakeCards.vue'
 const { context } = defineProps<{ context: GameContext }>()
 
 const isYouTurn = computed(
-  () => context.player?.user_id == context.game?.players[context.game.current_player].user_id,
+  () => context.player?.user_id === context.game?.players[context.game.current_player].user_id,
 )
 
 const isCanBluffing = computed(
-  () => context.game?.take_counter && context.game.deck.top.card_type == CardType.TAKE_FOUR,
+  () => context.game?.take_counter && context.game.deck.top.card_type === CardType.TAKE_FOUR,
 )
 </script>
 
@@ -25,7 +25,7 @@ const isCanBluffing = computed(
     <div v-if="isYouTurn">
       <!-- Выбираем цвет для карты -->
       <div
-        v-if="context.game.state == GameState.CHOOSE_COLOR"
+        v-if="context.game.state === GameState.CHOOSE_COLOR"
         class="flex flex-wrap justify-around gap-2 border-2 border-stone-700 rounded-md"
       >
         <ColorButton :color="0" color-name="красный" />
@@ -36,7 +36,7 @@ const isCanBluffing = computed(
 
       <!-- выбираем игрока для обмена руками -->
       <div
-        v-if="context.game.state == GameState.TWIST_HAND"
+        v-if="context.game.state === GameState.TWIST_HAND"
         class="flex flex-wrap justify-around gap-2 border-2 border-stone-700 rounded-md"
       >
         <PlayerButton
@@ -47,7 +47,7 @@ const isCanBluffing = computed(
       </div>
 
       <div
-        v-if="context.game.state == GameState.SHOTGUN"
+        v-if="context.game.state === GameState.SHOTGUN"
         class="flex flex-wrap justify-around gap-2 border-2 border-stone-700 rounded-md"
       >
         <ShotButton />

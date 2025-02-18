@@ -161,6 +161,7 @@ export interface Card {
 // cards: сколько карт ещё доступно
 // used: Сколько карт было использовано
 export interface Deck {
+  top: Card
   cards: number
   used: null
 }
@@ -170,7 +171,8 @@ export interface Deck {
 // hand: Сколько карт осталось в руке
 // shotgun_current: Сколько раз стрелял из револьвера
 export interface OtherPlayer {
-  user_id: number
+  user_id: string
+  name: string
   hand: number
   shotgun_current: number
 }

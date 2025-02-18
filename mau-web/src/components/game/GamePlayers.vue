@@ -11,7 +11,7 @@ const { context } = defineProps<{ context: GameContext }>()
       v-for="[index, player] in context.game.players.entries()"
       :key="index"
       :player="player"
-      :active="index == context.game.current_player"
+      :active="index === context.game.current_player"
     />
   </section>
 </template>

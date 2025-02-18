@@ -3,15 +3,6 @@ import type { Player } from '@/share/api/types'
 import UnoCard from './UnoCard.vue'
 
 const { player } = defineProps<{ player: Player }>()
-
-const hand = [
-  { name: '+2', image: 'b_take', active: true },
-  { name: '+2', image: 'g_take', active: true },
-  { name: 'yellow 5', image: 'y_5', active: false },
-  { name: 'green skip', image: 'g_skip', active: false },
-  { name: 'res 3', image: 'r_3', active: false },
-  { name: 'yellow 5', image: 'y_2', active: false },
-]
 </script>
 
 <template>
