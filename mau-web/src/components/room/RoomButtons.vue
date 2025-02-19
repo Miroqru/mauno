@@ -14,18 +14,18 @@ const activeRoom = userState.getActiveRoom()
 
 const canJoin = computed(
   () =>
-    !activeRoom.value
-    && room.players.length < room.max_players
-    && me.value !== null
-    && me.value.gems >= room.gems,
+    !activeRoom.value &&
+    room.players.length < room.max_players &&
+    me.value !== null &&
+    me.value.gems >= room.gems,
 )
 const canLeave = computed(() => activeRoom.value !== null && room.id === activeRoom.value)
 const canStart = computed(
   () =>
-    activeRoom.value !== null
-    && room.owner.username === userState.userId
-    && room.players.length >= room.min_players
-    && room.players.length <= room.max_players,
+    activeRoom.value !== null &&
+    room.owner.username === userState.userId &&
+    room.players.length >= room.min_players &&
+    room.players.length <= room.max_players,
 )
 
 async function shareLink() {

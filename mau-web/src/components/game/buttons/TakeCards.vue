@@ -7,8 +7,7 @@ const { shotgun } = defineProps<{ shotgun: boolean }>()
 async function takeCardsCallback() {
   if (shotgun) {
     await shotgunTake()
-  }
-  else {
+  } else {
     await takeCards()
   }
 }

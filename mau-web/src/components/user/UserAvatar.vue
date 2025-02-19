@@ -11,7 +11,7 @@ const { user } = defineProps<{ user: User }>()
     :to="`/user/${user.username}`"
     class="transition rounded-full hover:border-2 hover:border-teal-600"
   >
-    <img v-if="user.avatar_url" :src="user.avatar_url" class="w-[32px] h-[32px] rounded-full">
+    <img v-if="user.avatar_url" :src="user.avatar_url" class="w-[32px] h-[32px] rounded-full" />
     <User2 v-else class="w-[32px] h-[32px] rounded-full text-stone-500" />
   </RouterLink>
 </template>

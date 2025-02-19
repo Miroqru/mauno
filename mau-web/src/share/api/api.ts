@@ -1,8 +1,7 @@
-// Работа с API сервером, пока просто заглушки на будущее
-
 import type { Either } from '@/share/api/either'
 import type {
   Card,
+  Category,
   Challenge,
   EditUserDataIn,
   GameContext,
@@ -15,6 +14,7 @@ import type {
 } from '@/share/api/types'
 import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
+import { useUserStore } from '../stores/user'
 
 // Датасет различных безделушек
 // Заглушки на будущее
@@ -30,425 +30,217 @@ const challenges: Challenge[] = [
 // Вспомогательные функция для использования API -----------------------
 
 const API_URL = import.meta.env.VITE_API_URL
+const userState = useUserStore()
 
 async function useApi(url: string, req?: RequestInit): Promise<Either<any, any>> {
-  const res = await fetch(API_URL + toValue(url), req)
+  const res = await fetch(API_URL + toValue(url), {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${userState.userToken}`,
+    },
+
+    ...req,
+  })
 
   try {
     if (!res.ok) {
       return left(await res.json())
     }
     return right(await res.json())
-  }
-  catch (error) {
+  } catch (error) {
     return left(error)
   }
 }
-
-// методы API для получения данных
-
-// пользователи --------------------------------------------------------
 
 interface LoginApiResult {
   ok: boolean
   token: string
 }
 
-export async function loginUser(user: UserDataIn): Promise<Either<any, LoginApiResult>> {
-  return await useApi('/users/login', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: JSON.stringify(user),
-  })
-}
+type ApiResponse<T> = Promise<Either<any, T>>
+type GameResponse = ApiResponse<GameContext>
 
-export async function registerUser(
-  user: UserDataIn,
-): Promise<Either<any, { status: boolean, token: string }>> {
-  return await useApi('/users/', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-    body: JSON.stringify(user),
-  })
-}
+export default {
+  async loginUser(user: UserDataIn): ApiResponse<LoginApiResult> {
+    return await useApi('/users/login', {
+      method: 'POST',
+      body: JSON.stringify(user),
+    })
+  },
 
-export async function fetchUser(token: string): Promise<Either<any, User>> {
-  return await useApi('/users/me', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  })
-}
+  async registerUser(user: UserDataIn): ApiResponse<{ status: boolean; token: string }> {
+    return await useApi('/users/', {
+      method: 'POST',
+      body: JSON.stringify(user),
+    })
+  },
 
-export async function updateUser(token: string, profile: EditUserDataIn) {
-  return await useApi('/users/', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'PUT',
-    body: JSON.stringify(profile),
-  })
-}
+  async fetchUser(): ApiResponse<User> {
+    return await useApi('/users/me')
+  },
 
-export async function changeUserPassword(
-  token: string,
-  password: { old_password: string, new_password: string },
-): Promise<Either<any, User>> {
-  return await useApi('/users/change-password', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-    body: JSON.stringify(password),
-  })
-}
+  async updateUser(profile: EditUserDataIn): ApiResponse<User> {
+    return await useApi('/users/', {
+      method: 'PUT',
+      body: JSON.stringify(profile),
+    })
+  },
 
-export async function fetchUserById(username: string): Promise<Either<null, User>> {
-  return await useApi(`/users/${username}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((res) => {
-    if (res.type === 'left') {
-      return left(null)
-    }
-    return right(res.value as User)
-  })
-}
+  async changeUserPassword(password: {
+    old_password: string
+    new_password: string
+  }): ApiResponse<User> {
+    return await useApi('/users/change-password', {
+      method: 'POST',
+      body: JSON.stringify(password),
+    })
+  },
 
-// Комнаты -------------------------------------------------------------
+  async fetchUserById(username: string): ApiResponse<User> {
+    return await useApi(`/users/${username}`)
+  },
 
-export async function fetchRooms(filter?: RoomFilter): Promise<Either<any, Room[]>> {
-  return await useApi(
-    filter !== undefined
-      ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}`
-      : '/rooms/',
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
+  // Комнаты -------------------------------------------------------------
 
-export async function fetchRoomById(roomID: string): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-}
+  async fetchRooms(filter?: RoomFilter): ApiResponse<Room[]> {
+    return await useApi(
+      filter !== undefined
+        ? `/rooms/?order_by=${filter.orderBy}&invert=${filter.reverse}`
+        : '/rooms/',
+    )
+  },
 
-export async function updateRoom(
-  roomID: string,
-  token: string,
-  roomData: RoomDataIn,
-): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'PUT',
-    body: JSON.stringify(roomData),
-  })
-}
+  async fetchRoomById(roomID: string): ApiResponse<Room> {
+    return await useApi(`/rooms/${roomID}`)
+  },
 
-export async function createRoom(token: string): Promise<Either<any, Room>> {
-  return await useApi('/rooms/', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-  })
-}
+  async updateRoom(roomID: string, roomData: RoomDataIn): ApiResponse<Room> {
+    return await useApi(`/rooms/${roomID}`, {
+      method: 'PUT',
+      body: JSON.stringify(roomData),
+    })
+  },
 
-export async function fetchRandomRoom(): Promise<Either<any, Room>> {
-  return await useApi('/rooms/random', {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-}
+  async createRoom(): ApiResponse<Room> {
+    return await useApi('/rooms/', { method: 'POST' })
+  },
 
-export async function fetchActiveRoom(token: string): Promise<Either<any, Room>> {
-  return await useApi('/rooms/active', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  })
-}
+  async fetchRandomRoom(): Promise<Either<any, Room>> {
+    return await useApi('/rooms/random')
+  },
 
-export async function joinToRoom(token: string, roomID: string): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}/join/`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-  })
-}
+  async fetchActiveRoom(): Promise<Either<any, Room>> {
+    return await useApi('/rooms/active')
+  },
 
-export async function leaveFromRoom(token: string, roomID: string): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}/leave/`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-  })
-}
+  async joinToRoom(roomID: string): Promise<Either<any, Room>> {
+    return await useApi(`/rooms/${roomID}/join/`, { method: 'POST' })
+  },
 
-export async function kickUserFromRoom(
-  token: string,
-  roomID: string,
-  userID: string,
-): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}/kick/${userID}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-  })
-}
+  async leaveFromRoom(roomID: string): Promise<Either<any, Room>> {
+    return await useApi(`/rooms/${roomID}/leave/`, { method: 'POST' })
+  },
 
-export async function setOwnerInRoom(
-  token: string,
-  roomID: string,
-  userID: string,
-): Promise<Either<any, Room>> {
-  return await useApi(`/rooms/${roomID}/owner/${userID}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'POST',
-  })
-}
+  async kickUserFromRoom(roomID: string, userID: string): Promise<Either<any, Room>> {
+    return await useApi(`/rooms/${roomID}/kick/${userID}`, { method: 'POST' })
+  },
 
-export async function fetchRoomRules(roomID: string): Promise<Either<any, RoomRuleData[]>> {
-  return await useApi(`/rooms/${roomID}/modes/`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-}
+  async setOwnerInRoom(roomID: string, userID: string): ApiResponse<Room> {
+    return await useApi(`/rooms/${roomID}/owner/${userID}`, { method: 'POST' })
+  },
 
-export async function updateRoomRules(
-  roomID: string,
-  token: string,
-  rules: string[],
-): Promise<Either<any, RoomRuleData[]>> {
-  return await useApi(`/rooms/${roomID}/modes`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'PUT',
-    body: JSON.stringify({ rules }),
-  })
-}
+  async fetchRoomRules(roomID: string): ApiResponse<RoomRuleData[]> {
+    return await useApi(`/rooms/${roomID}/modes/`)
+  },
 
-// Таблица лидеров -----------------------------------------------------
+  async updateRoomRules(roomID: string, rules: string[]): ApiResponse<RoomRuleData[]> {
+    return await useApi(`/rooms/${roomID}/modes`, {
+      method: 'PUT',
+      body: JSON.stringify({ rules }),
+    })
+  },
 
-export type Category = 'gems' | `games` | `wins` | `cards`
+  // Таблица лидеров -----------------------------------------------------
 
-export async function fetchLeaders(category: Category): Promise<Either<null, User[]>> {
-  return await useApi(`/leaderboard/${category}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((res) => {
-    if (res.type === 'left') {
-      return left(null)
-    }
-    return right(res.value as User[])
-  })
-}
+  async fetchLeaders(category: Category): ApiResponse<User[]> {
+    return await useApi(`/leaderboard/${category}`)
+  },
 
-export async function fetchLeaderboardIndex(
-  username: string,
-  category: Category,
-): Promise<Either<null, number>> {
-  return await useApi(`/leaderboard/${username}/${category}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((res) => {
-    if (res.type === 'left') {
-      return left(null)
-    }
-    return right(res.value as number)
-  })
-}
+  async fetchLeaderboardIndex(username: string, category: Category): ApiResponse<number> {
+    return await useApi(`/leaderboard/${username}/${category}`)
+  },
 
-// Задания -------------------------------------------------------------
+  // Задания -------------------------------------------------------------------
 
-export function getChallenges() {
-  return challenges
-}
+  getChallenges() {
+    return challenges
+  },
 
-// Игра ----------------------------------------------------------------
+  // Игровая сессия ------------------------------------------------------------
 
-// Игрок
-export async function joinGame(token: string): Promise<Either<any, GameContext>> {
-  return await useApi('/game/join', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  // Игрок
+  async joinGame(): GameResponse {
+    return await useApi('/game/join', { method: 'post' })
+  },
 
-export async function leaveGame(token: string): Promise<Either<any, GameContext>> {
-  return await useApi('/game/leave', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async leaveGame(): GameResponse {
+    return await useApi('/game/leave', { method: 'post' })
+  },
 
-// Сессия
-export async function fetchGame(token: string): Promise<Either<any, GameContext>> {
-  return await useApi('/game/', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  })
-}
+  // Сессия
+  async fetchGame(): GameResponse {
+    return await useApi('/game/')
+  },
 
-export async function startGame(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/start', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async startGame(): GameResponse {
+    return await useApi('/game/start', { method: 'post' })
+  },
 
-export async function endGame(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/end', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async endGame(): GameResponse {
+    return await useApi('/game/end', { method: 'post' })
+  },
 
-export async function kickPlayer(token: string, player: string): Promise<Either<any, any>> {
-  return await useApi(`/game/kick/${player}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async kickPlayer(player: string): GameResponse {
+    return await useApi(`/game/kick/${player}`, { method: 'post' })
+  },
 
-export async function skipPlayer(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/skip', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async skipPlayer(): GameResponse {
+    return await useApi('/game/skip', { method: 'post' })
+  },
 
-// Ход
-export async function nextTurn(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/next', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  // Ход
+  async nextTurn(): GameResponse {
+    return await useApi('/game/next', { method: 'post' })
+  },
 
-export async function takeCards(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/take', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async takeCards(): GameResponse {
+    return await useApi('/game/take', { method: 'post' })
+  },
 
-export async function shotgunTake(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/shotgun/take', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async shotgunTake(): GameResponse {
+    return await useApi('/game/shotgun/take', { method: 'post' })
+  },
 
-export async function shotgunShot(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/shotgun/shot', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async shotgunShot(): GameResponse {
+    return await useApi('/game/shotgun/shot', { method: 'post' })
+  },
 
-export async function bluffCard(token: string): Promise<Either<any, any>> {
-  return await useApi('/game/bluff', {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async bluffCard(): GameResponse {
+    return await useApi('/game/bluff', { method: 'post' })
+  },
 
-export async function selectColor(token: string, color: number): Promise<Either<any, any>> {
-  return await useApi(`/game/color/${color}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async selectColor(color: number): GameResponse {
+    return await useApi(`/game/color/${color}`, { method: 'post' })
+  },
 
-export async function selectPlayer(token: string, player: string): Promise<Either<any, any>> {
-  return await useApi(`/game/player/${player}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-  })
-}
+  async selectPlayer(player: string): GameResponse {
+    return await useApi(`/game/player/${player}`, { method: 'post' })
+  },
 
-export async function pushCard(token: string, card: Card): Promise<Either<any, any>> {
-  return await useApi(`/game/card`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    method: 'post',
-    body: JSON.stringify(card),
-  })
+  async pushCard(card: Card): GameResponse {
+    return await useApi(`/game/card`, {
+      method: 'post',
+      body: JSON.stringify(card),
+    })
+  },
 }

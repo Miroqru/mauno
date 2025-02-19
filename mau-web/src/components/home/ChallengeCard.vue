@@ -10,9 +10,7 @@ const { challenge } = defineProps<{ challenge: Challenge }>()
     <div class="text-middle m-auto flex-1 font-bold">
       {{ challenge.name }}
     </div>
-    <div class="h-[24px] m-auto text-stone-300">
-      {{ challenge.now }} / {{ challenge.total }}
-    </div>
+    <div class="h-[24px] m-auto text-stone-300">{{ challenge.now }} / {{ challenge.total }}</div>
     <div class="inline-flex gap-1 text-middle m-auto text-pink-300">
       {{ challenge.reward }} <Gem :size="24" />
     </div>

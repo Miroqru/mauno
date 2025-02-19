@@ -74,6 +74,7 @@ export interface RoomRuleData {
 
 // В каком состоянии может быть комната
 export type RoomStatus = 'idle' | 'game' | 'ended'
+export type Category = 'gems' | `games` | `wins` | `cards`
 
 // комнатки, в которых собираются игроки уно
 //

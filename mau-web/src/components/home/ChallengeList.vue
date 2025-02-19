@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import CardHeader from '@/components/home/CardHeader.vue'
-import { getChallenges } from '@/share/api/api'
+import methods from '@/share/api/api'
 import { ref } from 'vue'
 import ChallengeCard from './ChallengeCard.vue'
 
-const challenges = ref(getChallenges())
+const challenges = ref(methods.getChallenges())
 </script>
 
 <template>

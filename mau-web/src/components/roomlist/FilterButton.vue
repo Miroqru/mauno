@@ -2,7 +2,7 @@
 import type { RoomOrder } from '@/share/api/types'
 import { useSettingsStore } from '@/share/stores/settings'
 
-const { name, orderBy } = defineProps<{ name: string, orderBy: RoomOrder }>()
+const { name, orderBy } = defineProps<{ name: string; orderBy: RoomOrder }>()
 const settingState = useSettingsStore()
 </script>
 

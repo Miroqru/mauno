@@ -11,9 +11,7 @@ const { showName } = defineProps<{ showName?: boolean }>()
     @click="newRoom"
   >
     <Plus :size="24" />
-    <div v-if="showName">
-      Комнату
-    </div>
+    <div v-if="showName">Комнату</div>
   </button>
 </template>
 []

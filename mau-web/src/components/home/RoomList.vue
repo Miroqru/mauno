@@ -24,12 +24,8 @@ onMounted(async () => {
     <div v-else class="justify-center flex flex-col text-center">
       <Squirrel :size="128" class="align-center mx-auto mb-2 text-stone-200" />
       <div>
-        <div class="font-bold text-stone-200 text-lg">
-          Сейчас никто не играет
-        </div>
-        <div class="text-stone-300">
-          как насчёт того, чтобы создать новую комнату!
-        </div>
+        <div class="font-bold text-stone-200 text-lg">Сейчас никто не играет</div>
+        <div class="text-stone-300">как насчёт того, чтобы создать новую комнату!</div>
         <NewGame :show-name="true" class="align-center mx-auto" />
       </div>
     </div>

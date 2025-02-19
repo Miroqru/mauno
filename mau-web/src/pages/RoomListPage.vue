@@ -14,12 +14,8 @@ const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
   <section
     class="text-center justify-between bg-linear-160 from-emerald-300/40 rounded-xl p-2 mb-4"
   >
-    <h2 class="text-xl mb-2 font-bold">
-      Игровые комнаты
-    </h2>
-    <div class="text-stone-3003">
-      Место, где игроки собираются вместе.
-    </div>
+    <h2 class="text-xl mb-2 font-bold">Игровые комнаты</h2>
+    <div class="text-stone-3003">Место, где игроки собираются вместе.</div>
   </section>
 
   <div class="md:flex md:gap-2">

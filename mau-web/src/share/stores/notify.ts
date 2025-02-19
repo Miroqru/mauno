@@ -16,7 +16,7 @@ export const useNotifyStore = defineStore('notify', () => {
   const notifies: Ref<Notify[]> = ref([])
 
   function removeNotify(id: string) {
-    notifies.value = notifies.value.filter(notify => notify.id !== id)
+    notifies.value = notifies.value.filter((notify) => notify.id !== id)
   }
 
   function addNotify(name: string, body: any, type: NotifyType) {

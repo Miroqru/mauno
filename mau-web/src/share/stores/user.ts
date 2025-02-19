@@ -1,13 +1,7 @@
+import method from '@/share/api/api'
 import type { User } from '@/share/api/types'
-import type { Ref } from 'vue'
-import {
-  fetchActiveRoom,
-  fetchRoomById,
-  fetchUser,
-  joinToRoom,
-  leaveFromRoom,
-} from '@/share/api/api'
 import { defineStore } from 'pinia'
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
@@ -40,7 +34,7 @@ export const useUserStore = defineStore('user', () => {
       return user
     }
 
-    fetchUser(userToken.value).then((res) => {
+    method.fetchUser().then((res) => {
       if (res.type === 'right') {
         user.value = res.value
       }
@@ -50,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function joinRoom(room: string) {
-    const res = await joinToRoom(userToken.value as string, room)
+    const res = await method.joinToRoom(room)
     if (res.type === 'right') {
       localStorage.setItem('roomId', room)
       roomId.value = room
@@ -58,7 +52,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function leaveRoom(room: string) {
-    await leaveFromRoom(userToken.value as string, room)
+    await method.leaveFromRoom(room)
     localStorage.removeItem('roomId')
     roomId.value = null
   }
@@ -70,7 +64,7 @@ export const useUserStore = defineStore('user', () => {
       return room
     }
 
-    fetchRoomById(roomId.value).then((res) => {
+    method.fetchRoomById(roomId.value).then((res) => {
       if (res.type === 'left' || res.value.status === 'ended') {
         localStorage.removeItem('roomId')
         roomId.value = null
@@ -85,7 +79,7 @@ export const useUserStore = defineStore('user', () => {
     const activeRoomID = ref(roomId.value)
 
     if (activeRoomID.value === null) {
-      fetchActiveRoom(userToken.value as string).then((res) => {
+      method.fetchActiveRoom().then((res) => {
         if (res.type === 'right') {
           activeRoomID.value = res.value.id
           roomId.value = res.value.id

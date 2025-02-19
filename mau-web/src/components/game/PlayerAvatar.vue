@@ -28,7 +28,7 @@ onMounted(async () => {
         v-if="user && user.avatar_url"
         :src="user.avatar_url"
         class="w-[64px] h-[64px] rounded-full"
-      >
+      />
       <User2 v-else class="w-[52px] h-[52px] text-stone-500 relative" :stroke-width="1" />
       <Counter :value="player.hand" />
     </div>

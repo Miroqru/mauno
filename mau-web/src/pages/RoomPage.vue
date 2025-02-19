@@ -48,12 +48,8 @@ onMounted(async () => {
     >
       <Squirrel :size="64" />
       <div>
-        <h2 class="text-xl mb-2 font-bold">
-          А где комната?
-        </h2>
-        <div class="text-stone-300">
-          Кажется что-то пошло не так.
-        </div>
+        <h2 class="text-xl mb-2 font-bold">А где комната?</h2>
+        <div class="text-stone-300">Кажется что-то пошло не так.</div>
       </div>
     </section>
 

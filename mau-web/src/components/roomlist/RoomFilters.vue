@@ -6,7 +6,7 @@ import FilterButton from './FilterButton.vue'
 
 const settingState = useSettingsStore()
 
-const filters: { name: string, orderBy: RoomOrder }[] = [
+const filters: { name: string; orderBy: RoomOrder }[] = [
   { name: 'Дата', orderBy: 'create_time' },
   { name: 'Кристаллы', orderBy: 'gems' },
   { name: 'Игроки', orderBy: 'players' },

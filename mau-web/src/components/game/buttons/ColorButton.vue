@@ -2,7 +2,7 @@
 import { selectColor } from '@/share/api'
 import { Sparkle } from 'lucide-vue-next'
 
-const { color, colorName } = defineProps<{ color: number, colorName: string }>()
+const { color, colorName } = defineProps<{ color: number; colorName: string }>()
 
 async function selectColorCall() {
   await selectColor(color)

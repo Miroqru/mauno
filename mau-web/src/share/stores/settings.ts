@@ -1,7 +1,6 @@
-import type { Category } from '@/share/api/api'
-import type { RoomFilter, RoomOrder } from '@/share/api/types'
-import type { Ref } from 'vue'
+import type { Category, RoomFilter, RoomOrder } from '@/share/api/types'
 import { defineStore } from 'pinia'
+import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 export const useSettingsStore = defineStore('settings', () => {

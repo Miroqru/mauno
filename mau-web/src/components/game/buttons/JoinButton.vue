@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { joinGame } from '@/share/api/api'
+import { joinGame } from '@/share/api'
 import { Play } from 'lucide-vue-next'
 
 // hello

@@ -16,8 +16,7 @@ const userStore = useUserStore()
 router.beforeEach((to) => {
   if (to.fullPath === '/' || to.fullPath === '/login/' || userStore.userId) {
     return true
-  }
-  else {
+  } else {
     return '/login/'
   }
 })

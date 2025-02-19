@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import methods from '@/share/api/api'
 import type { UserDataIn } from '@/share/api/types'
-import { loginUser, registerUser } from '@/share/api/api'
 import { useUserStore } from '@/share/stores/user'
 import { User2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
@@ -18,10 +18,10 @@ const userState = useUserStore()
 
 const isRegisterActive = computed(() => {
   return (
-    username.value !== ''
-    && password.value !== ''
-    && confirmPassword.value !== ''
-    && password.value === confirmPassword.value
+    username.value !== '' &&
+    password.value !== '' &&
+    confirmPassword.value !== '' &&
+    password.value === confirmPassword.value
   )
 })
 
@@ -34,27 +34,25 @@ const isConfirmActive = computed(() => {
 })
 
 async function register(user: UserDataIn) {
-  const res = await registerUser(user)
+  const res = await methods.registerUser(user)
   if (res.type === 'left') {
     errorBadge.value = res.value.detail
     username.value = ''
     password.value = ''
     confirmPassword.value = ''
-  }
-  else {
+  } else {
     await login(user)
   }
 }
 
 async function login(user: UserDataIn) {
-  const res = await loginUser(user)
+  const res = await methods.loginUser(user)
   if (res.type === 'left') {
     errorBadge.value = res.value.detail
     username.value = ''
     password.value = ''
     confirmPassword.value = ''
-  }
-  else {
+  } else {
     userState.logIn(user.username, res.value.token)
     await router.push('/home/')
   }
@@ -63,9 +61,7 @@ async function login(user: UserDataIn) {
 
 <template>
   <section class="border-2 border-stone-600 p-2 max-w-[400px] mx-auto text-center rounded-xl">
-    <h2 class="text-xl mb-4 font-bold">
-      Регистрация / вход
-    </h2>
+    <h2 class="text-xl mb-4 font-bold">Регистрация / вход</h2>
 
     <User2 :size="96" class="align-center mx-auto mb-4 text-stone-100" />
 
@@ -79,14 +75,14 @@ async function login(user: UserDataIn) {
         type="text"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Имя пользователя"
-      >
+      />
 
       <input
         v-model="password"
         type="password"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Пароль"
-      >
+      />
 
       <input
         v-if="isConfirmActive"
@@ -94,7 +90,7 @@ async function login(user: UserDataIn) {
         type="password"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 m-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="ешё разок пароль?"
-      >
+      />
     </form>
 
     <div class="flex gap-2 justify-center mb-2">

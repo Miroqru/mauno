@@ -6,9 +6,7 @@ const { user } = defineProps<{ user: User }>()
 
 <template>
   <section class="p-2 rounded-md bg-stone-800">
-    <h2 class="font-bold text-xl text-center">
-      Подробнее о пользователе
-    </h2>
+    <h2 class="font-bold text-xl text-center">Подробнее о пользователе</h2>
 
     <div class="flex justify-between p-2">
       <div>Короткое имя</div>

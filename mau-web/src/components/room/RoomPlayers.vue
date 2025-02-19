@@ -20,9 +20,7 @@ async function setOwner(user: User) {
 
 <template>
   <section class="my-4">
-    <h2 class="text-xl font-bold">
-      Игроки
-    </h2>
+    <h2 class="text-xl font-bold">Игроки</h2>
 
     <div v-for="player in room.players" :key="player.username" class="flex md:inline-flex gap-1">
       <Crown

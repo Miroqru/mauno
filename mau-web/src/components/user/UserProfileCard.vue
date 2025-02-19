@@ -5,7 +5,7 @@ import { Gem, Sparkle, User2 } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 import LogOutButton from '../buttons/LogOutButton.vue'
 
-const { user, topIndex } = defineProps<{ user: User, topIndex: number }>()
+const { user, topIndex } = defineProps<{ user: User; topIndex: number }>()
 const userStore = useUserStore()
 </script>
 
@@ -17,7 +17,7 @@ const userStore = useUserStore()
       v-if="user.avatar_url"
       :src="user.avatar_url"
       class="w-[128px] h-[128px] rounded-full p-2"
-    >
+    />
     <User2
       v-else
       :src="user.avatar_url"
@@ -28,12 +28,8 @@ const userStore = useUserStore()
         {{ user.name }}<LogOutButton v-if="user.username === userStore.userId" />
       </div>
       <div class="flex text-center gap-4 justify-center text-stone-400">
-        <div class="flex gap-1">
-          {{ user.gems }} <Gem />
-        </div>
-        <RouterLink class="flex gap-1" to="/top">
-          {{ topIndex }} место <Sparkle />
-        </RouterLink>
+        <div class="flex gap-1">{{ user.gems }} <Gem /></div>
+        <RouterLink class="flex gap-1" to="/top"> {{ topIndex }} место <Sparkle /> </RouterLink>
       </div>
     </div>
   </section>

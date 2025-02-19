@@ -26,9 +26,7 @@ watchEffect(async () => {
 
 <template>
   <section class="text-center justify-between bg-linear-170 from-amber-400/40 rounded-xl p-2 mb-4">
-    <h2 class="text-xl mb-2 font-bold">
-      Таблица лидеров
-    </h2>
+    <h2 class="text-xl mb-2 font-bold">Таблица лидеров</h2>
     <div class="text-stone-3003">
       Все эти игроки добились успеха упорным трудом. И вы можете быть среди них.
     </div>

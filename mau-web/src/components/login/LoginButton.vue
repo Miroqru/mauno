@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UserDataIn } from '@/share/api/types'
 
-const { active, user } = defineProps<{ active: boolean, user: UserDataIn }>()
+const { active, user } = defineProps<{ active: boolean; user: UserDataIn }>()
 const emit = defineEmits<{ submit: [UserDataIn] }>()
 </script>
 
@@ -13,7 +13,5 @@ const emit = defineEmits<{ submit: [UserDataIn] }>()
   >
     Войти
   </button>
-  <div v-else class="bg-stone-800 p-2 rounded-md flex-1">
-    Войти
-  </div>
+  <div v-else class="bg-stone-800 p-2 rounded-md flex-1">Войти</div>
 </template>
