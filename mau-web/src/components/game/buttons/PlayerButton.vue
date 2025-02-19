@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { selectPlayer } from '@/share/api'
 import type { OtherPlayer } from '@/share/api/types'
+import { selectPlayer } from '@/share/api'
 import { User2 } from 'lucide-vue-next'
 
 const { player } = defineProps<{ player: OtherPlayer }>()

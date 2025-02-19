@@ -11,6 +11,8 @@ const { showName } = defineProps<{ showName?: boolean }>()
     @click="randomRoom"
   >
     <Shuffle :size="24" />
-    <div v-if="showName">Случайная</div>
+    <div v-if="showName">
+      Случайная
+    </div>
   </button>
 </template>

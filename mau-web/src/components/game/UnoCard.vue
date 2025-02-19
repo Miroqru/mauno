@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { pushCard } from '@/share/api'
 import type { Card } from '@/share/api/types'
+import { pushCard } from '@/share/api'
 
-const { card, active } = defineProps<{ card: Card; active: boolean }>()
+const { card, active } = defineProps<{ card: Card, active: boolean }>()
 
 function getCardImage() {
   const base = active ? 'progressive' : 'progressive_lowsat'
@@ -21,7 +21,7 @@ function getCardImage() {
     class="inline-flex hover:border-2 transition hover:border-teal-300 rounded-2xl h-[128px]"
     @click="pushCard(card)"
   >
-    <img :src="getCardImage()" :alt="getCardImage()" :draggable="true" class="h-[128px]" />
+    <img :src="getCardImage()" :alt="getCardImage()" :draggable="true" class="h-[128px]">
   </button>
-  <img v-else :src="getCardImage()" :alt="getCardImage()" class="h-[128px]" />
+  <img v-else :src="getCardImage()" :alt="getCardImage()" class="h-[128px]">
 </template>

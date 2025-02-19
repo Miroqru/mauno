@@ -7,7 +7,6 @@ import RoomList from '@/components/home/RoomList.vue'
 import UserCard from '@/components/user/UserCard.vue'
 
 import { getRatingIndex } from '@/share/api'
-import { useNotifyStore } from '@/share/stores/notify'
 import { useUserStore } from '@/share/stores/user'
 import { onMounted, ref } from 'vue'
 import RoomCard from '../components/room/RoomCard.vue'
@@ -18,7 +17,6 @@ const me = userStore.getMe()
 const room = userStore.fetchRoom()
 const isMobile = /android|iPad|iPhone|iPod/.test(navigator.userAgent)
 const topIndex = ref(0)
-const notifyState = useNotifyStore()
 
 onMounted(async () => {
   if (me.value == null) {

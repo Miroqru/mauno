@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { getRoomRules, setRoomRules } from '@/share/api'
 import type { Room, RoomRuleData } from '@/share/api/types'
-import { Sparkle } from 'lucide-vue-next'
 import type { Ref } from 'vue'
+import { getRoomRules, setRoomRules } from '@/share/api'
+import { Sparkle } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import RoomRule from './RoomRule.vue'
 
@@ -15,7 +15,7 @@ onMounted(async () => {
 })
 
 async function setModes() {
-  const active_rules = rules.value.filter((rule) => rule.status).map((rule) => rule.key)
+  const active_rules = rules.value.filter(rule => rule.status).map(rule => rule.key)
 
   await setRoomRules(room.id, active_rules)
 }
@@ -23,7 +23,9 @@ async function setModes() {
 
 <template>
   <section class="my-4 md:p-2 md:border-2 md:border-stone-700 rounded-md">
-    <h2 class="text-xl font-bold mb-2">Игровые правила</h2>
+    <h2 class="text-xl font-bold mb-2">
+      Игровые правила
+    </h2>
     <RoomRule
       v-for="[index, rule] in rules.entries()"
       :key="rule.name"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { kickRoomUser, setRoomOwner } from '@/share/api'
 import type { Room, User } from '@/share/api/types'
+import { kickRoomUser, setRoomOwner } from '@/share/api'
 import { useUserStore } from '@/share/stores/user'
 import { CircleX, Crown } from 'lucide-vue-next'
 import UserStatus from '../home/UserStatus.vue'
@@ -20,7 +20,9 @@ async function setOwner(user: User) {
 
 <template>
   <section class="my-4">
-    <h2 class="text-xl font-bold">Игроки</h2>
+    <h2 class="text-xl font-bold">
+      Игроки
+    </h2>
 
     <div v-for="player in room.players" :key="player.username" class="flex md:inline-flex gap-1">
       <Crown

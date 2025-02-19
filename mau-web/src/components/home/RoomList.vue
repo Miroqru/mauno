@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { getRooms } from '@/share/api'
 import type { Room } from '@/share/api/types'
-import { Squirrel } from 'lucide-vue-next'
 import type { Ref } from 'vue'
+import { getRooms } from '@/share/api'
+import { Squirrel } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import NewGame from '../buttons/NewGame.vue'
 import RoomCard from '../roomlist/RoomCard.vue'
@@ -24,8 +24,12 @@ onMounted(async () => {
     <div v-else class="justify-center flex flex-col text-center">
       <Squirrel :size="128" class="align-center mx-auto mb-2 text-stone-200" />
       <div>
-        <div class="font-bold text-stone-200 text-lg">Сейчас никто не играет</div>
-        <div class="text-stone-300">как насчёт того, чтобы создать новую комнату!</div>
+        <div class="font-bold text-stone-200 text-lg">
+          Сейчас никто не играет
+        </div>
+        <div class="text-stone-300">
+          как насчёт того, чтобы создать новую комнату!
+        </div>
         <NewGame :show-name="true" class="align-center mx-auto" />
       </div>
     </div>

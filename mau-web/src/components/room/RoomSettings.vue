@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Room, RoomDataIn } from '@/share/api/types'
 
+import type { Ref } from 'vue'
 import { updateRoom } from '@/share/api'
 import { Check, CheckCircle, Circle } from 'lucide-vue-next'
-import type { Ref } from 'vue'
 import { ref } from 'vue'
 import GemSelector from './GemSelector.vue'
 import RangeSelector from './RangeSelector.vue'
@@ -27,7 +27,9 @@ async function updateRoomSubmit() {
 
 <template>
   <section class="my-4 md:border-2 md:border-stone-700 rounded-md md:p-2">
-    <h2 class="text-xl font-bold mb-2 text-center">Настройки комнаты</h2>
+    <h2 class="text-xl font-bold mb-2 text-center">
+      Настройки комнаты
+    </h2>
 
     <div class="flex flex-col gap-2 mb-2">
       <input
@@ -35,14 +37,14 @@ async function updateRoomSubmit() {
         type="text"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Имя комнаты"
-      />
+      >
 
       <input
         v-model="settings.room_password"
         type="password"
         class="focus:outline focus:outline-teal-500 focus:invalid:border-pink-500 focus:invalid:outline-pink-500 p-2 mx-2 bg-stone-800 border-2 border-stone-700 transition rounded-xl"
         placeholder="Пароль для входа"
-      />
+      >
     </div>
 
     <div class="flex gap-2 mb-2">

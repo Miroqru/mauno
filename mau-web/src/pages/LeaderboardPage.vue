@@ -1,19 +1,17 @@
 <script setup lang="ts">
+import type { User } from '@/share/api/types'
+import type { Ref } from 'vue'
 import HomeButton from '@/components/buttons/HomeButton.vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import UserStatus from '@/components/home/UserStatus.vue'
 import LeaderboardFilters from '@/components/leaderboard/LeaderboardFilters.vue'
 import { getRating, getRatingIndex } from '@/share/api'
-import type { User } from '@/share/api/types'
-import { useNotifyStore } from '@/share/stores/notify'
 import { useSettingsStore } from '@/share/stores/settings'
 import { useUserStore } from '@/share/stores/user'
-import type { Ref } from 'vue'
 import { ref, watchEffect } from 'vue'
 
 const settingState = useSettingsStore()
 const userState = useUserStore()
-const notifyState = useNotifyStore()
 
 const me = userState.getMe()
 const records: Ref<User[]> = ref([])
@@ -28,7 +26,9 @@ watchEffect(async () => {
 
 <template>
   <section class="text-center justify-between bg-linear-170 from-amber-400/40 rounded-xl p-2 mb-4">
-    <h2 class="text-xl mb-2 font-bold">Таблица лидеров</h2>
+    <h2 class="text-xl mb-2 font-bold">
+      Таблица лидеров
+    </h2>
     <div class="text-stone-3003">
       Все эти игроки добились успеха упорным трудом. И вы можете быть среди них.
     </div>
