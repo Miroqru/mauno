@@ -383,5 +383,16 @@ async def push_card_from_hand(
 
     ctx.game.process_turn(card, ctx.player)
 
+    # TODO: Завершаем игры если игроков не осталось
+    if not ctx.game.started:
+        await GameModel.create(
+            create_time=ctx.game.game_start,
+            owner_id=ctx.game.owner.user_id,
+            room=ctx.room,
+            winners_id=[pl.user_id for pl in ctx.game.winners],
+            losers_id=[pl.user_id for pl in ctx.game.winners],
+        )
+        sm.remove(ctx.game.room_id)
+
     # TODO: что-то случилось после этого
     return await context_to_data(ctx)
