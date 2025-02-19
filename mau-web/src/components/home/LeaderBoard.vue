@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import CardHeader from '@/components/home/CardHeader.vue'
-import { getRating } from '@/share/api'
 import type { User } from '@/share/api/types'
 import type { Ref } from 'vue'
+import CardHeader from '@/components/home/CardHeader.vue'
+import { getRating } from '@/share/api'
 import { onMounted, ref } from 'vue'
 import ErrorLoadingCard from '../ErrorLoadingCard.vue'
 import UserStatus from './UserStatus.vue'

@@ -1,4 +1,5 @@
 import type { Either } from '@/share/api/either'
+import { left, right } from '@/share/api/either'
 import type {
   Card,
   Category,
@@ -12,7 +13,6 @@ import type {
   User,
   UserDataIn,
 } from '@/share/api/types'
-import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
 import { useUserStore } from '../stores/user'
 
@@ -30,9 +30,9 @@ const challenges: Challenge[] = [
 // Вспомогательные функция для использования API -----------------------
 
 const API_URL = import.meta.env.VITE_API_URL
-const userState = useUserStore()
 
 async function useApi(url: string, req?: RequestInit): Promise<Either<any, any>> {
+  const userState = useUserStore()
   const res = await fetch(API_URL + toValue(url), {
     headers: {
       'Content-Type': 'application/json',

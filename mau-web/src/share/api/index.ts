@@ -1,12 +1,12 @@
-import type { Card, Category, EditUserDataIn, Room, RoomDataIn, RoomFilter, User } from './types'
-import { useRouter } from 'vue-router'
+import router from '@/app/router'
 import { useNotifyStore } from '../stores/notify'
+import { useUserStore } from '../stores/user'
 import method from './api'
+import type { Card, Category, EditUserDataIn, Room, RoomDataIn, RoomFilter, User } from './types'
 
 // Инициализация хранилищ
-// const userState = useUserStore()
+const userState = useUserStore()
 const notifyState = useNotifyStore()
-const router = useRouter()
 
 // Пользователь ----------------------------------------------------------------
 
@@ -180,12 +180,17 @@ export async function leaveGame() {
 
 // Сессия
 export async function getGame() {
+  if (userState.game !== null) {
+    return userState.game
+  }
+
   const res = await method.fetchGame()
   if (res.type === 'left') {
     notifyState.addNotify('Игра', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -204,6 +209,7 @@ export async function endGame() {
     notifyState.addNotify('Завершение игры', res.value, 'error')
   } else {
     await router.push('/home/')
+    userState.game = null
   }
 }
 
@@ -213,7 +219,8 @@ export async function kickPlayer(player: string) {
     notifyState.addNotify('Изгнание', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -223,7 +230,8 @@ export async function skipPlayer() {
     notifyState.addNotify('Пропуск игрока', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -234,7 +242,8 @@ export async function nextTurn() {
     notifyState.addNotify('Игра', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -244,7 +253,8 @@ export async function takeCards() {
     notifyState.addNotify('Взятие карт', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -254,7 +264,8 @@ export async function shotgunTake() {
     notifyState.addNotify('Взятие карт', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -264,7 +275,8 @@ export async function shotgunShot() {
     notifyState.addNotify('Выстрел', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -274,7 +286,8 @@ export async function bluffCard() {
     notifyState.addNotify('Проверка на честность', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -284,7 +297,8 @@ export async function selectColor(color: number) {
     notifyState.addNotify('Выбор цвета', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -294,7 +308,8 @@ export async function selectPlayer(player: string) {
     notifyState.addNotify('Выбор игрока', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }
 
@@ -304,6 +319,7 @@ export async function pushCard(card: Card) {
     notifyState.addNotify('Отправка карты', res.value, 'error')
     return null
   } else {
-    return res.value
+    userState.game = res.value
+    return userState.game
   }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import methods from '@/share/api/api'
 import type { UserDataIn } from '@/share/api/types'
+import methods from '@/share/api/api'
 import { useUserStore } from '@/share/stores/user'
 import { User2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'

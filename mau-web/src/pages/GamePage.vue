@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { GameContext } from '@/share/api/types'
-import type { Ref } from 'vue'
 import ErrorLoadingCard from '@/components/ErrorLoadingCard.vue'
 import GameButtons from '@/components/game/GameButtons.vue'
 import GameChat from '@/components/game/GameChat.vue'
@@ -9,27 +7,30 @@ import GamePlayers from '@/components/game/GamePlayers.vue'
 import GameTable from '@/components/game/GameTable.vue'
 import UserCards from '@/components/game/UserCards.vue'
 import { getGame } from '@/share/api'
-import { onMounted, ref } from 'vue'
+import { useUserStore } from '@/share/stores/user'
+import { onMounted } from 'vue'
 
-const gameData: Ref<GameContext | null> = ref(null)
-
+const userState = useUserStore()
 onMounted(async () => {
-  gameData.value = await getGame()
+  await getGame()
 })
 </script>
 
 <template>
-  <div v-if="gameData && gameData.game" class="md:flex md:h-[90vh] justify-around gap-2">
+  <div
+    v-if="userState.game && userState.game.game"
+    class="md:flex md:h-[90vh] justify-around gap-2"
+  >
     <div class="flex-1 md:align-center my-auto">
-      <GamePlayers :context="gameData" />
-      <GameTable :context="gameData" />
+      <GamePlayers :context="userState.game" />
+      <GameTable :context="userState.game" />
     </div>
 
     <div>
       <GameChat />
-      <GameButtons :context="gameData" />
-      <UserCards v-if="gameData.player" :player="gameData.player" />
-      <GameControls :context="gameData" />
+      <GameButtons :context="userState.game" />
+      <UserCards v-if="userState.game.player" :player="userState.game.player" />
+      <GameControls :context="userState.game" />
     </div>
   </div>
 

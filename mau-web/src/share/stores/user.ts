@@ -1,13 +1,14 @@
-import method from '@/share/api/api'
-import type { User } from '@/share/api/types'
-import { defineStore } from 'pinia'
+import type { GameContext, User } from '@/share/api/types'
 import type { Ref } from 'vue'
+import method from '@/share/api/api'
+import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
   const userId: Ref<string | null> = ref(localStorage.getItem('userId'))
   const userToken: Ref<string | null> = ref(localStorage.getItem('userToken'))
   const roomId: Ref<string | null> = ref(localStorage.getItem('roomId'))
+  const game: Ref<GameContext | null> = ref(null)
 
   function logIn(username: string, token: string) {
     localStorage.setItem('userId', username)
@@ -95,6 +96,7 @@ export const useUserStore = defineStore('user', () => {
     userId,
     userToken,
     roomId,
+    game,
     logIn,
     logOut,
     getMe,
