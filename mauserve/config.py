@@ -5,6 +5,7 @@
 Данные настройки будут храниться как переменные окружения в .env файле.
 """
 
+import pika
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from redis.asyncio.client import Redis

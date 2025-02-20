@@ -22,6 +22,7 @@ from mau.game import Rule, UnoGame
 from mau.player import Player, SortedCards
 from mauserve.models import RoomModel, UserModel
 from mauserve.schemes.roomlist import RoomMode
+from mauserve.services.connection import NotifyManager
 
 
 class CardData(BaseModel):
@@ -112,6 +113,7 @@ class GameContext:
     room: RoomModel
     game: UnoGame | None
     player: Player | None
+    notify: NotifyManager
 
 
 class ContextData(BaseModel):
@@ -119,6 +121,14 @@ class ContextData(BaseModel):
 
     game: GameData | None
     player: PlayerData | None
+
+
+class EventData(BaseModel):
+    """Событие, отправляемое по сокету."""
+
+    event: str
+    data: str
+    context: ContextData
 
 
 # конвертация моделей
