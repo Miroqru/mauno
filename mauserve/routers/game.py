@@ -65,6 +65,34 @@ async def get_context(user: UserModel = Depends(stm.read_token)) -> GameContext:
     )
 
 
+async def save_game(ctx: GameContext) -> None:
+    game = GameModel(
+        create_time=ctx.game.game_start,
+        owner=await UserModel.get_or_none(username=ctx.game.owner.user_id),
+        room=ctx.room,
+    )
+
+    for pl in ctx.game.winners:
+        winner = await UserModel.get_or_none(username=pl.user_id)
+        if winner is not None:
+            game.winners.add(winner)
+        else:
+            logger.error("Not found winner {}", pl.user_id)
+
+    for pl in ctx.game.losers:
+        loser = await UserModel.get_or_none(username=pl.user_id)
+        if loser is not None:
+            game.losers.add(loser)
+        else:
+            logger.error("Not found loser {}", pl.user_id)
+
+    await game.save()
+    sm.remove(str(ctx.room.id))
+    await broadcast_message(ctx, "end", str(ctx.game.room_id))
+    ctx.game = None
+    ctx.player = None
+
+
 # настройка костылей
 # ==================
 
@@ -137,17 +165,7 @@ async def leave_player_from_room(
     sm.leave(ctx.player)
     # TODO: Сообщение в журнал что такой-то пользователь покинул нас
     if not ctx.game.started:
-        await GameModel.create(
-            create_time=ctx.game.game_start,
-            owner_id=ctx.game.owner.user_id,
-            room=ctx.room,
-            winners_id=[pl.user_id for pl in ctx.game.winners],
-            losers_id=[pl.user_id for pl in ctx.game.winners],
-        )
-        sm.remove(ctx.room.id)
-        await broadcast_message(ctx, "leave", str(ctx.game.room_id))
-        ctx.game = None
-        ctx.player = None
+        await save_game(ctx)
 
     await broadcast_message(ctx, "leave", str(ctx.player.user_id))
     return await context_to_data(ctx)
@@ -215,19 +233,8 @@ async def end_room_game(ctx: GameContext = Depends(get_context)) -> ContextData:
     elif ctx.user.id != ctx.room.owner_id:
         raise HTTPException(401, "You are not a room owner to end this game")
 
-    await GameModel.create(
-        create_time=ctx.game.game_start,
-        owner_id=ctx.game.owner.user_id,
-        room=ctx.room,
-        winners_id=[pl.user_id for pl in ctx.game.winners],
-        losers_id=[pl.user_id for pl in ctx.game.winners],
-    )
-    sm.remove(ctx.game.room_id)
-    ctx.game = None
-    ctx.player = None
-
     # TODO: Оповещение о завершении игры
-    await broadcast_message(ctx, "end", str(ctx.game.room_id))
+    await save_game(ctx)
     return await context_to_data(ctx)
 
 
@@ -247,19 +254,7 @@ async def kick_player(
     ctx.game.remove_player(user_id)
     # TODO: Уведомление что игрок был исключён
     if not ctx.game.started:
-        await GameModel.create(
-            create_time=ctx.game.game_start,
-            owner_id=ctx.game.owner.user_id,
-            room=ctx.room,
-            winners_id=[pl.user_id for pl in ctx.game.winners],
-            losers_id=[pl.user_id for pl in ctx.game.winners],
-        )
-        sm.remove(ctx.game.room_id)
-        # TODO: Оповещение о завершении игры
-        await broadcast_message(ctx, "end", str(ctx.room.id))
-        ctx.game = None
-        ctx.player = None
-
+        await save_game()
     await broadcast_message(ctx, "kick", user_id)
     return await context_to_data(ctx)
 
@@ -383,18 +378,7 @@ async def shotgun_shot(ctx: GameContext = Depends(get_context)) -> ContextData:
     # TODO: Кто там продолжает игру
     # TODO: Игра завершилась
     if not ctx.game.started:
-        await GameModel.create(
-            create_time=ctx.game.game_start,
-            owner_id=ctx.game.owner.user_id,
-            room=ctx.room,
-            winners_id=[pl.user_id for pl in ctx.game.winners],
-            losers_id=[pl.user_id for pl in ctx.game.winners],
-        )
-        sm.remove(ctx.game.room_id)
-        await broadcast_message(ctx, "end", str(ctx.game.room_id))
-        ctx.game = None
-        ctx.player = None
-
+        await save_game(ctx)
     return await context_to_data(ctx)
 
 
@@ -462,17 +446,7 @@ async def push_card_from_hand(
 
     # TODO: Завершаем игры если игроков не осталось
     if not ctx.game.started:
-        await GameModel.create(
-            create_time=ctx.game.game_start,
-            owner_id=ctx.game.owner.user_id,
-            room=ctx.room,
-            winners_id=[pl.user_id for pl in ctx.game.winners],
-            losers_id=[pl.user_id for pl in ctx.game.winners],
-        )
-        sm.remove(ctx.game.room_id)
-        await broadcast_message(ctx, "end", str(ctx.game.room_id))
-        ctx.game = None
-        ctx.player = None
+        await save_game(ctx)
 
     # TODO: что-то случилось после этого
     await broadcast_message(ctx, "card", str(ctx.player.user_id))
