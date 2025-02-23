@@ -103,8 +103,10 @@ class UnoGame:
         self.lobby_message: None | int = None
 
     @property
-    def player(self) -> Player:
+    def player(self) -> Player | None:
         """Возвращает текущего игрока."""
+        if not self.started:
+            return None
         return self.players[self.current_player % len(self.players)]
 
     @property
@@ -303,7 +305,7 @@ class UnoGame:
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
 
-        if self.state == GameState.NEXT:
+        if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
                 self.deck.top.color = CardColor(randint(0, 3))
             if self.deck.top.cost == 1 and self.rules.side_effect.status:
