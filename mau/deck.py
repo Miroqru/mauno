@@ -166,3 +166,18 @@ class Deck:
             self.cards.append(ChooseColorCard())
             self.cards.append(TakeFourCard())
         self.shuffle()
+
+    def fill_debug(self) -> None:
+        """Загружает все доступные карты в единственном экземпляре."""
+        logger.info("Add wild card set in deck")
+        self.clear()
+
+        self.cards.append(ChooseColorCard())
+        self.cards.append(TakeFourCard())
+
+        for c in (0, 1, 2, 3):
+            for value in range(10):
+                self.cards.append(NumberCard(CardColor(c), value))
+            self.cards.append(ReverseCard(CardColor(c)))
+            self.cards.append(TurnCard(CardColor(c), 1))
+            self.cards.append(TakeCard(CardColor(c)))
