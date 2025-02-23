@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+from mau import exceptions
 from mau.game import UnoGame
 from mau.messages import get_room_players
 from maubot.config import config
@@ -212,3 +213,24 @@ def get_room_status(game: UnoGame) -> str:
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
         f"{len(game.deck.used_cards)} использовано.\n{shotgun_stats}"
     )
+
+
+def get_error_message(exc: Exception) -> str:
+    """Возвращает сообщение об ошибке."""
+    if isinstance(exc, exceptions.NoGameInChatError):
+        return NO_ROOM_MESSAGE
+
+    if isinstance(exc, exceptions.AlreadyJoinedError):
+        return "👋 Вы уже с нами в комнате"
+
+    if isinstance(exc, exceptions.LobbyClosedError):
+        return (
+            "🔒 К сожалению данная комната <b>закрыта</b>.\n"
+            "Вы можете попросить владельца комнаты открыть"
+            "комнату или дождаться окончания игра."
+        )
+
+    if isinstance(exc, exceptions.NotEnoughPlayersError):
+        return NOT_ENOUGH_PLAYERS
+
+    return f"👀 Что-то пошло не по плану...\n\n{exc}"

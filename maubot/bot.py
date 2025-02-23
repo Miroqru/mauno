@@ -14,6 +14,7 @@ from loguru import logger
 
 from maubot.config import config, default, sm
 from maubot.handlers import ROUTERS
+from maubot.messages import get_error_message
 from maubot.utils import get_context
 
 # Константы
@@ -66,12 +67,7 @@ async def catch_errors(event: ErrorEvent) -> None:
         message = None
 
     if message is not None:
-        await message.answer(
-            text=(
-                "❌ <b>Что-то явно пошло не по плану...</b>\n\n"
-                f"{event.exception}"
-            )
-        )
+        await message.answer(get_error_message(event.exception))
 
 
 # Главная функция запуска бота

@@ -67,7 +67,7 @@ async def process_card_handler(
         game.journal.add(f"😈 {player.name} вмешался в игру.")
         game.set_current_player(player)
 
-    if result.result_id == "pass":
+    elif result.result_id == "pass":
         game.next_turn()
 
     elif result.result_id == "take":
