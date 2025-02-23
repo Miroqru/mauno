@@ -103,10 +103,10 @@ class UnoGame:
         self.lobby_message: None | int = None
 
     @property
-    def player(self) -> Player | None:
+    def player(self) -> Player:
         """Возвращает текущего игрока."""
-        if not self.started:
-            return None
+        if len(self.players) == 0:
+            raise ValueError("Game not started to get players")
         return self.players[self.current_player % len(self.players)]
 
     @property
@@ -156,7 +156,8 @@ class UnoGame:
 
     def take_first_card(self) -> None:
         """Берёт первую карту для начали игры."""
-        while self.deck.top is None or self.deck.top.color == CardColor.BLACK:
+        # Это конечно костыль, тем ен менее сейчас это лучшее решение
+        while self.deck._top is None or self.deck._top.color == CardColor.BLACK:
             card = self.deck.take_one()
             if card.color == CardColor.BLACK:
                 self.deck.put(card)
@@ -272,12 +273,12 @@ class UnoGame:
             if not self.started:
                 self.journal.add(end_game_message(self))
 
-        elif card.cost == TWIST_HAND_NUM or self.rules.twist_hand.status:
+        elif card.cost == TWIST_HAND_NUM and self.rules.twist_hand.status:
             self.journal.add(f"✨ {player.name} Задумывается c кем обменяться.")
             self.state = GameState.TWIST_HAND
             self.journal.set_actions(select_player_markup(self))
 
-        elif self.rules.rotate_cards.status or self.deck.top.cost == 0:
+        elif self.rules.rotate_cards.status and self.deck.top.cost == 0:
             self.rotate_cards()
             self.journal.add(
                 "🤝 Все игроки обменялись картами по кругу.\n"
