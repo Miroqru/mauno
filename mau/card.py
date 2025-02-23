@@ -391,7 +391,7 @@ class TakeFourCard(BaseCard):
 # =====================
 
 
-def card_from_str(card_str: str) -> BaseCard:
+def card_from_str(card_str: str) -> BaseCard | None:
     """Превращает строку карты в действительный экземпляр.
 
     Обратное действие для получения экземпляра карты из строки.
@@ -401,7 +401,7 @@ def card_from_str(card_str: str) -> BaseCard:
         r"(|skip|reverse|take|color|take_four)([0-4])([0-9])", card_str
     )
     if card_match is None:
-        raise ValueError("Incorrect card str")
+        return None
 
     c_type, c_color, c_value = card_match.groups()
 
@@ -411,7 +411,7 @@ def card_from_str(card_str: str) -> BaseCard:
     elif c_type == "take_four":
         return TakeFourCard()
 
-    elif c_type == "":
+    elif c_type == "skip":
         return TurnCard(CardColor(int(c_color)), int(c_value))
 
     elif c_type == "take":
@@ -420,8 +420,5 @@ def card_from_str(card_str: str) -> BaseCard:
     elif c_type == "reverse":
         return ReverseCard(CardColor(int(c_color)))
 
-    elif c_type == "skip":
+    elif c_type == "":
         return NumberCard(CardColor(int(c_color)), int(c_value))
-
-    else:
-        raise ValueError("Incorrect card str")
