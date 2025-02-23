@@ -97,7 +97,7 @@ async def process_card_handler(
 
     card = card_from_str(result.result_id)
     if card is not None:
-        game.process_turn(card, player)
+        await game.process_turn(card, player)
 
     if game.started and game.state == GameState.NEXT:
         game.journal.add(
@@ -107,6 +107,10 @@ async def process_card_handler(
         )
 
     await game.journal.send_journal()
+
+    # возможно ты братишка костыль
+    if not game.started:
+        sm.remove(game.room_id)
 
 
 # Обработчики для кнопок

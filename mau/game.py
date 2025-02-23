@@ -255,12 +255,11 @@ class UnoGame:
                 self.current_player = i
                 return
 
-    def process_turn(self, card: BaseCard, player: Player) -> None:
+    async def process_turn(self, card: BaseCard, player: Player) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
         self.deck.put_on_top(card)
         player.hand.remove(card)
-        self.journal.set_actions(None)
 
         card(self)
 
@@ -272,6 +271,7 @@ class UnoGame:
             self.remove_player(player.user_id)
             if not self.started:
                 self.journal.add(end_game_message(self))
+                self.journal.set_actions(None)
 
         elif card.cost == TWIST_HAND_NUM and self.rules.twist_hand.status:
             self.journal.add(f"✨ {player.name} Задумывается c кем обменяться.")
@@ -305,6 +305,8 @@ class UnoGame:
             )
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
+
+        self.journal.send_journal()
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
