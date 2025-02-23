@@ -406,19 +406,24 @@ def card_from_str(card_str: str) -> BaseCard | None:
     c_type, c_color, c_value = card_match.groups()
 
     if c_type == "color":
-        return ChooseColorCard()
+        card: BaseCard | None = ChooseColorCard()
 
     elif c_type == "take_four":
-        return TakeFourCard()
+        card = TakeFourCard()
 
     elif c_type == "skip":
-        return TurnCard(CardColor(int(c_color)), int(c_value))
+        card = TurnCard(CardColor(int(c_color)), int(c_value))
 
     elif c_type == "take":
-        return TakeCard(CardColor(int(c_color)), int(c_value))
+        card = TakeCard(CardColor(int(c_color)), int(c_value))
 
     elif c_type == "reverse":
-        return ReverseCard(CardColor(int(c_color)))
+        card = ReverseCard(CardColor(int(c_color)))
 
     elif c_type == "":
-        return NumberCard(CardColor(int(c_color)), int(c_value))
+        card = NumberCard(CardColor(int(c_color)), int(c_value))
+
+    else:
+        card = None
+
+    return card
