@@ -12,17 +12,14 @@ from telethon.tl.functions.messages import (
 from telethon.tl.types import InputStickerSetID
 from telethon.utils import pack_bot_file_id
 
+from mau.deck import Deck
+
 # Constants
 # =========
 
 # Configure paths
 # Script directory (.../projects/maubot/images)
 ROOT_DIR = Path(__file__).resolve().parent
-
-# Configure cards groups
-CARD_TYPES = ["skip", "reverse", "take"]
-SPECIALS = ["color40", "take_four40"]
-OPTIONS = ["bluff", "draw", "info", "next_turn"]
 
 # Read config fire
 # Create this config file by copying the example file
@@ -49,9 +46,48 @@ client = TelegramClient(
 )
 client.start()
 
+# Configure cards groups
+OPTIONS = [
+    "bluff",
+    "draw",
+    "info",
+    "next_turn",
+]
+# Колода карт
+deck = Deck()
+deck.fill_debug()
+cards = [card.to_str() for card in deck.cards]
+
 
 # Functions
 # =========
+
+
+def test_sticker_files() -> bool:
+    """Проверяет что все файлы с изображениями существуют."""
+    error_flag = False
+    error_counter = 0
+
+    for card in cards:
+        card_path = NORMAL_DIR / f"{card}.png"
+        unplayable_card_path = NOT_PLAYABLE_DIR / f"{card}.png"
+
+        if card_path.exists():
+            print(f"\033[92m{card_path.name}\033[0m | ", end="")
+        else:
+            print(f"\033[91m{card_path.name}\033[0m | ", end="")
+            error_flag = True
+            error_counter = 0
+
+        if unplayable_card_path.exists():
+            print(f"\033[92m{unplayable_card_path.name}\033[0m")
+        else:
+            print(f"\033[91m{unplayable_card_path.name}\033[0m")
+            error_flag = True
+            error_counter = 0
+
+    print(f"Found {error_counter} missed cards.")
+    return error_flag
 
 
 async def delete_if_existing(stickers_bot: int) -> None:
@@ -99,19 +135,8 @@ async def get_sticker_ids(sticker_set: int) -> dict[str, dict]:
 
     # Normal and not_playable sticker groups
     for group in ("normal", "not_playable"):
-        for special in SPECIALS:
-            stickers[group][special] = pack_bot_file_id(next(sticker_iterator))
-
-        for color in range(0, 4):
-            for number in range(0, 10):
-                stickers[group][f"{color}{number}"] = pack_bot_file_id(
-                    next(sticker_iterator)
-                )
-
-            for ctype in CARD_TYPES:
-                stickers[group][f"{ctype}{color}0"] = pack_bot_file_id(
-                    next(sticker_iterator)
-                )
+        for card in cards:
+            stickers[group][card] = pack_bot_file_id(next(sticker_iterator))
 
     # Option stickers
     for option in OPTIONS:
@@ -148,22 +173,9 @@ async def upload_sticker_group(
     """Отправляет группу стикеров в набор."""
     image_path = NOT_PLAYABLE_DIR if not_playable else NORMAL_DIR
 
-    for special in SPECIALS:
-        await upload_sticker(stickers_bot, image_path / f"{special}.png")
+    for card in cards:
+        await upload_sticker(stickers_bot, image_path / f"{card}.png")
         await asyncio.sleep(1)
-
-    for color in range(0, 4):
-        for number in range(0, 10):
-            await upload_sticker(
-                stickers_bot, image_path / f"{color}{number}.png"
-            )
-            await asyncio.sleep(1)
-
-        for ctype in CARD_TYPES:
-            await upload_sticker(
-                stickers_bot, image_path / f"{ctype}{color}.png"
-            )
-            await asyncio.sleep(1)
 
 
 # Main function
@@ -181,6 +193,10 @@ async def main() -> None:
     ## add the sticker pack to your account
     await save_sticker_ids()
     return
+
+    err = test_sticker_files()
+    if err:
+        raise FileNotFoundError("Not found some cards")
 
     # Delete the existing sticker set if it exists
     await delete_if_existing(stickers_bot)
