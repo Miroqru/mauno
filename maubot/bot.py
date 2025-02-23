@@ -8,26 +8,17 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import (
-    CallbackQuery,
-    ChatMemberUpdated,
-    ChosenInlineResult,
-    ErrorEvent,
-    InlineQuery,
-    Message,
-    Update,
-)
+from aiogram.types import ErrorEvent, Update
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
-from mau.session import TelegramSessionManager
-from maubot.config import config, default
+from maubot.config import config, default, sm
 from maubot.handlers import ROUTERS
+from maubot.utils import get_context
 
 # Константы
 # =========
 
-sm = TelegramSessionManager()
 dp = Dispatcher(sm=sm)
 
 
@@ -54,26 +45,9 @@ async def game_middleware(
     data: dict[str, Any],
 ) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    if isinstance(event, Message | ChatMemberUpdated):
-        game = sm.games.get(str(event.chat.id))
-    elif isinstance(event, CallbackQuery):
-        if event.message is None:
-            chat_id = sm.user_to_chat.get(str(event.from_user.id))
-            game = None if chat_id is None else sm.games.get(chat_id)
-        else:
-            game = sm.games.get(event.message.chat.id)
-    elif isinstance(event, InlineQuery | ChosenInlineResult):
-        chat_id = sm.user_to_chat.get(str(event.from_user.id))
-        game = None if chat_id is None else sm.games.get(chat_id)
-    else:
-        raise ValueError("Unknown update type")
-
-    data["game"] = game
-    data["player"] = (
-        None
-        if game is None or event.from_user is None
-        else game.get_player(str(event.from_user.id))
-    )
+    context = get_context(sm, event)
+    data["game"] = context.game
+    data["player"] = context.player
     return await handler(event, data)
 
 

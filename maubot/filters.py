@@ -9,9 +9,9 @@
 from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
-from mau.game import UnoGame
-from mau.player import Player
+from maubot.config import sm
 from maubot.messages import NO_JOIN_MESSAGE, NO_ROOM_MESSAGE
+from maubot.utils import get_context
 
 
 class ActiveGame(Filter):
@@ -20,20 +20,18 @@ class ActiveGame(Filter):
     Даёт гарантию что в данном чате имеется игра.
     """
 
-    async def __call__(
-        self,
-        query: CallbackQuery,
-        message: Message,
-        game: UnoGame | None,
-    ) -> bool:
+    async def __call__(self, event: CallbackQuery | Message) -> bool:
         """Проверяет что игра существует."""
-        if game is not None:
+        context = get_context(sm, event)
+
+        if context.game is not None:
             return True
 
-        if query is not None and query.message is not None:
-            await query.message.answer(NO_ROOM_MESSAGE)
-        elif message is not None:
-            await message.answer(NO_ROOM_MESSAGE)
+        if isinstance(event, CallbackQuery) and event.message is not None:
+            await event.message.answer(NO_ROOM_MESSAGE)
+
+        elif isinstance(event, Message):
+            await event.answer(NO_ROOM_MESSAGE)
 
         return False
 
@@ -46,26 +44,24 @@ class ActivePlayer(Filter):
     автоматические проверяется.
     """
 
-    async def __call__(
-        self,
-        query: CallbackQuery,
-        message: Message,
-        game: UnoGame | None,
-        player: Player | None,
-    ) -> bool:
+    async def __call__(self, event: CallbackQuery | Message) -> bool:
         """Проверяет что данный игрок есть в игре."""
-        if game is None:
-            if query is not None and query.message is not None:
-                await query.message.answer(NO_ROOM_MESSAGE)
-            elif message is not None:
-                await message.answer(NO_ROOM_MESSAGE)
+        context = get_context(sm, event)
+
+        if context.game is None:
+            if isinstance(event, CallbackQuery) and event.message is not None:
+                await event.message.answer(NO_ROOM_MESSAGE)
+
+            elif isinstance(event, Message):
+                await event.answer(NO_ROOM_MESSAGE)
             return False
 
-        if player is None:
-            if query is not None and query.message is not None:
-                await query.message.answer(NO_JOIN_MESSAGE)
-            elif message is not None:
-                await message.answer(NO_JOIN_MESSAGE)
+        if context.player is None:
+            if isinstance(event, CallbackQuery) and event.message is not None:
+                await event.message.answer(NO_JOIN_MESSAGE)
+
+            elif isinstance(event, Message):
+                await event.answer(NO_JOIN_MESSAGE)
             return False
 
         return True
@@ -79,35 +75,34 @@ class GameOwner(Filter):
     Это полезно в некоторых административных командах.
     """
 
-    async def __call__(
-        self,
-        query: CallbackQuery,
-        message: Message,
-        game: UnoGame | None,
-        player: Player | None,
-    ) -> bool:
+    async def __call__(self, event: CallbackQuery | Message) -> bool:
         """Проверяет что данный игрок создатель комнаты."""
-        if game is None:
-            if query is not None and query.message is not None:
-                await query.message.answer(NO_ROOM_MESSAGE)
-            elif message is not None:
-                await message.answer(NO_ROOM_MESSAGE)
+        context = get_context(sm, event)
+
+        if context.game is None:
+            if isinstance(event, CallbackQuery) and event.message is not None:
+                await event.message.answer(NO_ROOM_MESSAGE)
+
+            elif isinstance(event, Message):
+                await event.answer(NO_ROOM_MESSAGE)
             return False
 
-        if player is None:
-            if query is not None and query.message is not None:
-                await query.message.answer(NO_JOIN_MESSAGE)
-            elif message is not None:
-                await message.answer(NO_JOIN_MESSAGE)
+        if context.player is None:
+            if isinstance(event, CallbackQuery) and event.message is not None:
+                await event.message.answer(NO_JOIN_MESSAGE)
+
+            elif isinstance(event, Message):
+                await event.answer(NO_JOIN_MESSAGE)
             return False
 
-        if player != game.owner:
-            if query is not None and query.message is not None:
-                await query.message.answer(
+        if context.player != context.game.owner:
+            if isinstance(event, CallbackQuery) and event.message is not None:
+                await event.message.answer(
                     "🔑 Выполнить эту команду может только создатель комнаты."
                 )
-            elif message is not None:
-                await message.answer(
+
+            elif isinstance(event, Message):
+                await event.answer(
                     "🔑 Выполнить эту команду может только создатель комнаты."
                 )
             return False
@@ -128,16 +123,18 @@ class NowPlaying(Filter):
     игровых режимов.
     """
 
-    async def __call__(
-        self, query: CallbackQuery, game: UnoGame | None, player: Player | None
-    ) -> bool:
+    async def __call__(self, event: CallbackQuery) -> bool:
         """Проверяет что текущий игрок имеет право сделать ход."""
-        if game is None or player is None:
-            await query.answer("🍉 А вы точно сейчас играете?")
+        context = get_context(sm, event)
+        if context.game is None or context.player is None:
+            await event.answer("🍉 А вы точно сейчас играете?")
             return False
 
-        if game.player == player or game.rules.ahead_of_curve.status:
+        if (
+            context.game.player == context.player
+            or context.game.rules.ahead_of_curve.status
+        ):
             return True
 
-        await query.answer("🍉 А сейчас точно ваш ход?")
+        await event.answer("🍉 А сейчас точно ваш ход?")
         return False

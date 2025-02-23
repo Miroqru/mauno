@@ -10,6 +10,8 @@ from loguru import logger
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from mau.session import TelegramSessionManager
+
 
 class Config(BaseSettings):
     """Общие настройки для Telegram бота, касающиеся Uno.
@@ -70,3 +72,4 @@ except FileNotFoundError as e:
 
 # Настройки бота по умолчанию
 default = DefaultBotProperties(parse_mode="html")
+sm = TelegramSessionManager()
