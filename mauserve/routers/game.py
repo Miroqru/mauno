@@ -16,16 +16,13 @@ from mauserve.config import sm, stm
 from mauserve.models import GameModel, RoomModel, UserModel
 from mauserve.schemes.game import (
     ContextData,
-    EventData,
     GameContext,
     card_schema_to_card,
     context_to_data,
 )
-from mauserve.services.connection import NotifyManager
+from mauserve.services.events import WebSocketEventHandler
 
 router = APIRouter(prefix="/game", tags=["games"])
-
-# TODO: Тут будет не дурно систему оповещения сделать потом
 
 
 async def get_context(user: UserModel = Depends(stm.read_token)) -> GameContext:
@@ -53,19 +50,16 @@ async def get_context(user: UserModel = Depends(stm.read_token)) -> GameContext:
     else:
         player = None
 
-    if str(room.id) not in rooms:
-        rooms[str(room.id)] = NotifyManager()
-
     return GameContext(
         user=user,
         room=room,
         game=game,
         player=player,
-        notify=rooms[str(room.id)],
     )
 
 
 async def save_game(ctx: GameContext) -> None:
+    """Записывает игру в базу данных."""
     game = GameModel(
         create_time=ctx.game.game_start,
         owner=await UserModel.get_or_none(username=ctx.game.owner.user_id),
@@ -88,41 +82,24 @@ async def save_game(ctx: GameContext) -> None:
 
     await game.save()
     sm.remove(str(ctx.room.id))
-    await broadcast_message(ctx, "end", str(ctx.game.room_id))
     ctx.game = None
     ctx.player = None
 
 
-# настройка костылей
-# ==================
-
-
-# Хранение активных соединений по комнатам
-rooms: dict[str, NotifyManager] = {}
-
-
-async def broadcast_message(ctx: GameContext, event_type: str, event_data: str):
-    await ctx.notify.push(
-        EventData(
-            event=event_type,
-            data=event_data,
-            context=await context_to_data(ctx),
-        )
-    )
-
-
 @router.websocket("/{room_id}")
-async def add_client(room_id: str, websocket: WebSocket):
-    if room_id not in rooms:
-        rooms[room_id] = NotifyManager()
-    await rooms[room_id].connect(websocket)
+async def add_client(
+    room_id: str,
+    websocket: WebSocket,
+) -> None:
+    """Добавляет нового клиента для прослушивания игровых событий."""
+    await sm.chat_journal[room_id].connect(websocket)
 
     try:
         while True:
             data = await websocket.receive_text()
             logger.info(data)
     except WebSocketDisconnect:
-        await rooms[room_id].disconnect(websocket)
+        await sm.chat_journal[room_id].disconnect(websocket)
 
 
 # Player routers
@@ -143,11 +120,7 @@ async def join_player_to_game(
     if ctx.player is not None:
         raise HTTPException(409, "Player already join to room")
 
-    # TODO: Ошибки кто обрабатывать будет? А?
     sm.join(ctx.room.id, BaseUser(ctx.user.username, ctx.user.name))
-
-    # TODO: Рассказываем всем в комнате что у нас новичок появился
-    await broadcast_message(ctx, "join", str(ctx.player.user_id))
     return await context_to_data(ctx)
 
 
@@ -163,11 +136,9 @@ async def leave_player_from_room(
         raise HTTPException(404, "Room or player not found to leave from game")
 
     sm.leave(ctx.player)
-    # TODO: Сообщение в журнал что такой-то пользователь покинул нас
     if not ctx.game.started:
         await save_game(ctx)
 
-    await broadcast_message(ctx, "leave", str(ctx.player.user_id))
     return await context_to_data(ctx)
 
 
@@ -206,6 +177,7 @@ async def start_room_game(
     ctx.game = sm.create(
         str(ctx.room.id),
         BaseUser(ctx.user.username, ctx.user.name),
+        WebSocketEventHandler(),
     )
 
     # Сразу добавляем всех игроков из комнаты
@@ -216,9 +188,6 @@ async def start_room_game(
         sm.join(str(ctx.room.id), BaseUser(user.username, user.name))
 
     ctx.game.start()
-    # TODO: Оповещение о начале игры тут должно быть
-
-    await broadcast_message(ctx, "start", str(ctx.room.id))
     return await context_to_data(ctx)
 
 
@@ -233,7 +202,6 @@ async def end_room_game(ctx: GameContext = Depends(get_context)) -> ContextData:
     elif ctx.user.id != ctx.room.owner_id:
         raise HTTPException(401, "You are not a room owner to end this game")
 
-    # TODO: Оповещение о завершении игры
     await save_game(ctx)
     return await context_to_data(ctx)
 
@@ -252,10 +220,8 @@ async def kick_player(
         raise HTTPException(401, "You are not a room owner to kik player")
 
     ctx.game.remove_player(user_id)
-    # TODO: Уведомление что игрок был исключён
     if not ctx.game.started:
         await save_game()
-    await broadcast_message(ctx, "kick", user_id)
     return await context_to_data(ctx)
 
 
@@ -270,11 +236,7 @@ async def skip_player(ctx: GameContext = Depends(get_context)) -> ContextData:
 
     ctx.game.take_counter += 1
     ctx.game.player.take_cards()
-    # skip_player = ctx.game.player
     ctx.game.next_turn()
-    # TODO: Оповещаем что игрок зазевался и пропустил свой ход
-
-    await broadcast_message(ctx, "skip", str(ctx.player.user_id))
     return await context_to_data(ctx)
 
 
@@ -297,8 +259,6 @@ async def next_turn(ctx: GameContext = Depends(get_context)) -> ContextData:
         raise HTTPException(404, "It's not your turn to skip it.")
 
     ctx.game.next_turn()
-    # TODO: Отправляем уведомление следующему игроку
-    await broadcast_message(ctx, "next", "")
     return await context_to_data(ctx)
 
 
@@ -317,10 +277,7 @@ async def take_cards(ctx: GameContext = Depends(get_context)) -> ContextData:
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
 
-    await ctx.player.call_take_cards()
-    # TODO: Оповещаем что вообще произошло
-    # TODO: Может игроку надо из револьвера стрельнуть
-    await broadcast_message(ctx, "take", str(ctx.player.user_id))
+    ctx.player.call_take_cards()
     return await context_to_data(ctx)
 
 
@@ -338,18 +295,12 @@ async def shotgun_take_cards(
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
 
-    # TODO: Кто-то взял картишки
     ctx.player.take_cards()
-    # TODO: Картишки кончились
-
-    # TODO: Ну кто там ходит дальше
     if (
         isinstance(ctx.game.deck.top, TakeCard | TakeFourCard)
         and ctx.game.take_counter
     ):
         ctx.game.next_turn()
-
-    await broadcast_message(ctx, "shot-take", str(ctx.player.user_id))
     return await context_to_data(ctx)
 
 
@@ -361,12 +312,9 @@ async def shotgun_shot(ctx: GameContext = Depends(get_context)) -> ContextData:
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
 
-    await broadcast_message(ctx, "shot-shot", str(ctx.player.user_id))
     res = ctx.player.shotgun()
     if res:
-        # TODO: прощайте, ребята
         sm.leave(ctx.player)
-        await broadcast_message(ctx, "kick", str(ctx.player.user_id))
 
     else:
         ctx.game.take_counter = round(ctx.game.take_counter * 1.5)
@@ -375,8 +323,6 @@ async def shotgun_shot(ctx: GameContext = Depends(get_context)) -> ContextData:
         ctx.game.next_turn()
         ctx.game.state = GameState.SHOTGUN
 
-    # TODO: Кто там продолжает игру
-    # TODO: Игра завершилась
     if not ctx.game.started:
         await save_game(ctx)
     return await context_to_data(ctx)
@@ -390,10 +336,7 @@ async def bluff_player(ctx: GameContext = Depends(get_context)) -> ContextData:
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
 
-    await ctx.player.call_bluff()
-
-    # TODO: Какой-то результат деятельности имеется
-    await broadcast_message(ctx, "bluff", str(ctx.player.user_id))
+    ctx.player.call_bluff()
     return await context_to_data(ctx)
 
 
@@ -407,8 +350,6 @@ async def select_card_color(
     elif ctx.player is None:
         raise HTTPException(404, "You are not a game player")
     ctx.game.choose_color(color)
-    # TODO: Звуки суеты
-    await broadcast_message(ctx, "color", str(color))
     return await context_to_data(ctx)
 
 
@@ -424,10 +365,7 @@ async def select_player(
 
     other_player = ctx.game.get_player(user_id)
     if ctx.game.state == GameState.TWIST_HAND:
-        # TODO: Произошёл обмен картами
         ctx.player.twist_hand(other_player)
-
-    await broadcast_message(ctx, "select-player", user_id)
     return await context_to_data(ctx)
 
 
@@ -444,10 +382,7 @@ async def push_card_from_hand(
 
     ctx.game.process_turn(card, ctx.player)
 
-    # TODO: Завершаем игры если игроков не осталось
     if not ctx.game.started:
         await save_game(ctx)
 
-    # TODO: что-то случилось после этого
-    await broadcast_message(ctx, "card", str(ctx.player.user_id))
     return await context_to_data(ctx)

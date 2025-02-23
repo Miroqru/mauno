@@ -22,7 +22,6 @@ from mau.game import Rule, UnoGame
 from mau.player import Player, SortedCards
 from mauserve.models import RoomModel, UserModel
 from mauserve.schemes.roomlist import RoomMode
-from mauserve.services.connection import NotifyManager
 
 
 class CardData(BaseModel):
@@ -47,7 +46,7 @@ class CardDeckData(BaseModel):
     использовано,
     """
 
-    top: CardData
+    top: CardData | None
     cards: int
     used: int
 
@@ -113,7 +112,6 @@ class GameContext:
     room: RoomModel
     game: UnoGame | None
     player: Player | None
-    notify: NotifyManager
 
 
 class ContextData(BaseModel):
@@ -121,14 +119,6 @@ class ContextData(BaseModel):
 
     game: GameData | None
     player: PlayerData | None
-
-
-class EventData(BaseModel):
-    """Событие, отправляемое по сокету."""
-
-    event: str
-    data: str
-    context: ContextData
 
 
 # конвертация моделей
@@ -147,7 +137,7 @@ def card_to_data(card: BaseCard) -> CardData:
 def deck_to_data(deck: Deck) -> CardDeckData:
     """Преобразует колоду карт в схему, оставляя только количество карт."""
     return CardDeckData(
-        top=card_to_data(deck.top),
+        top=card_to_data(deck._top) if deck._top else None,
         cards=len(deck.cards),
         used=len(deck.used_cards),
     )
