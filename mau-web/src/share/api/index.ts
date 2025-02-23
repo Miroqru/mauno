@@ -180,10 +180,6 @@ export async function leaveGame() {
 
 // Сессия
 export async function getGame() {
-  if (userState.game !== null) {
-    return userState.game
-  }
-
   const res = await method.fetchGame()
   if (res.type === 'left') {
     notifyState.addNotify('Игра', res.value, 'error')

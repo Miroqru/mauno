@@ -21,13 +21,13 @@ onMounted(async () => {
     v-if="userState.game && userState.game.game"
     class="md:flex md:h-[90vh] justify-around gap-2"
   >
-    <div class="flex-1 md:align-center my-auto">
+    <div class="flex-1 flex-1 md:align-center my-auto">
       <GamePlayers :context="userState.game" />
       <GameTable :context="userState.game" />
     </div>
 
-    <div>
-      <GameChat />
+    <div class="md:w-[40%]">
+      <GameChat :context="userState.game" />
       <GameButtons :context="userState.game" />
       <UserCards v-if="userState.game.player" :player="userState.game.player" />
       <GameControls :context="userState.game" />
