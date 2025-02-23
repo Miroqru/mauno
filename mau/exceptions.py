@@ -3,8 +3,6 @@
 Собраны в одном месте для удобства.
 """
 
-# TODO: Сделать исключение более конкретными
-
 
 class NoGameInChatError(Exception):
     """If there is no active game created in the chat.
@@ -35,23 +33,5 @@ class NotEnoughPlayersError(Exception):
 
 class DeckEmptyError(Exception):
     """When the deck runs out of cards."""
-
-    pass
-
-
-class ClassCoverError(Exception):
-    """When the user tries to cover with the wrong card."""
-
-    pass
-
-
-class GameNotStartedError(Exception):
-    """When the user tries to action in not started game."""
-
-    pass
-
-
-class NotGameOwnerError(Exception):
-    """When user tries to user room owner action."""
 
     pass
