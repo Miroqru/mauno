@@ -310,7 +310,7 @@ class UnoGame:
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
 
-        self.journal.send_journal()
+        await self.journal.send_journal()
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
