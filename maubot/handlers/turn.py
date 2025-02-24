@@ -128,6 +128,11 @@ async def choose_color_call(
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
+
+    # Поскольку цвет уже выбран, нам бы убрать клавиатуру
+    game.journal.set_actions(None)
+    await game.journal.send_journal()
+
     game.choose_color(card_color)
     game.journal.add(f"🎨 Я выбираю цвет.. {card_color}\n")
     game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
