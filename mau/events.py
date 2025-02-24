@@ -78,15 +78,10 @@ class GameEvents(StrEnum):
 class Event:
     """Игровое событие."""
 
-    from_player: str
+    player: "Player"
     event_type: GameEvents
     data: str
     game: "UnoGame"
-
-    @property
-    def player(self) -> "Player" | None:
-        """Сокращение для получения игрока из события."""
-        return self.game.get_player(self.from_player)
 
 
 # Абстрактные классы

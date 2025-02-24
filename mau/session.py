@@ -41,11 +41,11 @@ class SessionManager:
         if not game.open:
             raise LobbyClosedError()
 
-        game.add_player(user)
+        player = game.add_player(user)
         self.user_to_chat[user.id] = room_id
         logger.debug(self.user_to_chat)
         self.chat_journal[room_id].push(
-            Event(user.id, GameEvents.SESSION_JOIN, "", game)
+            Event(player, GameEvents.SESSION_JOIN, "", game)
         )
 
     def leave(self, player: Player) -> None:
@@ -63,7 +63,7 @@ class SessionManager:
         game.players.remove(player)
         self.user_to_chat.pop(player.user_id)
         self.chat_journal[room_id].push(
-            Event(player.user_id, GameEvents.SESSION_LEAVE, "", game)
+            Event(player, GameEvents.SESSION_LEAVE, "", game)
         )
 
         if len(game.players) <= 1:
@@ -90,7 +90,7 @@ class SessionManager:
         self.user_to_chat[user.id] = room_id
         self.chat_journal[room_id] = event_handler
         self.chat_journal[room_id].push(
-            Event(user.id, GameEvents.SESSION_START, "", game)
+            Event(game.owner, GameEvents.SESSION_START, "", game)
         )
 
         return game
@@ -106,7 +106,7 @@ class SessionManager:
             for player in game.players:
                 self.user_to_chat.pop(player.user_id)
             self.chat_journal[room_id].push(
-                Event("mau", GameEvents.SESSION_START, "", game)
+                Event(game.owner, GameEvents.SESSION_END, "", game)
             )
         except KeyError as e:
             logger.warning(e)
