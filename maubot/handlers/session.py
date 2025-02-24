@@ -233,7 +233,7 @@ async def settings_menu(message: Message, game: UnoGame) -> None:
 async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
-        await query.message.edit_text(
+        await query.message.answer(
             ROOM_SETTINGS,
             reply_markup=keyboards.get_settings_markup(game.rules),
         )
