@@ -53,7 +53,8 @@ async def create_game(
                 str(message.from_user.id), message.from_user.mention_html()
             ),
         )
-    elif game.started:
+
+    if game.started:
         game.journal.add(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
         )
