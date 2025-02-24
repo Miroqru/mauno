@@ -58,13 +58,13 @@ async def create_game(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
         )
         await game.journal.send_journal()
-
-    lobby_message = await message.answer(
-        messages.get_room_status(game),
-        reply_markup=keyboards.get_room_markup(game),
-    )
-    # Добавляем ID сообщения с лобби, чтобы после редактировать его
-    game.lobby_message = lobby_message.message_id
+    else:
+        lobby_message = await message.answer(
+            messages.get_room_status(game),
+            reply_markup=keyboards.get_room_markup(game),
+        )
+        # Добавляем ID сообщения с лобби, чтобы после редактировать его
+        game.lobby_message = lobby_message.message_id
 
 
 @router.message(Command("start"))
