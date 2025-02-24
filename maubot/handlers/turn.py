@@ -5,7 +5,7 @@
 
 import re
 
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.types import (
     CallbackQuery,
     ChosenInlineResult,
@@ -17,8 +17,8 @@ from mau.card import CardColor, card_from_str
 from mau.enums import GameState
 from mau.game import UnoGame
 from mau.player import Player
-from mau.session import SessionManager
 from maubot import keyboards
+from maubot.events.journal import MessageJournal
 from maubot.filters import NowPlaying
 
 router = Router(name="Turn")
@@ -48,8 +48,7 @@ async def process_card_handler(
     result: ChosenInlineResult,
     game: UnoGame | None,
     player: Player | None,
-    bot: Bot,
-    sm: SessionManager,
+    journal: MessageJournal,
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
     logger.info("Process result {} in game {}", result, game)
@@ -64,17 +63,16 @@ async def process_card_handler(
         return None
 
     if player != game.player:
-        game.journal.add(f"😈 {player.name} вмешался в игру.")
         game.set_current_player(player)
 
     elif result.result_id == "pass":
         game.next_turn()
 
     elif result.result_id == "take":
-        await player.call_take_cards()
+        player.call_take_cards()
 
     elif result.result_id == "bluff":
-        await player.call_bluff()
+        player.call_bluff()
 
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
@@ -82,35 +80,19 @@ async def process_card_handler(
 
     select_player = re.match(r"select_player:(\d)", result.result_id)
     if select_player is not None:
-        other_player = game.players[int(select_player.groups()[0])]
         if game.state == GameState.TWIST_HAND:
-            player_hand = len(player.hand)
-            other_hand = len(other_player.hand)
-            game.journal.add(
-                f"🤝 {player.name} ({player_hand} карт) "
-                f"и {other_player.name} ({other_hand} карт) "
-                "обменялись руками.\n"
-            )
+            other_player = game.players[int(select_player.groups()[0])]
             player.twist_hand(other_player)
         else:
-            game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
+            journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
     card = card_from_str(result.result_id)
     if card is not None:
-        await game.process_turn(card, player)
+        game.process_turn(card, player)
 
-    if game.started and game.state == GameState.NEXT:
-        game.journal.add(
-            "🌀 Продолжаем ход"
-            if game.player == player
-            else f"🍰 <b>Следующий ходит</b>: {game.player.name}"
-        )
-
-    await game.journal.send_journal()
-
-    # возможно ты братишка костыль
-    if not game.started:
-        sm.remove(game.room_id)
+        # if game.started and game.state == GameState.NEXT:
+        #     journal.add("🌀 Продолжаем ход")
+    # await journal.send()
 
 
 # Обработчики для кнопок
@@ -125,18 +107,13 @@ async def choose_color_call(
     game: UnoGame,
     player: Player,
     color: re.Match[str],
+    journal: MessageJournal,
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
 
     # Поскольку цвет уже выбран, нам бы убрать клавиатуру
-    game.journal.set_actions(None)
-    await game.journal.send_journal()
-
     game.choose_color(card_color)
-    game.journal.add(f"🎨 Я выбираю цвет.. {card_color}\n")
-    game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
-    await game.journal.send_journal()
     await query.answer(f"🎨 Вы выбрали {card_color}.")
 
 
@@ -148,23 +125,14 @@ async def select_player_call(
     game: UnoGame,
     player: Player,
     index: re.Match,
+    journal: MessageJournal,
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
     other_player = game.players[int(index.groups()[0])]
     if game.state == GameState.TWIST_HAND:
-        player_hand = len(player.hand)
-        other_hand = len(other_player.hand)
-        game.journal.add(
-            f"🤝 {player.name} ({player_hand} карт) "
-            f"и {other_player.name} ({other_hand} карт) "
-            "обменялись руками.\n"
-        )
-        game.journal.set_actions(None)
-        await game.journal.send_journal()
         player.twist_hand(other_player)
     else:
-        game.journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
+        journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
+        await journal.send_journal()
 
-    game.journal.add(f"🍰 <b>Следующий ходит</b>: {game.player.name}")
-    await game.journal.send_journal()
     await query.answer(f"🤝 Вы обменялись с {other_player}.")

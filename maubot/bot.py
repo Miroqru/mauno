@@ -49,10 +49,11 @@ async def game_middleware(
     context = get_context(sm, event)
     data["game"] = context.game
     data["player"] = context.player
+    if context.game is not None:
+        data["journal"] = sm.chat_journal[context.game.room_id]
     return await handler(event, data)
 
 
-# TODO: Вот тут было бы неплохо обработать глобальные ошибки и не повторяться
 @dp.errors()
 async def catch_errors(event: ErrorEvent) -> None:
     """Простой обработчик для ошибок."""
@@ -89,7 +90,6 @@ async def main() -> None:
         bot = Bot(
             token=config.telegram_token.get_secret_value(), default=default
         )
-        sm.bot = bot
     except TokenValidationError as e:
         logger.error(e)
         logger.info("Check your bot token in .env file.")
