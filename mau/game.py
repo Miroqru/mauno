@@ -58,7 +58,6 @@ class GameRules(NamedTuple):
     side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
     ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False, "ahead_of_curve")
     intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
-    twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
 
 
 class UnoGame:
