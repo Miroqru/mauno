@@ -4,15 +4,14 @@
 Отвечает за создание новых игр и привязыванию их к чату.
 """
 
-from aiogram import Bot
 from loguru import logger
 
+from mau.events import BaseEventHandler, Event, EventJournal, GameEvents
 from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
 )
 from mau.game import UnoGame
-from mau.journal import DebugJournal, TelegramJournal
 from mau.player import BaseUser, Player
 
 
@@ -26,6 +25,7 @@ class SessionManager:
     def __init__(self) -> None:
         self.games: dict[str, UnoGame] = {}
         self.user_to_chat: dict[str, str] = {}
+        self.chat_journal: dict[str, BaseEventHandler] = {}
 
     # Управление игроками в сессии
     # ================W============
@@ -44,6 +44,9 @@ class SessionManager:
         game.add_player(user)
         self.user_to_chat[user.id] = room_id
         logger.debug(self.user_to_chat)
+        self.chat_journal[room_id].push(
+            Event(user.id, GameEvents.SESSION_JOIN, "", game)
+        )
 
     def leave(self, player: Player) -> None:
         """Убирает игрока из игры."""
@@ -59,6 +62,9 @@ class SessionManager:
         player.on_leave()
         game.players.remove(player)
         self.user_to_chat.pop(player.user_id)
+        self.chat_journal[room_id].push(
+            Event(player.user_id, GameEvents.SESSION_LEAVE, "", game)
+        )
 
         if len(game.players) <= 1:
             game.end()
@@ -73,12 +79,20 @@ class SessionManager:
     # Управление сессиями
     # ===================
 
-    def create(self, room_id: str, user: BaseUser) -> UnoGame:
+    def create(
+        self, room_id: str, user: BaseUser, event_handler: BaseEventHandler
+    ) -> UnoGame:
         """Создает новую игру в чате."""
         logger.info("User {} Create new game session in {}", user, room_id)
-        game = UnoGame(DebugJournal(), room_id, user)
+        journal = EventJournal(room_id, event_handler)
+        game = UnoGame(journal, room_id, user)
         self.games[room_id] = game
         self.user_to_chat[user.id] = room_id
+        self.chat_journal[room_id] = event_handler
+        self.chat_journal[room_id].push(
+            Event(user.id, GameEvents.SESSION_START, "", game)
+        )
+
         return game
 
     def remove(self, room_id: str) -> None:
@@ -91,34 +105,9 @@ class SessionManager:
             game: UnoGame = self.games.pop(room_id)
             for player in game.players:
                 self.user_to_chat.pop(player.user_id)
+            self.chat_journal[room_id].push(
+                Event("mau", GameEvents.SESSION_START, "", game)
+            )
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError() from e
-
-
-# Привязанный к платформе менеджер сессий
-# =======================================
-
-
-class TelegramSessionManager(SessionManager):
-    """Менеджер сессия для telegram чатов.
-
-    Автоматически подставляет бота и telegram журнал событий.
-    Предоставляет методы для создания и завершения сессий.
-    Каждая сессия привязывается к telegram чату.
-    """
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.bot: Bot | None = None
-
-    def create(self, room_id: str, user: BaseUser) -> UnoGame:
-        """Создает новую игру в telegram чате."""
-        if self.bot is None:
-            raise ValueError("You must set bot instance to create games")
-
-        logger.info("User {} Create new game session in {}", user, room_id)
-        game = UnoGame(TelegramJournal(room_id, self.bot), room_id, user)
-        self.games[room_id] = game
-        self.user_to_chat[user.id] = room_id
-        return game

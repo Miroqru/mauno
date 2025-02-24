@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Self
 from loguru import logger
 
 from mau.enums import GameState
+from mau.events import GameEvents
 
 if TYPE_CHECKING:
     from mau.game import UnoGame
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
 
 # Emoji для представления цвета карты
 COLOR_EMOJI = ["❤️", "💛", "💚", "💙", "🖤"]
+TWIST_HAND_NUM = 2
 
 
 class CardColor(IntEnum):
@@ -212,6 +214,17 @@ class NumberCard(BaseCard):
         """Представление карты в строковом виде."""
         return f"{self.color} {self.value}"
 
+    def use_card(self, game: "UnoGame") -> None:
+        """С некоторыми правилами карты с цифрами также играют роль."""
+        if self.cost == TWIST_HAND_NUM and game.rules.twist_hand.status:
+            game.state = GameState.TWIST_HAND
+            game.push_event(
+                game.player.user_id, GameEvents.GAME_STATE, "twist_hand"
+            )
+
+        elif game.rules.rotate_cards.status and game.deck.top.cost == 0:
+            game.rotate_cards()
+
 
 class TurnCard(BaseCard):
     """Карта пропуска хода.
@@ -299,6 +312,9 @@ class TakeCard(BaseCard):
         return f"{self.color} +{self.value}"
 
 
+CardColor
+
+
 class ChooseColorCard(BaseCard):
     """карта выбора цвета.
 
@@ -322,12 +338,26 @@ class ChooseColorCard(BaseCard):
                 self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
+            game.push_event(
+                game.player.user_id,
+                GameEvents.GAME_SELECT_COLOR,
+                str(self.color),
+            )
         elif game.rules.choose_random_color.status:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
+            game.push_event(
+                game.player.user_id,
+                GameEvents.GAME_SELECT_COLOR,
+                str(self.color),
+            )
+
         else:
             logger.info("Set choose color flag to True")
             game.state = GameState.CHOOSE_COLOR
+            game.push_event(
+                game.player.user_id, GameEvents.GAME_STATE, "choose_color"
+            )
 
     def __str__(self) -> str:
         """Представление карты в строковое виде."""
@@ -368,11 +398,25 @@ class TakeFourCard(BaseCard):
                 self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
+            game.push_event(
+                game.player.user_id,
+                GameEvents.GAME_SELECT_COLOR,
+                str(self.color),
+            )
         elif game.rules.choose_random_color.status:
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
+            game.push_event(
+                game.player.user_id,
+                GameEvents.GAME_SELECT_COLOR,
+                str(self.color),
+            )
         else:
             game.state = GameState.CHOOSE_COLOR
+            game.push_event(
+                game.player.user_id, GameEvents.GAME_STATE, "choose_color"
+            )
+
         game.take_counter += 4
         game.bluff_player = game.player
 
