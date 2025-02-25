@@ -25,26 +25,6 @@ async def start_session(event: Event, journal: MessageJournal) -> None:
     )
 
 
-@er.handler(event=GameEvents.SESSION_JOIN)
-async def join_session(event: Event, journal: MessageJournal) -> None:
-    """Оповещает что пользователь зашёл в сессию."""
-    lobby_message = (
-        f"{messages.get_room_status(event.game)}\n\n"
-        f"👋 {event.player.name}, добро пожаловать в комнату!"
-    )
-    await journal.send_lobby(
-        message=lobby_message,
-        reply_markup=keyboards.get_room_markup(event.game),
-    )
-
-
-@er.handler(event=GameEvents.SESSION_LEAVE)
-async def leave_session(event: Event, journal: MessageJournal) -> None:
-    """Оповещает что пользователь зашёл в сессию."""
-    journal.add(f"👋 Удачи, {event.player.name}, ещё увидимся.\n")
-    await journal.send()
-
-
 # Обработка событий игры
 # ======================
 
@@ -52,18 +32,40 @@ async def leave_session(event: Event, journal: MessageJournal) -> None:
 @er.handler(event=GameEvents.GAME_JOIN)
 async def join_player(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add(f"🍰 Добро пожаловать в игру, {event.player.name}!")
-    await journal.send()
+    if event.game.started:
+        journal.add(f"🍰 Добро пожаловать в игру, {event.player.name}!")
+        await journal.send()
+    else:
+        lobby_message = (
+            f"{messages.get_room_status(event.game)}\n\n"
+            f"👋 {event.player.name}, добро пожаловать в комнату!"
+        )
+        await journal.send_lobby(
+            message=lobby_message,
+            reply_markup=keyboards.get_room_markup(event.game),
+        )
 
 
 @er.handler(event=GameEvents.GAME_LEAVE)
 async def leave_player(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    if event.data == "win":
-        journal.add(f"👑 {event.player.name} победил(а)!\n")
+    # Это может бывать выход из игры до её начала
+    if event.game.started:
+        if event.data == "win":
+            journal.add(f"👑 {event.player.name} победил(а)!\n")
+        else:
+            journal.add(f"👋 {event.player.name} покидает игру!\n")
+
+        await journal.send()
     else:
-        journal.add(f"👋 {event.player.name} покидает игру!\n")
-    await journal.send()
+        lobby_message = (
+            f"{messages.get_room_status(event.game)}\n\n"
+            f"👋 {event.player.name}, Ещё увидимся!"
+        )
+        await journal.send_lobby(
+            message=lobby_message,
+            reply_markup=keyboards.get_room_markup(event.game),
+        )
 
 
 @er.handler(event=GameEvents.GAME_UNO)
@@ -128,7 +130,7 @@ async def player_bluffing(event: Event, journal: MessageJournal) -> None:
         journal.add(
             "🔎 <b>Замечен блеф</b>!\n"
             f"{bluff_player.name} получает "
-            f"{event.game.take_counter} карт."
+            f"{event.game.taken_cards} карт."
         )
     else:
         if bluff_player is None:
@@ -139,7 +141,7 @@ async def player_bluffing(event: Event, journal: MessageJournal) -> None:
         journal.add(
             f"{bluff_header}"
             f"{event.player.name} получает "
-            f"{event.game.take_counter} карт.\n"
+            f"{event.game.taken_cards} карт.\n"
         )
 
     await journal.send()
