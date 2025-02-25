@@ -25,16 +25,14 @@ class EventRouter:
 
     async def process(self, event: Event, journal: "MessageJournal") -> None:
         """Обрабатывает пришедшее событие."""
+        logger.debug(event)
         handler = self._handlers.get(event.event_type)
 
         if handler is None:
-            logger.warning("Unprocessed event: {}", event)
+            logger.warning("No handler on: {}", event)
             return None
 
-        if asyncio.iscoroutinefunction(handler):
-            await handler(event, journal)
-        else:
-            handler(event, journal)
+        await handler(event, journal)
 
     def handler(self, event: GameEvents) -> Callable:
         """Декоратор для добавления новых обработчиков событий."""
@@ -73,7 +71,7 @@ class MessageJournal(BaseEventHandler):
 
     def push(self, event: Event) -> None:
         """Обрабатывает входящие события."""
-        logger.info("Push event: {}", event)
+        logger.debug(event)
         self._loop.create_task(self.router.process(event, self))
 
     # Отправка сообщений
