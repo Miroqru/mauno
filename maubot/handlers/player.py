@@ -68,10 +68,11 @@ async def leave_player(
 ) -> None:
     """Выход пользователя из игры."""
     sm.leave(player)
+    game.journal.add(f"👋 Удачи, {player.name}, ещё увидимся.\n")
 
     if game.started:
         game.journal.add(
-            text=(f"🍰 Ладненько, следующих ход за {game.player.name}.")
+            text=f"🍰 Ладненько, следующих ход за {game.player.name}."
         )
         await game.journal.send_journal()
     else:
@@ -89,7 +90,6 @@ async def join_callback(
     query: CallbackQuery, sm: SessionManager, game: UnoGame
 ) -> None:
     """Добавляет игрока в текущую комнату."""
-    # TODO: Тут тоже глобальный отлов ошибочек
     if not isinstance(query.message, Message):
         raise ValueError("Query message should be Message instance")
 

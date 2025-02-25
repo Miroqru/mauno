@@ -53,18 +53,19 @@ async def create_game(
                 str(message.from_user.id), message.from_user.mention_html()
             ),
         )
-    elif game.started:
+
+    if game.started:
         game.journal.add(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
         )
         await game.journal.send_journal()
-
-    lobby_message = await message.answer(
-        messages.get_room_status(game),
-        reply_markup=keyboards.get_room_markup(game),
-    )
-    # Добавляем ID сообщения с лобби, чтобы после редактировать его
-    game.lobby_message = lobby_message.message_id
+    else:
+        lobby_message = await message.answer(
+            messages.get_room_status(game),
+            reply_markup=keyboards.get_room_markup(game),
+        )
+        # Добавляем ID сообщения с лобби, чтобы после редактировать его
+        game.lobby_message = lobby_message.message_id
 
 
 @router.message(Command("start"))
@@ -232,7 +233,7 @@ async def settings_menu(message: Message, game: UnoGame) -> None:
 async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
-        await query.message.edit_text(
+        await query.message.answer(
             ROOM_SETTINGS,
             reply_markup=keyboards.get_settings_markup(game.rules),
         )

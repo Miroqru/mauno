@@ -223,7 +223,11 @@ class UnoGame:
         self.players.remove(player)
 
         if len(self.players) <= 1:
-            self.winners.extend(self.players)
+            # Если игрок сам вышел/проиграл. другие побеждают
+            if player == self.player:
+                self.winners.extend(self.players)
+            else:
+                self.losers.extend(self.players)
             self.end()
 
     def skip_players(self, n: int = 1) -> None:
@@ -272,11 +276,13 @@ class UnoGame:
             if not self.started:
                 self.journal.add(end_game_message(self))
                 self.journal.set_actions(None)
+            await self.journal.send_journal()
 
         elif card.cost == TWIST_HAND_NUM and self.rules.twist_hand.status:
             self.journal.add(f"✨ {player.name} Задумывается c кем обменяться.")
             self.state = GameState.TWIST_HAND
             self.journal.set_actions(select_player_markup(self))
+            await self.journal.send_journal()
 
         elif self.rules.rotate_cards.status and self.deck.top.cost == 0:
             self.rotate_cards()
@@ -284,6 +290,7 @@ class UnoGame:
                 "🤝 Все игроки обменялись картами по кругу.\n"
                 f"{get_room_players(self)}"
             )
+            await self.journal.send_journal()
 
         if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
             self.journal.add(f"✨ {player.name} Задумывается о выборе цвета.")
@@ -296,6 +303,7 @@ class UnoGame:
                     EventAction(text="💙", callback_data="color:3"),
                 ]
             )
+            await self.journal.send_journal()
 
         if any(
             (
@@ -305,8 +313,7 @@ class UnoGame:
             )
         ):
             self.journal.add(f"🎨 Текущий цвет.. {self.deck.top.color}")
-
-        self.journal.send_journal()
+            await self.journal.send_journal()
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
