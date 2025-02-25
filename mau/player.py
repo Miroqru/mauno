@@ -124,6 +124,7 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
+        self.taken_cards = take_counter
         self.push_event(GameEvents.GAME_TAKE, str(take_counter))
         self.game.take_flag = True
 
