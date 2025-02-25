@@ -133,6 +133,6 @@ async def select_player_call(
         player.twist_hand(other_player)
     else:
         journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
-        await journal.send_journal()
+        await journal.send()
 
     await query.answer(f"🤝 Вы обменялись с {other_player}.")
