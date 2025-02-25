@@ -218,9 +218,7 @@ class NumberCard(BaseCard):
         """С некоторыми правилами карты с цифрами также играют роль."""
         if self.cost == TWIST_HAND_NUM and game.rules.twist_hand.status:
             game.state = GameState.TWIST_HAND
-            game.push_event(
-                game.player.user_id, GameEvents.GAME_STATE, "twist_hand"
-            )
+            game.push_event(game.player, GameEvents.GAME_STATE, "twist_hand")
 
         elif game.rules.rotate_cards.status and game.deck.top.cost == 0:
             game.rotate_cards()
@@ -339,7 +337,7 @@ class ChooseColorCard(BaseCard):
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
             game.push_event(
-                game.player.user_id,
+                game.player,
                 GameEvents.GAME_SELECT_COLOR,
                 str(self.color),
             )
@@ -347,7 +345,7 @@ class ChooseColorCard(BaseCard):
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
             game.push_event(
-                game.player.user_id,
+                game.player,
                 GameEvents.GAME_SELECT_COLOR,
                 str(self.color),
             )
@@ -355,9 +353,7 @@ class ChooseColorCard(BaseCard):
         else:
             logger.info("Set choose color flag to True")
             game.state = GameState.CHOOSE_COLOR
-            game.push_event(
-                game.player.user_id, GameEvents.GAME_STATE, "choose_color"
-            )
+            game.push_event(game.player, GameEvents.GAME_STATE, "choose_color")
 
     def __str__(self) -> str:
         """Представление карты в строковое виде."""
@@ -399,7 +395,7 @@ class TakeFourCard(BaseCard):
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
             game.push_event(
-                game.player.user_id,
+                game.player,
                 GameEvents.GAME_SELECT_COLOR,
                 str(self.color),
             )
@@ -407,15 +403,13 @@ class TakeFourCard(BaseCard):
             logger.info("Choose random color for card")
             self.color = CardColor(randint(0, 3))
             game.push_event(
-                game.player.user_id,
+                game.player,
                 GameEvents.GAME_SELECT_COLOR,
                 str(self.color),
             )
         else:
             game.state = GameState.CHOOSE_COLOR
-            game.push_event(
-                game.player.user_id, GameEvents.GAME_STATE, "choose_color"
-            )
+            game.push_event(game.player, GameEvents.GAME_STATE, "choose_color")
 
         game.take_counter += 4
         game.bluff_player = game.player

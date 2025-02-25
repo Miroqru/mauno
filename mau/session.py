@@ -55,12 +55,7 @@ class SessionManager:
             raise NoGameInChatError()
 
         game = self.games[room_id]
-
-        if player is game.player:
-            game.next_turn()
-
-        player.on_leave()
-        game.players.remove(player)
+        game.remove_player(player)
         self.user_to_chat.pop(player.user_id)
         self.chat_journal[room_id].push(
             Event(player, GameEvents.SESSION_LEAVE, "", game)

@@ -208,20 +208,12 @@ class UnoGame:
         self.push_event(player, GameEvents.GAME_JOIN)
         return player
 
-    def remove_player(self, user_id: str) -> None:
+    def remove_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
-        logger.info("Leaving {} game with id {}", user_id, self.room_id)
-
-        player = self.get_player(user_id)
+        logger.info("Leaving {} game with id {}", player, self.room_id)
         if player is None:
             # TODO: Тту должно быть более конкретное исключение
             raise NoGameInChatError
-
-        if player == self.player:
-            # Скорее всего игрок застрелился, больше карты не берём
-            self.take_counter = 0
-            self.push_event(player, GameEvents.GAME_LEAVE, "shot")
-            self.next_turn()
 
         if len(player.hand) == 0:
             self.winners.append(player)
@@ -235,11 +227,15 @@ class UnoGame:
 
         if len(self.players) <= 1:
             # Если игрок сам вышел/проиграл. другие побеждают
-            if player == self.player:
+            if self.started and player == self.player:
                 self.winners.extend(self.players)
             else:
                 self.losers.extend(self.players)
             self.end()
+        elif player == self.player:
+            # Скорее всего игрок застрелился, больше карты не берём
+            self.take_counter = 0
+            self.next_turn()
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
@@ -270,7 +266,7 @@ class UnoGame:
         for i, pl in enumerate(self.players):
             if player == pl:
                 self.current_player = i
-                self.push_event(player.user_id, GameEvents.GAME_INTERVENTION)
+                self.push_event(player, GameEvents.GAME_INTERVENTION)
                 return
 
     def process_turn(self, card: BaseCard, player: Player) -> None:
