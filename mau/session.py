@@ -61,9 +61,6 @@ class SessionManager:
             Event(player, GameEvents.SESSION_LEAVE, "", game)
         )
 
-        if len(game.players) <= 1:
-            game.end()
-
     def get_player(self, user_id: str) -> Player | None:
         """Получает игрока по его id."""
         room_id = self.user_to_chat.get(user_id)
@@ -98,11 +95,10 @@ class SessionManager:
         """
         try:
             game: UnoGame = self.games.pop(room_id)
+            journal = self.chat_journal.pop(room_id)
             for player in game.players:
                 self.user_to_chat.pop(player.user_id)
-            self.chat_journal[room_id].push(
-                Event(game.owner, GameEvents.SESSION_END, "", game)
-            )
+            journal.push(Event(game.owner, GameEvents.SESSION_END, "", game))
         except KeyError as e:
             logger.warning(e)
             raise NoGameInChatError() from e
