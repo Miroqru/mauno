@@ -1,5 +1,4 @@
 import type { Either } from '@/share/api/either'
-import { left, right } from '@/share/api/either'
 import type {
   Card,
   Category,
@@ -13,6 +12,7 @@ import type {
   User,
   UserDataIn,
 } from '@/share/api/types'
+import { left, right } from '@/share/api/either'
 import { toValue } from 'vue'
 import { useUserStore } from '../stores/user'
 

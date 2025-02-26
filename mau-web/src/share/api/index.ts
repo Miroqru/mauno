@@ -1,8 +1,8 @@
+import type { Card, Category, EditUserDataIn, Room, RoomDataIn, RoomFilter, User } from './types'
 import router from '@/app/router'
 import { useNotifyStore } from '../stores/notify'
 import { useUserStore } from '../stores/user'
 import method from './api'
-import type { Card, Category, EditUserDataIn, Room, RoomDataIn, RoomFilter, User } from './types'
 
 // Инициализация хранилищ
 const userState = useUserStore()
