@@ -37,6 +37,26 @@ NO_GAME_QUERY: Sequence[
     ),
 )
 
+SHOTGUN_KEYBOARD = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
+            InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
+        ]
+    ]
+)
+
+SELECT_COLOR = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❤️", callback_data="color:0"),
+            InlineKeyboardButton(text="💛", callback_data="color:1"),
+            InlineKeyboardButton(text="💚", callback_data="color:2"),
+            InlineKeyboardButton(text="💙", callback_data="color:3"),
+        ]
+    ]
+)
+
 
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
     """Вспомогательная клавиатура для управления комнатой.
@@ -211,3 +231,30 @@ def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[[create_button(rule)] for rule in game_rules]
     )
+
+
+def select_player_markup(game: "UnoGame") -> InlineKeyboardMarkup:
+    """Клавиатура для выбора игрока.
+
+    Отображает имя игрока и сколько у него сейчас карт.
+    """
+    res = []
+
+    for i, pl in enumerate(game.players):
+        if i == game.current_player:
+            continue
+        res.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{pl.name} ({len(pl.hand)} 🃏)",
+                    callback_data=f"select_player:{i}",
+                )
+            ]
+        )
+
+    if game.rules.twist_hand_pass.status:
+        res.append(
+            [InlineKeyboardButton(text="🍷 Пропустить", callback_data="pass")]
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=res)

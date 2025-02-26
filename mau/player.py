@@ -16,8 +16,8 @@ from mau.card import (
     TurnCard,
 )
 from mau.enums import GameState
+from mau.events import Event, GameEvents
 from mau.exceptions import DeckEmptyError
-from mau.journal import EventAction
 
 if TYPE_CHECKING:
     from mau.game import UnoGame
@@ -77,6 +77,13 @@ class Player:
         """Имеет ли право хода текущий игрок."""
         return self == self.game.player
 
+    def push_event(self, event_type: GameEvents, data: str = "") -> None:
+        """Отправляет событие в журнал.
+
+        Автоматически подставляет игрока и игру.
+        """
+        self.game.journal.push(Event(self, event_type, data, self.game))
+
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
@@ -102,6 +109,7 @@ class Player:
         logger.debug("{} Draw first hand for player", self._user_name)
         try:
             self.hand = list(self.game.deck.take(7))
+            self.push_event(GameEvents.GAME_TAKE, "7")
         except DeckEmptyError:
             for card in self.hand:
                 self.game.deck.put(card)
@@ -116,6 +124,8 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
+        self.taken_cards = take_counter
+        self.push_event(GameEvents.GAME_TAKE, str(take_counter))
         self.game.take_flag = True
 
     def _sort_hand_cards(self, top: BaseCard) -> SortedCards:
@@ -200,6 +210,7 @@ class Player:
         player_hand = self.hand.copy()
         self.hand = other_player.hand.copy()
         other_player.hand = player_hand
+        self.push_event(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
         self.game.next_turn()
 
     def shotgun(self) -> bool:
@@ -217,7 +228,7 @@ class Player:
     # Обработка игровых действий
     # ==========================
 
-    async def call_bluff(self) -> None:
+    def call_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.
 
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
@@ -226,36 +237,16 @@ class Player:
         logger.info("{} call bluff {}", self, self.game.bluff_player)
         bluff_player = self.game.bluff_player
         if bluff_player is not None and bluff_player.bluffing:
-            self.game.journal.add(
-                "🔎 <b>Замечен блеф</b>!\n"
-                f"{bluff_player.name} получает "
-                f"{self.game.take_counter} карт."
-            )
+            self.push_event(GameEvents.GAME_BLUFF, "true")
             bluff_player.take_cards()
-
-            if len(self.game.deck.cards) == 0:
-                self.game.journal.add("🃏 В колоде не осталось свободных карт.")
         else:
-            if bluff_player is None:
-                bluff_header = "🎩 <b>Никто не блефовал</b>!\n"
-            else:
-                bluff_header = f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
-
+            self.push_event(GameEvents.GAME_BLUFF, "false")
             self.game.take_counter += 2
-            self.game.journal.add(
-                f"{bluff_header}"
-                f"{self.name} получает "
-                f"{self.game.take_counter} карт.\n"
-            )
             self.take_cards()
-            if len(self.game.deck.cards) == 0:
-                self.game.journal.add("🃏 В колоде не осталось свободных карт.")
 
-        # Завершаем текущий ход
-        await self.game.journal.send_journal()
         self.game.next_turn()
 
-    async def call_take_cards(self) -> None:
+    def call_take_cards(self) -> None:
         """Действия игрока при взятии карты.
 
         В зависимости от правил, можно взять не одну карту, а сразу
@@ -271,37 +262,17 @@ class Player:
             and self.game.take_counter == 0
         ):
             self.game.take_counter = self.game.deck.count_until_cover()
-            self.game.journal.add(f"🍷 беру {self.game.take_counter} карт.\n")
 
         if (
             self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
             or self.game.rules.shotgun.status
             or self.game.rules.single_shotgun.status
         ):
-            current = (
-                self.game.shotgun_current
-                if self.game.rules.single_shotgun.status
-                else self.shotgun_current
-            )
-            self.game.journal.add(
-                "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
-                f"Вы можете <b>взять свои карты</b> "
-                "или же попробовать <b>выстрелить из револьвера</b>.\n"
-                "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
-                f"🔫 Из револьвера стреляли {current} / 8 раз\n."
-            )
-            self.game.journal.set_actions(
-                [
-                    EventAction(text="Взять 🃏", callback_data="take"),
-                    EventAction(text="🔫 Выстрелить", callback_data="shot"),
-                ]
-            )
+            self.push_event(GameEvents.GAME_STATE, "shotgun")
 
         logger.info("{} take cards", self)
         take_counter = self.game.take_counter
         self.take_cards()
-        if len(self.game.deck.cards) == 0:
-            self.game.journal.add("🃏 В колоде не осталось карт для игрока.")
 
         # Если пользователь выбрал взять карты, то он пропускает свой ход
         if (
