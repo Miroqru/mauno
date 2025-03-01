@@ -85,7 +85,6 @@ class UnoGame:
         self.open: bool = True
         self.reverse: bool = False
         self.take_counter: int = 0
-        self.taken_cards: int = 0
         self.take_flag: bool = False
         self.state: GameState = GameState.NEXT
 
@@ -183,7 +182,6 @@ class UnoGame:
         logger.info("Next Player!")
         self.state = GameState.NEXT
         self.take_flag = False
-        self.taken_cards = 0
         self.turn_start = datetime.now()
         self.skip_players()
         self.push_event(self.player, GameEvents.GAME_TURN)
@@ -237,7 +235,6 @@ class UnoGame:
         elif player == self.player:
             # Скорее всего игрок застрелился, больше карты не берём
             self.take_counter = 0
-            self.taken_cards = 0
             self.next_turn()
 
     def skip_players(self, n: int = 1) -> None:

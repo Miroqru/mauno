@@ -124,7 +124,6 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
-        self.taken_cards = take_counter
         self.push_event(GameEvents.GAME_TAKE, str(take_counter))
         self.game.take_flag = True
 
@@ -237,10 +236,14 @@ class Player:
         logger.info("{} call bluff {}", self, self.game.bluff_player)
         bluff_player = self.game.bluff_player
         if bluff_player is not None and bluff_player.bluffing:
-            self.push_event(GameEvents.GAME_BLUFF, "true")
+            self.push_event(
+                GameEvents.GAME_BLUFF, f"true;{self.game.take_counter}"
+            )
             bluff_player.take_cards()
         else:
-            self.push_event(GameEvents.GAME_BLUFF, "false")
+            self.push_event(
+                GameEvents.GAME_BLUFF, f"false;{self.game.take_counter}"
+            )
             self.game.take_counter += 2
             self.take_cards()
 

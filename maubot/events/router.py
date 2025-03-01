@@ -118,12 +118,14 @@ async def twist_hand(event: Event, journal: MessageJournal) -> None:
 @er.handler(event=GameEvents.GAME_BLUFF)
 async def player_bluffing(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
+    bluff_flag, take_counter = event.data.split(";")
+
     bluff_player = event.game.bluff_player
-    if bluff_player is not None and event.data == "true":
+    if bluff_player is not None and bluff_flag == "true":
         journal.add(
             "🔎 <b>Замечен блеф</b>!\n"
             f"{bluff_player.name} получает "
-            f"{event.game.taken_cards} карт."
+            f"{take_counter} карт."
         )
     else:
         if bluff_player is None:
@@ -132,9 +134,7 @@ async def player_bluffing(event: Event, journal: MessageJournal) -> None:
             bluff_header = f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
 
         journal.add(
-            f"{bluff_header}"
-            f"{event.player.name} получает "
-            f"{event.game.taken_cards} карт.\n"
+            f"{bluff_header}{event.player.name} получает {take_counter} карт.\n"
         )
 
     await journal.send()
