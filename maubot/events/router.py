@@ -50,22 +50,15 @@ async def join_player(event: Event, journal: MessageJournal) -> None:
 async def leave_player(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
     # Это может бывать выход из игры до её начала
-    if event.game.started:
-        if event.data == "win":
-            journal.add(f"👑 {event.player.name} победил(а)!\n")
-        else:
-            journal.add(f"👋 {event.player.name} покидает игру!\n")
-
-        await journal.send()
+    if event.data == "win":
+        journal.add(f"👑 {event.player.name} победил(а)!\n")
     else:
-        lobby_message = (
-            f"{messages.get_room_status(event.game)}\n\n"
-            f"👋 {event.player.name}, Ещё увидимся!"
-        )
-        await journal.send_lobby(
-            message=lobby_message,
-            reply_markup=keyboards.get_room_markup(event.game),
-        )
+        journal.add(f"👋 {event.player.name} покидает игру!\n")
+
+    if not event.game.started:
+        journal.set_markup(None)
+
+    await journal.send()
 
 
 @er.handler(event=GameEvents.GAME_UNO)
