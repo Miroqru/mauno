@@ -192,7 +192,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 # =================
 
 
-@router.message(Command("settings"), filters.ActiveGame())
+@router.message(Command("settings"), filters.ActivePlayer())
 async def settings_menu(message: Message, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     await message.answer(
@@ -200,7 +200,7 @@ async def settings_menu(message: Message, game: UnoGame) -> None:
     )
 
 
-@router.callback_query(F.data == "room_settings", filters.ActiveGame())
+@router.callback_query(F.data == "room_settings", filters.ActivePlayer())
 async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
@@ -218,7 +218,7 @@ class SettingsCallback(CallbackData, prefix="set"):
     value: bool
 
 
-@router.callback_query(SettingsCallback.filter(), filters.ActiveGame())
+@router.callback_query(SettingsCallback.filter(), filters.ActivePlayer())
 async def edit_room_settings_call(
     query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame
 ) -> None:
