@@ -5,12 +5,15 @@
 в роутер `player`.
 """
 
+import random
+
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
+from mau.card import CardColor
 from mau.exceptions import NoGameInChatError, NotEnoughPlayersError
 from mau.game import UnoGame
 from mau.player import BaseUser
@@ -160,7 +163,12 @@ async def skip_player(
         f"☕ {skip_player.name} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
     )
-    game.next_turn()
+    # Иногда может быть такое, что пропускается чёрная карта
+    # Тогда ей нужно дать какой-нибудь цвет
+    if game.deck.top.color == CardColor.BLACK:
+        game.choose_color(CardColor(random.randint(0, 3)))
+    else:
+        game.next_turn()
     await journal.send()
 
 
