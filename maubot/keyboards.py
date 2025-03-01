@@ -66,9 +66,7 @@ def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
     """
     buttons = [
         [
-            InlineKeyboardButton(
-                text="⚙️ Правила", callback_data="room_settings"
-            ),
+            InlineKeyboardButton(text="🪄 Правила", callback_data="room_rules"),
             InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
         ]
     ]
@@ -222,11 +220,11 @@ def create_button(rule: Rule) -> InlineKeyboardButton:
     status_sim = "🌟" if rule.status else ""
     return InlineKeyboardButton(
         text=f"{status_sim}{rule.name}",
-        callback_data=f"set:{rule.key}:{not rule.status}",
+        callback_data=f"rule:{rule.key}:{not rule.status}",
     )
 
 
-def get_settings_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
+def get_rules_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Генерирует кнопки на основе правил игры."""
     return InlineKeyboardMarkup(
         inline_keyboard=[[create_button(rule)] for rule in game_rules]

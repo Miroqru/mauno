@@ -192,41 +192,41 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
 # =================
 
 
-@router.message(Command("settings"), filters.ActivePlayer())
-async def settings_menu(message: Message, game: UnoGame) -> None:
+@router.message(Command("rules"), filters.ActivePlayer())
+async def send_rules_list(message: Message, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     await message.answer(
-        ROOM_SETTINGS, reply_markup=keyboards.get_settings_markup(game.rules)
+        ROOM_SETTINGS, reply_markup=keyboards.get_rules_markup(game.rules)
     )
 
 
-@router.callback_query(F.data == "room_settings", filters.ActivePlayer())
-async def settings_menu_call(query: CallbackQuery, game: UnoGame) -> None:
+@router.callback_query(F.data == "room_rules", filters.ActivePlayer())
+async def get_rules_call(query: CallbackQuery, game: UnoGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
         await query.message.answer(
             ROOM_SETTINGS,
-            reply_markup=keyboards.get_settings_markup(game.rules),
+            reply_markup=keyboards.get_rules_markup(game.rules),
         )
     await query.answer()
 
 
-class SettingsCallback(CallbackData, prefix="set"):
+class RulesCallback(CallbackData, prefix="rule"):
     """Переключатель настроек."""
 
     key: str
     value: bool
 
 
-@router.callback_query(SettingsCallback.filter(), filters.ActivePlayer())
-async def edit_room_settings_call(
-    query: CallbackQuery, callback_data: SettingsCallback, game: UnoGame
+@router.callback_query(RulesCallback.filter(), filters.ActivePlayer())
+async def edit_room_rules_call(
+    query: CallbackQuery, callback_data: RulesCallback, game: UnoGame
 ) -> None:
     """Изменяет настройки для текущей комнаты."""
     getattr(game.rules, callback_data.key).status = callback_data.value
     if isinstance(query.message, Message):
         await query.message.edit_text(
             ROOM_SETTINGS,
-            reply_markup=keyboards.get_settings_markup(game.rules),
+            reply_markup=keyboards.get_rules_markup(game.rules),
         )
     await query.answer()
