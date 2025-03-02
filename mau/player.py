@@ -67,13 +67,6 @@ class Player:
         self.shotgun_current = 0
         self.shotgun_lose = 0
 
-    def push_event(self, event_type: GameEvents, data: str = "") -> None:
-        """Отправляет событие в журнал.
-
-        Автоматически подставляет игрока и игру.
-        """
-        self.game.journal.push(Event(self.user_id, event_type, data, self.game))
-
     @property
     def name(self) -> str:
         """Возвращает имя игрока с упоминанием пользователя ядл бота."""
