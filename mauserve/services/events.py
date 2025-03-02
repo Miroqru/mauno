@@ -7,7 +7,12 @@ from loguru import logger
 from pydantic import BaseModel
 
 from mau.events import BaseEventHandler, Event, GameEvents
-from mauserve.schemes.game import GameData, game_to_data
+from mauserve.schemes.game import (
+    GameData,
+    PlayerData,
+    game_to_data,
+    player_to_data,
+)
 
 
 class EventData(BaseModel):
@@ -19,8 +24,8 @@ class EventData(BaseModel):
     - context: Текущий игровой контекст.
     """
 
-    event_type: GameEvents
-    from_player: str
+    event: GameEvents
+    player: PlayerData
     data: str
     game: GameData
 
@@ -47,8 +52,8 @@ class WebSocketEventHandler(BaseEventHandler):
     def push(self, event: Event) -> None:
         """Отправляет событие клиентам."""
         event_data = EventData(
-            event_type=event.event_type,
-            from_player=event.from_player,
+            event=event.event_type,
+            player=player_to_data(event.player),
             data=event.data,
             game=game_to_data(event.game),
         )
