@@ -21,8 +21,8 @@ from mauserve.routers import ROUTERS
 # ==========================
 
 DB_CONFIG = generate_config(
-    config.test_db_url if config.debug else config.db_url,
-    app_modules={"models": ["mauserve.models", "aerich.models"]},
+    str(config.db_url),
+    app_modules={"models": ["mauserve.models"]},
     testing=config.debug,
     connection_label="models",
 )
