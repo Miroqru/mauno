@@ -73,7 +73,7 @@ target/
 chart/charts
 
 # Database file
-uno.sqlite3
+uno.sqlite*
 data/
 
 images/api_auth.json
