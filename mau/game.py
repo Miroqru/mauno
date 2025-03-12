@@ -136,7 +136,6 @@ class UnoGame:
         logger.info("Start new game in chat {}", self.room_id)
         self.winners.clear()
         self.losers.clear()
-        self.started = True
         shuffle(self.players)
 
         if self.rules.wild.status:
@@ -151,6 +150,7 @@ class UnoGame:
             player.take_first_hand()
 
         self.take_first_card()
+        self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
 
     def end(self) -> None:
