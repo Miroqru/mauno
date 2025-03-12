@@ -249,10 +249,10 @@ class Player:
             )
             bluff_player.take_cards()
         else:
+            self.game.take_counter += 2
             self.push_event(
                 GameEvents.GAME_BLUFF, f"false;{self.game.take_counter}"
             )
-            self.game.take_counter += 2
             self.take_cards()
 
         self.game.next_turn()
