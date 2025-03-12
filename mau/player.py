@@ -274,12 +274,13 @@ class Player:
         ):
             self.game.take_counter = self.game.deck.count_until_cover()
 
-        if (
-            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
-            or self.game.rules.shotgun.status
+        if self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER and (
+            self.game.rules.shotgun.status
             or self.game.rules.single_shotgun.status
         ):
+            self.game.state = GameState.SHOTGUN
             self.push_event(GameEvents.GAME_STATE, "shotgun")
+            return
 
         logger.info("{} take cards", self)
         take_counter = self.game.take_counter
