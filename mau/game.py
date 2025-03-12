@@ -55,6 +55,7 @@ class GameRules(NamedTuple):
     ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False, "ahead_of_curve")
     intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
     twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
+    one_winner: Rule = Rule("👑 Один победитель", False, "one_winner")
 
 
 class UnoGame:
@@ -218,6 +219,9 @@ class UnoGame:
         if len(player.hand) == 0:
             self.winners.append(player)
             self.push_event(player, GameEvents.GAME_LEAVE, "win")
+
+            if self.rules.one_winner.status:
+                self.end()
         else:
             self.losers.append(player)
             self.push_event(player, GameEvents.GAME_LEAVE, "lose")
