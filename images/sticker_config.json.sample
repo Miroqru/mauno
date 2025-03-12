@@ -1,8 +1,0 @@
-{
-    "pack_name": "mauno_classic",
-    "sticker_emoji": "🃏",
-
-    "normal_dir": "classic/png",
-    "not_playable_dir": "classic/png_lowsat/",
-    "option_dir": "options/png/"
-}
