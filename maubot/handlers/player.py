@@ -97,7 +97,7 @@ async def shotgun_call(
 ) -> None:
     """Игрок выбирает взять карты."""
     res = player.shotgun()
-    journal.set_markup(None)
+    journal.set_markup(journal.default_markup)
     if not res:
         game.take_counter = round(game.take_counter * 1.5)
         journal.add(

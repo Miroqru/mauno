@@ -1,6 +1,7 @@
 """Обработчик игровых событий движка."""
 
 import asyncio
+from collections import deque
 from collections.abc import Awaitable, Callable
 from typing import Any, TypeVar
 
@@ -50,7 +51,7 @@ class MessageJournal(BaseEventHandler):
     def __init__(self, bot: Bot, room_id: str, router: EventRouter) -> None:
         self.lobby_message: Message | None = None
         self.room_message: Message | None = None
-        self.message_buffer: list[str] = []
+        self.message_queue: deque[str] = deque(maxlen=10)
 
         self.default_markup = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -104,18 +105,18 @@ class MessageJournal(BaseEventHandler):
         Если же журнал привязан, то изменится текст сообщения.
         По умолчанию журнал очищается при каждом новом ходе игрока.
         """
-        if len(self.message_buffer) == 0:
+        if len(self.message_queue) == 0:
             return None
 
         if self.room_message is None:
             self.room_message = await self.bot.send_message(
                 chat_id=self.room_id,
-                text="\n".join(self.message_buffer),
+                text="\n".join(self.message_queue),
                 reply_markup=self.markup,
             )
         else:
             await self.room_message.edit_text(
-                text="\n".join(self.message_buffer),
+                text="\n".join(self.message_queue),
                 reply_markup=self.markup,
             )
 
@@ -126,12 +127,13 @@ class MessageJournal(BaseEventHandler):
             sticker=stickers.normal[card.to_str()],
         )
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         """Очищает буфер событий и сбрасывает клавиатуру."""
-        self.message_buffer.clear()
         self.markup = self.default_markup
         self.lobby_message = None
-        self.room_message = None
+        if self.room_message is not None:
+            await self.room_message.delete()
+            self.room_message = None
 
     def set_markup(self, markup: InlineKeyboardMarkup | None) -> None:
         """Устанавливает клавиатуру для игровых событий."""
@@ -139,7 +141,7 @@ class MessageJournal(BaseEventHandler):
 
     def add(self, text: str) -> None:
         """Добавляет новую запись в буфер сообщений."""
-        self.message_buffer.append(text)
+        self.message_queue.app(text)
 
     # TODO: Удаление журнала чтобы было меньше сообщений
     # async def delete_journal(self):

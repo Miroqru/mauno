@@ -107,11 +107,10 @@ async def twist_hand(event: Event, journal: MessageJournal) -> None:
         journal.add("🍺 Куда подевался второй игрок?")
     else:
         journal.add(
-            f"🤝 {event.player.name} ({len(event.player.hand)} карт) "
-            f"и {other_player.name} ({len(other_player.hand)} карт) "
+            f"🤝 {event.player.name} ({len(other_player.hand)} карт) "
+            f"и {other_player.name} ({len(event.player.hand)} карт) "
             "обменялись руками.\n"
         )
-    journal.set_markup(None)
     await journal.send()
 
 
@@ -119,7 +118,6 @@ async def twist_hand(event: Event, journal: MessageJournal) -> None:
 async def player_bluffing(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
     bluff_flag, take_counter = event.data.split(";")
-
     bluff_player = event.game.bluff_player
     if bluff_player is not None and bluff_flag == "true":
         journal.add(
@@ -176,8 +174,6 @@ async def set_game_state(event: Event, journal: MessageJournal) -> None:
 @er.handler(event=GameEvents.GAME_TURN)
 async def next_turn(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.set_markup(None)
-    await journal.send()
-    journal.clear()
+    await journal.clear()
     journal.add(f"🍰 <b>Следующий ходит</b>: {event.game.player.name}")
     await journal.send()

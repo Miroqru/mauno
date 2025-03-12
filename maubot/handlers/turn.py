@@ -90,10 +90,6 @@ async def process_card_handler(
     if card is not None:
         game.process_turn(card, player)
 
-        # if game.started and game.state == GameState.NEXT:
-        #     journal.add("🌀 Продолжаем ход")
-    # await journal.send()
-
 
 # Обработчики для кнопок
 # ======================
