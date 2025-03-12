@@ -195,15 +195,6 @@ def get_hand_query(
     # Карты из руки уже отсортированы, остаётся только их добавить
     result.extend(get_hand_cards(player))
 
-    # Явное отображение статуса игры
-    result.append(
-        _add_sticker(
-            "status",
-            stickers.options.info,
-            get_room_status(player.game),
-        )
-    )
-
     return result
 
 
