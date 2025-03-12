@@ -18,7 +18,7 @@ from mau.enums import GameState
 from mau.game import GameRules, Rule, UnoGame
 from mau.player import Player
 from maubot.config import config, stickers
-from maubot.messages import get_room_status, take_cards_message
+from maubot.messages import get_room_status
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
 NO_GAME_QUERY: Sequence[
@@ -175,14 +175,10 @@ def get_hand_query(
 
     elif player.game.take_flag:
         result = [
-            _add_sticker("pass", stickers.options.next_turn, "🃏 Пропускаю.")
+            _add_sticker("pass", stickers.options.next_turn, "👀 Пропускаю")
         ]
     elif player.is_current:
-        result = [
-            _add_sticker(
-                "take", stickers.options.draw, take_cards_message(player.game)
-            )
-        ]
+        result = [_add_sticker("take", stickers.options.draw, "👀 Беру карту")]
 
     if (
         isinstance(player.game.deck.top, TakeFourCard)

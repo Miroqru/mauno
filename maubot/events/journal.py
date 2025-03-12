@@ -51,7 +51,7 @@ class MessageJournal(BaseEventHandler):
     def __init__(self, bot: Bot, room_id: str, router: EventRouter) -> None:
         self.lobby_message: Message | None = None
         self.room_message: Message | None = None
-        self.message_queue: deque[str] = deque(maxlen=10)
+        self.message_queue: deque[str] = deque(maxlen=5)
 
         self.default_markup = InlineKeyboardMarkup(
             inline_keyboard=[
@@ -97,6 +97,14 @@ class MessageJournal(BaseEventHandler):
                 reply_markup=reply_markup,
             )
 
+    async def send_message(self, text: str) -> None:
+        """Отправляет сообщение в комнату."""
+        return await self.bot.send_message(
+            chat_id=self.room_id,
+            text=text,
+            reply_markup=self.markup,
+        )
+
     async def send(self) -> None:
         """Отправляет журнал в чат.
 
@@ -109,10 +117,8 @@ class MessageJournal(BaseEventHandler):
             return None
 
         if self.room_message is None:
-            self.room_message = await self.bot.send_message(
-                chat_id=self.room_id,
+            self.room_message = await self.send_message(
                 text="\n".join(self.message_queue),
-                reply_markup=self.markup,
             )
         else:
             await self.room_message.edit_text(
@@ -141,15 +147,4 @@ class MessageJournal(BaseEventHandler):
 
     def add(self, text: str) -> None:
         """Добавляет новую запись в буфер сообщений."""
-        self.message_queue.app(text)
-
-    # TODO: Удаление журнала чтобы было меньше сообщений
-    # async def delete_journal(self):
-    #     if self.message is None:
-    #         return
-
-    #     max_priority = max(self.events, key=lambda event: event.priority)
-    #     if max_priority > 1:
-    #         return
-
-    #     await self.message.delete()
+        self.message_queue.append(text)

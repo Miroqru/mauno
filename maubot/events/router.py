@@ -4,6 +4,7 @@ from mau.events import Event, GameEvents
 from maubot import keyboards, messages
 from maubot.config import sm
 from maubot.events.journal import EventRouter, MessageJournal
+from maubot.messages import plural_form
 
 er = EventRouter()
 
@@ -68,26 +69,37 @@ async def say_uno(event: Event, journal: MessageJournal) -> None:
     await journal.send()
 
 
+@er.handler(event=GameEvents.GAME_TAKE)
+async def player_take_cards(event: Event, journal: MessageJournal) -> None:
+    """Оповещает что пользователь взял N карт."""
+    if journal.room_message is not None:
+        journal.add(
+            f"🃏 Беру {event.data} "
+            f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
+        )
+        await journal.send()
+
+
 @er.handler(event=GameEvents.GAME_ROTATE)
 async def rotate_cards(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
     journal.add("🌀 Обмениваемся ручками")
+    journal.add(messages.get_room_players(event.game))
     await journal.send()
 
 
 @er.handler(event=GameEvents.GAME_SELECT_COLOR)
 async def select_card_color(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add(f"🎨 Я выбираю.. {event.data}!\n")
+    journal.add(f"🎨 Я выбираю.. {event.data}!")
     await journal.send()
 
 
 @er.handler(event=GameEvents.GAME_START)
 async def start_game(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add(messages.get_new_game_message(event.game))
     await journal.send_card(event.game.deck.top)
-    await journal.send()
+    await journal.send_message(messages.get_new_game_message(event.game))
 
 
 @er.handler(event=GameEvents.GAME_END)
@@ -175,5 +187,5 @@ async def set_game_state(event: Event, journal: MessageJournal) -> None:
 async def next_turn(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
     await journal.clear()
-    journal.add(f"🍰 <b>Следующий ходит</b>: {event.game.player.name}")
+    journal.add(f"\n🍰 <b>ход</b>: {event.game.player.name}")
     await journal.send()

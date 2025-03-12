@@ -106,16 +106,6 @@ def get_str_timedelta(seconds: int) -> str:
     )
 
 
-def take_cards_message(game: UnoGame) -> str:
-    """Сколько карт берёт пользователь."""
-    if not game.take_counter:
-        return "🃏 Беру карту."
-    return (
-        f"🃏 Беру {game.take_counter} "
-        f"{plural_form(game.take_counter, ('карту', 'карты', 'карт'))}"
-    )
-
-
 # Динамические сообщения
 #  =====================
 
