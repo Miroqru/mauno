@@ -127,6 +127,11 @@ class Player:
         self.push_event(GameEvents.GAME_TAKE, str(take_counter))
         self.game.take_flag = True
 
+        if self.game.rules.auto_skip.status:
+            cards = self.get_cover_cards()
+            if len(cards.cover) == 0:
+                self.game.next_turn()
+
     def _sort_hand_cards(self, top: BaseCard) -> SortedCards:
         cover = []
         uncover = []

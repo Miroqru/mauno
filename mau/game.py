@@ -56,6 +56,7 @@ class GameRules(NamedTuple):
     intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
     twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
     one_winner: Rule = Rule("👑 Один победитель", False, "one_winner")
+    auto_skip: Rule = Rule("💸 Авто пропуск", False, "auto_skip")
 
 
 class UnoGame:
