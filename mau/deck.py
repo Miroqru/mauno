@@ -13,6 +13,7 @@ from loguru import logger
 from mau.card import (
     BaseCard,
     CardColor,
+    CardType,
     ChooseColorCard,
     NumberCard,
     ReverseCard,
@@ -107,6 +108,8 @@ class Deck:
 
     def put(self, card: BaseCard) -> None:
         """Возвращает использованную карту в колоду."""
+        if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
+            card.color = CardColor.BLACK
         self.used_cards.append(card)
 
     # Работа с верхней картой
@@ -117,7 +120,7 @@ class Deck:
         if self._top is None:
             self._top = card
 
-        self.used_cards.append(self._top)
+        self.put(self._top)
         self._top = card
 
     # Наполнение колоды
