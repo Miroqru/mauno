@@ -71,7 +71,7 @@ async def say_uno(event: Event, journal: MessageJournal) -> None:
 @er.handler(event=GameEvents.GAME_ROTATE)
 async def rotate_cards(event: Event, journal: MessageJournal) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add("🌟 UNO!\n")
+    journal.add("🌀 Обмениваемся ручками")
     await journal.send()
 
 
