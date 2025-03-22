@@ -14,6 +14,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "aiofiles>=24.1.0",
     "icecream>=2.1.4",
     "mypy>=1.15.0",
     "telethon>=1.39.0",

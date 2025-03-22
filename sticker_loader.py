@@ -1,9 +1,15 @@
+"""Простой скрипт для загрузки директории изображений как набор стикеров.
+
+Version: v2.0
+Author: Milinuri Nirvalen
+"""
+
 import argparse
 import asyncio
 import json
 from pathlib import Path
 
-from mau.deck import Deck
+import aiofiles
 from telethon import TelegramClient
 from telethon.tl.functions.messages import (
     GetAllStickersRequest,
@@ -11,6 +17,8 @@ from telethon.tl.functions.messages import (
 )
 from telethon.tl.types import InputStickerSetID
 from telethon.utils import pack_bot_file_id
+
+from mau.deck import Deck
 
 # Функции для проверки
 # ====================
@@ -22,13 +30,6 @@ OPTIONS = [
     "info",
     "next_turn",
 ]
-
-
-def get_item_cards():
-    # Колода карт
-    deck = Deck()
-    deck.fill_debug()
-    return [card.to_str() for card in deck.cards]
 
 
 # Работа с ботом
@@ -100,13 +101,18 @@ async def upload_sticker(
 # ========================
 
 
-async def save_sticker_ids(client: TelegramClient, name: str, items: list[str]) -> None:
+async def save_sticker_ids(
+    client: TelegramClient, name: str, items: list[str]
+) -> None:
     """Сохраняет словарь ID стикеров в JSON файл."""
-    with Path(f"sticker_ids_{name}.json").open("w") as f:
-        json.dump(
-            await get_sticker_ids(await get_sticker_set(client, name), items),
-            f,
-            indent=4,
+    async with aiofiles.open(Path(f"sticker_ids_{name}.json"), "w") as f:
+        await f.write(
+            json.dumps(
+                await get_sticker_ids(
+                    await get_sticker_set(client, name), items
+                ),
+                indent=4,
+            )
         )
 
 
@@ -139,7 +145,15 @@ async def upload_items(
         await asyncio.sleep(1)
 
 
-async def main():
+async def main() -> None:
+    """Главная функция скрипта.
+
+    - Разбирает аргументы командной строки.
+    - удаляет старый стикер пак.
+    - проверяет наличие всех файлов.
+    - Загружает файлы как стикер пак.
+    - Сохраняет ID стикеров в файл.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Путь к стикер паку")
     parser.add_argument("name", help="Название стикер пака")
@@ -151,7 +165,10 @@ async def main():
         type=Path,
     )
     parser.add_argument(
-        "-o", "--options", action="store_true", help="Загрузить стикер пак опций"
+        "-o",
+        "--options",
+        action="store_true",
+        help="Загрузить стикер пак опций",
     )
     parser.add_argument(
         "-s",
@@ -161,8 +178,8 @@ async def main():
     )
     args = parser.parse_args()
 
-    with open(args.auth, encoding="utf-8") as f:
-        config = json.load(f)
+    async with aiofiles.open(args.auth, encoding="utf-8") as f:
+        config = json.loads(await f.read())
 
     client = TelegramClient(
         session="sticker_uploader.session",
@@ -179,7 +196,10 @@ async def main():
     if args.options:
         items = OPTIONS
     else:
-        items = get_item_cards()
+        # Жёстко получаем все доступные карты к колоде
+        deck = Deck()
+        deck.fill_debug()
+        items = [card.to_str() for card in deck.cards]
 
     # Только сохраняем
     validate_err = validate_items(args.path, items)
@@ -202,7 +222,9 @@ async def main():
         await client.send_message(stickers_bot, "/skip")
         await client.send_message(stickers_bot, args.name)
 
-        print("Please add the sticker pack to your account by clicking the link!")
+        print(
+            "Please add the sticker pack to your account by clicking the link!"
+        )
         print(f"https://t.me/addstickers/{args.name}")
         await asyncio.sleep(10)
 

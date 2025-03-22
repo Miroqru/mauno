@@ -543,6 +543,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "aiofiles" },
     { name = "icecream" },
     { name = "mypy" },
     { name = "telethon" },
@@ -567,6 +568,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "icecream", specifier = ">=2.1.4" },
     { name = "mypy", specifier = ">=1.15.0" },
     { name = "telethon", specifier = ">=1.39.0" },
