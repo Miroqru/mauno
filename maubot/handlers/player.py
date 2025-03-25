@@ -10,6 +10,7 @@ from loguru import logger
 
 from mau.card import TakeCard, TakeFourCard
 from mau.enums import GameState
+from mau.exceptions import AlreadyJoinedError
 from mau.game import UnoGame
 from mau.player import BaseUser, Player
 from mau.session import SessionManager
@@ -60,10 +61,13 @@ async def join_callback(query: CallbackQuery, sm: SessionManager) -> None:
     if not isinstance(query.message, Message):
         raise ValueError("Query message should be Message instance")
 
-    sm.join(
-        str(query.message.chat.id),
-        BaseUser(str(query.from_user.id), query.from_user.mention_html()),
-    )
+    try:
+        sm.join(
+            str(query.message.chat.id),
+            BaseUser(str(query.from_user.id), query.from_user.mention_html()),
+        )
+    except AlreadyJoinedError:
+        await query.answer("👋 Вы уже с нами в комнате")
 
 
 @router.callback_query(F.data == "take", filters.NowPlaying())

@@ -209,9 +209,6 @@ def get_error_message(exc: Exception) -> str:
     if isinstance(exc, exceptions.NoGameInChatError):
         return NO_ROOM_MESSAGE
 
-    if isinstance(exc, exceptions.AlreadyJoinedError):
-        return "👋 Вы уже с нами в комнате"
-
     if isinstance(exc, exceptions.LobbyClosedError):
         return (
             "🔒 К сожалению данная комната <b>закрыта</b>.\n"
