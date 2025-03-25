@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mau.session import SessionManager
+from maubot.events.journal import MessageJournal
 
 
 class Config(BaseSettings):
@@ -72,4 +73,4 @@ except FileNotFoundError as e:
 
 # Настройки бота по умолчанию
 default = DefaultBotProperties(parse_mode="html")
-sm = SessionManager()
+sm: SessionManager[MessageJournal] = SessionManager()

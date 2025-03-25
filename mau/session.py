@@ -4,14 +4,11 @@
 Отвечает за создание новых игр и привязыванию их к чату.
 """
 
+from typing import Generic, TypeVar, cast
+
 from loguru import logger
 
-from mau.events import (
-    BaseEventHandler,
-    DebugEventHandler,
-    Event,
-    GameEvents,
-)
+from mau.events import BaseEventHandler, DebugEventHandler, Event, GameEvents
 from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,
@@ -20,8 +17,10 @@ from mau.game import UnoGame
 from mau.player import BaseUser, Player
 from mau.session_storage import BaseStorage, MemoryStorage
 
+_H = TypeVar("_H", bound=BaseEventHandler)
 
-class SessionManager:
+
+class SessionManager(Generic[_H]):
     """Управляет всеми играми Uno.
 
     Каждая игра (сессия) привязывается к конкретному чату.
@@ -31,10 +30,14 @@ class SessionManager:
     def __init__(
         self,
         storage: BaseStorage | None = None,
-        event_handler: BaseEventHandler | None = None,
+        event_handler: _H | None = None,
     ) -> None:
         self.storage: BaseStorage = storage or MemoryStorage()
-        self.event_handler = event_handler or DebugEventHandler()
+        self.event_handler = event_handler or cast(_H, DebugEventHandler())
+
+    def set_handler(self, handler: _H) -> None:
+        """Устанавливает обработчик событий."""
+        self.event_handler = handler
 
     # Управление игроками в сессии
     # ================W============

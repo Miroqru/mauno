@@ -52,7 +52,11 @@ async def game_middleware(
         context = get_context(sm, event)
         data["game"] = context.game
         data["player"] = context.player
-        data["channel"] = sm.event_handler.get_channel(context.game.room_id)
+        data["channel"] = (
+            sm.event_handler.get_channel(context.game.room_id)
+            if context.game is not None
+            else None
+        )
     except Exception as e:
         logger.error(e)
         data["game"] = None
