@@ -37,18 +37,16 @@ def get_context(
 ) -> GameContext:
     """Получает игровой контекста."""
     if isinstance(event, Message | ChatMemberUpdated):
-        game = sm.games.get(str(event.chat.id))
+        game = sm.storage.get_game(str(event.chat.id))
 
     elif isinstance(event, CallbackQuery):
         if event.message is None:
-            chat_id = sm.user_to_chat.get(str(event.from_user.id))
-            game = None if chat_id is None else sm.games.get(chat_id)
+            game = sm.storage.get_player_game(str(event.from_user.id))
         else:
-            game = sm.games.get(str(event.message.chat.id))
+            game = sm.storage.get_game(str(event.message.chat.id))
 
     elif isinstance(event, InlineQuery | ChosenInlineResult):
-        chat_id = sm.user_to_chat.get(str(event.from_user.id))
-        game = None if chat_id is None else sm.games.get(chat_id)
+        game = sm.storage.get_player_game(str(event.from_user.id))
 
     else:
         raise ValueError("Unknown update type")

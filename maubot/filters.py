@@ -23,7 +23,6 @@ class ActiveGame(Filter):
     async def __call__(self, event: CallbackQuery | Message) -> bool:
         """Проверяет что игра существует."""
         context = get_context(sm, event)
-
         if context.game is not None:
             return True
 
@@ -110,7 +109,6 @@ class GameOwner(Filter):
         return True
 
 
-# TODO: Возможно он даже не работает нормально, да вот только почему??
 class NowPlaying(Filter):
     """Фильтр текущего игрока.
 

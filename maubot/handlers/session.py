@@ -20,8 +20,7 @@ from mau.player import BaseUser
 from mau.session import SessionManager
 from maubot import filters, keyboards
 from maubot.config import config
-from maubot.events.journal import MessageJournal
-from maubot.events.router import er
+from maubot.events.journal import MessageChannel
 from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE
 
 router = Router(name="Sessions")
@@ -56,7 +55,6 @@ async def create_game(
             BaseUser(
                 str(message.from_user.id), message.from_user.mention_html()
             ),
-            MessageJournal(bot, str(message.chat.id), er),
         )
 
     if game.started:
@@ -129,7 +127,7 @@ async def close_gama(message: Message, game: UnoGame) -> None:
 
 @router.message(Command("kick"), filters.GameOwner())
 async def kick_player(
-    message: Message, game: UnoGame, sm: SessionManager, journal: MessageJournal
+    message: Message, game: UnoGame, sm: SessionManager, channel: MessageChannel
 ) -> None:
     """Выкидывает участника из комнаты."""
     if (
@@ -142,24 +140,24 @@ async def kick_player(
 
     kicked_user = message.reply_to_message.from_user
     kick_player = game.get_player(str(kicked_user.id))
-    journal.add(
+    channel.add(
         f"🧹 {game.owner.name} выгнал "
         f"{kicked_user} из игры за плохое поведение.\n"
     )
-    await journal.send()
+    await channel.send()
     if kick_player is not None:
         sm.leave(kick_player)
 
 
 @router.message(Command("skip"), filters.GameOwner())
 async def skip_player(
-    message: Message, game: UnoGame, journal: MessageJournal
+    message: Message, game: UnoGame, channel: MessageChannel
 ) -> None:
     """пропускает участника за долгое бездействие."""
     game.take_counter += 1
     game.player.take_cards()
     skip_player = game.player
-    journal.add(
+    channel.add(
         f"☕ {skip_player.name} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
     )
@@ -169,7 +167,7 @@ async def skip_player(
         game.choose_color(CardColor(random.randint(0, 3)))
     else:
         game.next_turn()
-    await journal.send()
+    await channel.send()
 
 
 # Обработчики событий

@@ -1,9 +1,9 @@
 """Маршрутизация событий от движка."""
 
-from mau.events import Event, GameEvents
+from mau.events import GameEvents
 from maubot import keyboards, messages
-from maubot.config import sm
-from maubot.events.journal import EventRouter, MessageJournal
+from maubot.config import sm, stickers
+from maubot.events.journal import EventContext, EventRouter
 from maubot.messages import plural_form
 
 er = EventRouter()
@@ -14,16 +14,22 @@ er = EventRouter()
 
 
 @er.handler(event=GameEvents.SESSION_START)
-async def start_session(event: Event, journal: MessageJournal) -> None:
+async def start_session(ctx: EventContext) -> None:
     """Отправляет лобби, когда начинается новая сессия в чате."""
     lobby_message = (
-        f"{messages.get_room_status(event.game)}\n\n"
-        f"🔥 {event.player.name}, Начинает новую игру!"
+        f"{messages.get_room_status(ctx.event.game)}\n\n"
+        f"🔥 {ctx.event.player.name}, Начинает новую игру!"
     )
-    await journal.send_lobby(
+    await ctx.send_lobby(
         message=lobby_message,
-        reply_markup=keyboards.get_room_markup(event.game),
+        reply_markup=keyboards.get_room_markup(ctx.event.game),
     )
+
+
+@er.handler(event=GameEvents.SESSION_END)
+async def end_session(ctx: EventContext) -> None:
+    """Очищает устаревший канал сообщений."""
+    ctx.journal.remove_channel(ctx.event.room_id)
 
 
 # Обработка событий игры
@@ -31,108 +37,108 @@ async def start_session(event: Event, journal: MessageJournal) -> None:
 
 
 @er.handler(event=GameEvents.GAME_JOIN)
-async def join_player(event: Event, journal: MessageJournal) -> None:
+async def join_player(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    if event.game.started:
-        journal.add(f"🍰 Добро пожаловать в игру, {event.player.name}!")
-        await journal.send()
+    if ctx.event.game.started:
+        ctx.add(f"🍰 Добро пожаловать в игру, {ctx.event.player.name}!")
+        await ctx.send()
     else:
         lobby_message = (
-            f"{messages.get_room_status(event.game)}\n\n"
-            f"👋 {event.player.name}, добро пожаловать в комнату!"
+            f"{messages.get_room_status(ctx.event.game)}\n\n"
+            f"👋 {ctx.event.player.name}, добро пожаловать в комнату!"
         )
-        await journal.send_lobby(
+        await ctx.send_lobby(
             message=lobby_message,
-            reply_markup=keyboards.get_room_markup(event.game),
+            reply_markup=keyboards.get_room_markup(ctx.event.game),
         )
 
 
 @er.handler(event=GameEvents.GAME_LEAVE)
-async def leave_player(event: Event, journal: MessageJournal) -> None:
+async def leave_player(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
     # Это может бывать выход из игры до её начала
-    if event.data == "win":
-        journal.add(f"👑 {event.player.name} победил(а)!\n")
+    if ctx.event.data == "win":
+        ctx.add(f"👑 {ctx.event.player.name} победил(а)!\n")
     else:
-        journal.add(f"👋 {event.player.name} покидает игру!\n")
+        ctx.add(f"👋 {ctx.event.player.name} покидает игру!\n")
 
-    if not event.game.started:
-        journal.set_markup(None)
+    if not ctx.event.game.started:
+        ctx.set_markup(None)
 
-    await journal.send()
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_UNO)
-async def say_uno(event: Event, journal: MessageJournal) -> None:
+async def say_uno(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add("🌟 UNO!\n")
-    await journal.send()
+    ctx.add("🌟 UNO!\n")
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_TAKE)
-async def player_take_cards(event: Event, journal: MessageJournal) -> None:
+async def player_take_cards(ctx: EventContext) -> None:
     """Оповещает что пользователь взял N карт."""
-    if journal.room_message is not None:
-        journal.add(
-            f"🃏 Беру {event.data} "
-            f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
-        )
-        await journal.send()
+    ctx.add(
+        f"🃏 Беру {ctx.event.data} "
+        f"{plural_form(int(ctx.event.data), ('карту', 'карты', 'карт'))}"
+    )
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_ROTATE)
-async def rotate_cards(event: Event, journal: MessageJournal) -> None:
+async def rotate_cards(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add("🌀 Обмениваемся ручками")
-    journal.add(messages.get_room_players(event.game))
-    await journal.send()
+    ctx.add("🌀 Обмениваемся ручками")
+    ctx.add(messages.get_room_players(ctx.event.game))
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_SELECT_COLOR)
-async def select_card_color(event: Event, journal: MessageJournal) -> None:
+async def select_card_color(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add(f"🎨 Я выбираю.. {event.data}!")
-    await journal.send()
+    ctx.add(f"🎨 Я выбираю.. {ctx.event.data}!")
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_START)
-async def start_game(event: Event, journal: MessageJournal) -> None:
+async def start_game(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    await journal.send_card(event.game.deck.top)
-    await journal.send_message(messages.get_new_game_message(event.game))
+    sticker = stickers.normal[ctx.event.game.deck.top.to_str()]
+    await ctx.send_card(sticker)
+    await ctx.send_message(messages.get_new_game_message(ctx.event.game))
 
 
 @er.handler(event=GameEvents.GAME_END)
-async def end_game(event: Event, journal: MessageJournal) -> None:
+async def end_game(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    journal.add(messages.end_game_message(event.game))
-    journal.set_markup(None)
-    sm.remove(event.game.room_id)
-    await journal.send()
+    ctx.add(messages.end_game_message(ctx.event.game))
+    ctx.set_markup(None)
+    sm.remove(ctx.event.room_id)
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_SELECT_PLAYER)
-async def twist_hand(event: Event, journal: MessageJournal) -> None:
+async def twist_hand(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    other_player = event.game.get_player(event.data)
+    other_player = ctx.event.game.get_player(ctx.event.data)
     if other_player is None:
-        journal.add("🍺 Куда подевался второй игрок?")
+        ctx.add("🍺 Куда подевался второй игрок?")
     else:
-        journal.add(
-            f"🤝 {event.player.name} ({len(other_player.hand)} карт) "
-            f"и {other_player.name} ({len(event.player.hand)} карт) "
+        ctx.add(
+            f"🤝 {ctx.event.player.name} ({len(other_player.hand)} карт) "
+            f"и {other_player.name} ({len(ctx.event.player.hand)} карт) "
             "обменялись руками.\n"
         )
-    await journal.send()
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_BLUFF)
-async def player_bluffing(event: Event, journal: MessageJournal) -> None:
+async def player_bluffing(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    bluff_flag, take_counter = event.data.split(";")
-    bluff_player = event.game.bluff_player
+    bluff_flag, take_counter = ctx.event.data.split(";")
+    bluff_player = ctx.event.game.bluff_player
     if bluff_player is not None and bluff_flag == "true":
-        journal.add(
+        ctx.add(
             "🔎 <b>Замечен блеф</b>!\n"
             f"{bluff_player.name} получает "
             f"{take_counter} карт."
@@ -143,49 +149,48 @@ async def player_bluffing(event: Event, journal: MessageJournal) -> None:
         else:
             bluff_header = f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
 
-        journal.add(
-            f"{bluff_header}{event.player.name} получает {take_counter} карт.\n"
-        )
+        name = ctx.event.player.name
+        ctx.add(f"{bluff_header}{name} получает {take_counter} карт.\n")
 
-    await journal.send()
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_STATE)
-async def set_game_state(event: Event, journal: MessageJournal) -> None:
+async def set_game_state(ctx: EventContext) -> None:
     """Изменение игрового состояния."""
-    if event.data == "shotgun" and (
-        event.game.rules.shotgun.status
-        or event.game.rules.single_shotgun.status
+    if ctx.event.data == "shotgun" and (
+        ctx.event.game.rules.shotgun.status
+        or ctx.event.game.rules.single_shotgun.status
     ):
         current = (
-            event.game.shotgun_current
-            if event.game.rules.single_shotgun.status
-            else event.player.shotgun_current
+            ctx.event.game.shotgun_current
+            if ctx.event.game.rules.single_shotgun.status
+            else ctx.event.player.shotgun_current
         )
-        journal.add(
-            f"🍷 беру {event.game.take_counter} карт.\n"
+        ctx.add(
+            f"🍷 беру {ctx.event.game.take_counter} карт.\n"
             "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
             f"Вы можете <b>взять свои карты</b> "
             "или же попробовать <b>выстрелить из револьвера</b>.\n"
             "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
-        journal.set_markup(keyboards.SHOTGUN_KEYBOARD)
+        ctx.set_markup(keyboards.SHOTGUN_KEYBOARD)
 
-    elif event.data == "twist_hand":
-        journal.add(f"✨ {event.player.name} Задумывается c кем обменяться.")
-        journal.set_markup(keyboards.select_player_markup(event.game))
+    elif ctx.event.data == "twist_hand":
+        ctx.add(f"✨ {ctx.event.player.name} Задумывается c кем обменяться.")
+        ctx.set_markup(keyboards.select_player_markup(ctx.event.game))
 
-    elif event.data == "choose_color":
-        journal.add(f"✨ {event.player.name} Задумывается о выборе цвета..")
-        journal.set_markup(keyboards.SELECT_COLOR)
+    elif ctx.event.data == "choose_color":
+        ctx.add(f"✨ {ctx.event.player.name} Задумывается о выборе цвета..")
+        ctx.set_markup(keyboards.SELECT_COLOR)
 
-    await journal.send()
+    await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_TURN)
-async def next_turn(event: Event, journal: MessageJournal) -> None:
+async def next_turn(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    await journal.clear()
-    journal.add(f"\n🍰 <b>ход</b>: {event.game.player.name}")
-    await journal.send()
+    await ctx.clear()
+    ctx.add(f"\n🍰 <b>ход</b>: {ctx.event.game.player.name}")
+    await ctx.send()

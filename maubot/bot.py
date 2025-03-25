@@ -13,6 +13,8 @@ from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
 from maubot.config import config, default, sm
+from maubot.events.journal import MessageJournal
+from maubot.events.router import er
 from maubot.handlers import ROUTERS
 from maubot.messages import get_error_message
 from maubot.utils import get_context
@@ -46,11 +48,17 @@ async def game_middleware(
     data: dict[str, Any],
 ) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    context = get_context(sm, event)
-    data["game"] = context.game
-    data["player"] = context.player
-    if context.game is not None:
-        data["journal"] = sm.chat_journal[context.game.room_id]
+    try:
+        context = get_context(sm, event)
+        data["game"] = context.game
+        data["player"] = context.player
+        data["channel"] = sm.event_handler.get_channel(context.game.room_id)
+    except Exception as e:
+        logger.error(e)
+        data["game"] = None
+        data["player"] = None
+        data["channel"] = None
+
     return await handler(event, data)
 
 
@@ -99,6 +107,9 @@ async def main() -> None:
     for router in ROUTERS:
         dp.include_router(router)
         logger.debug("Include router {}", router.name)
+
+    logger.info("Set event handler")
+    sm.set_handler(MessageJournal(bot, er))
 
     logger.success("Start polling!")
     await dp.start_polling(bot)

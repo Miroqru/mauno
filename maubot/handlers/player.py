@@ -14,7 +14,7 @@ from mau.game import UnoGame
 from mau.player import BaseUser, Player
 from mau.session import SessionManager
 from maubot import filters
-from maubot.events.journal import MessageJournal
+from maubot.events.journal import MessageChannel
 
 router = Router(name="Player")
 
@@ -68,14 +68,14 @@ async def join_callback(query: CallbackQuery, sm: SessionManager) -> None:
 
 @router.callback_query(F.data == "take", filters.NowPlaying())
 async def take_cards_call(
-    query: CallbackQuery, game: UnoGame, player: Player, journal: MessageJournal
+    query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
 ) -> None:
     """Игрок выбирает взять карты."""
     if game.player == player:
-        journal.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
+        channel.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
     else:
         game.set_current_player(player)
-        journal.add(f"🃏 {player.name} решил <b>взять карты</b>.")
+        channel.add(f"🃏 {player.name} решил <b>взять карты</b>.")
 
     player.take_cards()
 
@@ -83,8 +83,8 @@ async def take_cards_call(
     if isinstance(game.deck.top, TakeCard | TakeFourCard) and game.take_counter:
         game.next_turn()
     else:
-        journal.add(f"☕ {game.player.name} <b>продолжает</b>.")
-        await journal.send()
+        channel.add(f"☕ {game.player.name} <b>продолжает</b>.")
+        await channel.send()
 
 
 @router.callback_query(F.data == "shot", filters.NowPlaying())
@@ -93,25 +93,25 @@ async def shotgun_call(
     sm: SessionManager,
     game: UnoGame,
     player: Player,
-    journal: MessageJournal,
+    channel: MessageChannel,
 ) -> None:
     """Игрок выбирает взять карты."""
     res = player.shotgun()
-    journal.set_markup(journal.default_markup)
+    channel.set_markup(channel.default_markup)
     if not res:
         game.take_counter = round(game.take_counter * 1.5)
-        journal.add(
+        channel.add(
             "✨ На сей раз <b>вам повезло</b> и револьвер не выстрелил.\n"
             f"🃏 Следующий игрок берёт <b>{game.take_counter} карт</b>!\n"
         )
-        await journal.send()
+        await channel.send()
         if game.player != player:
             game.set_current_player(player)
         game.next_turn()
         game.state = GameState.SHOTGUN
     else:
         if game.player == player:
-            journal.add("😴 На этом игра для вас <b>закончилась</b>.\n")
+            channel.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
-            journal.add(f"😴 {player.name} попал под пулю..\n")
+            channel.add(f"😴 {player.name} попал под пулю..\n")
         sm.leave(player)

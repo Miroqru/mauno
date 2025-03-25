@@ -7,7 +7,7 @@
 
 from aiogram.client.default import DefaultBotProperties
 from loguru import logger
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mau.session import SessionManager
@@ -21,16 +21,16 @@ class Config(BaseSettings):
     - min_players: Минимальное количество игроков для начала игры.
     """
 
-    telegram_token: SecretStr
-    stickers_path: str
-    min_players: int
+    telegram_token: SecretStr = Field()
+    stickers_path: str = Field()
+    min_players: int = Field()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="allow"
     )
 
 
-config = Config()  # type: ignore
+config: Config = Config()  # type: ignore
 
 # Настройка стикеров
 # ==================

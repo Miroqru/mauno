@@ -9,13 +9,61 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 
-from mau.card import BaseCard
 from mau.events import BaseEventHandler, Event, GameEvents
-from maubot.config import stickers
 
 FuncType = Callable[..., Any] | Callable[..., Awaitable[Any]]
 
 T = TypeVar("T", bound=FuncType)
+
+
+class EventContext:
+    """Вспомогательный класс контекст событий."""
+
+    def __init__(self, event: Event, journal: "MessageJournal") -> None:
+        self.event = event
+        self.journal = journal
+        self._channel: MessageChannel = self.journal.get_channel(
+            self.event.room_id
+        )
+
+    # Сокращение для методов
+    # ======================
+
+    async def send_lobby(
+        self, message: str, reply_markup: InlineKeyboardMarkup | None = None
+    ) -> None:
+        """Отправляет сообщение-лобби о начале новой игры."""
+        return await self._channel.send_lobby(message, reply_markup)
+
+    async def send_message(self, text: str) -> Message:
+        """Отправляет сообщение в комнату."""
+        return await self._channel.send_message(text)
+
+    async def send(self) -> None:
+        """Отправляет журнал в чат.
+
+        Если до этого журнал не отправлялся, будет создано отправлено
+        новое сообщение с журналом.
+        Если же журнал привязан, то изменится текст сообщения.
+        По умолчанию журнал очищается при каждом новом ходе игрока.
+        """
+        await self._channel.send()
+
+    async def send_card(self, card: str) -> None:
+        """Отправляет карту как стикер."""
+        return await self._channel.send_card(card)
+
+    async def clear(self) -> None:
+        """Очищает буфер событий и сбрасывает клавиатуру."""
+        await self._channel.clear()
+
+    def set_markup(self, markup: InlineKeyboardMarkup | None) -> None:
+        """Устанавливает клавиатуру для игровых событий."""
+        self._channel.set_markup(markup)
+
+    def add(self, text: str) -> None:
+        """Добавляет новую запись в буфер сообщений."""
+        self._channel.add(text)
 
 
 class EventRouter:
@@ -33,7 +81,7 @@ class EventRouter:
             logger.warning("No handler on: {}", event)
             return None
 
-        await handler(event, journal)
+        await handler(EventContext(event, journal))
 
     def handler(self, event: GameEvents) -> Callable:
         """Декоратор для добавления новых обработчиков событий."""
@@ -45,38 +93,19 @@ class EventRouter:
         return wrapper
 
 
-class MessageJournal(BaseEventHandler):
-    """Обрабатывает события в рамках Telegram бота."""
+class MessageChannel:
+    """Канал сообщений, привязанный к конкретному чату."""
 
-    def __init__(self, bot: Bot, room_id: str, router: EventRouter) -> None:
+    def __init__(
+        self, room_id: str, bot: Bot, default_markup: InlineKeyboardMarkup
+    ) -> None:
+        self.room_id = room_id
         self.lobby_message: Message | None = None
         self.room_message: Message | None = None
         self.message_queue: deque[str] = deque(maxlen=5)
-
-        self.default_markup = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="🎮 Разыграть 🃏",
-                        switch_inline_query_current_chat="",
-                    )
-                ]
-            ]
-        )
-
-        self.markup: InlineKeyboardMarkup | None = self.default_markup
-        self._loop = asyncio.get_running_loop()
         self.bot = bot
-        self.room_id = room_id
-        self.router = router
-
-    def push(self, event: Event) -> None:
-        """Обрабатывает входящие события."""
-        logger.debug(event)
-        self._loop.create_task(self.router.process(event, self))
-
-    # Отправка сообщений
-    # ==================
+        self.default_markup = default_markup
+        self.markup: InlineKeyboardMarkup | None = self.default_markup
 
     async def send_lobby(
         self, message: str, reply_markup: InlineKeyboardMarkup | None = None
@@ -97,7 +126,7 @@ class MessageJournal(BaseEventHandler):
                 reply_markup=reply_markup,
             )
 
-    async def send_message(self, text: str) -> None:
+    async def send_message(self, text: str) -> Message:
         """Отправляет сообщение в комнату."""
         return await self.bot.send_message(
             chat_id=self.room_id,
@@ -126,11 +155,11 @@ class MessageJournal(BaseEventHandler):
                 reply_markup=self.markup,
             )
 
-    async def send_card(self, card: BaseCard) -> None:
+    async def send_card(self, sticker: str) -> None:
         """Отправляет карту как стикер."""
         await self.bot.send_sticker(
             chat_id=self.room_id,
-            sticker=stickers.normal[card.to_str()],
+            sticker=sticker,
         )
 
     async def clear(self) -> None:
@@ -148,3 +177,41 @@ class MessageJournal(BaseEventHandler):
     def add(self, text: str) -> None:
         """Добавляет новую запись в буфер сообщений."""
         self.message_queue.append(text)
+
+
+class MessageJournal(BaseEventHandler):
+    """Обрабатывает события в рамках Telegram бота."""
+
+    def __init__(self, bot: Bot, router: EventRouter) -> None:
+        self.channels: dict[str, MessageChannel] = {}
+        self._loop = asyncio.get_running_loop()
+        self.bot: Bot = bot
+        self.default_markup = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="🎮 Разыграть 🃏",
+                        switch_inline_query_current_chat="",
+                    )
+                ]
+            ]
+        )
+        self.router = router
+
+    def push(self, event: Event) -> None:
+        """Обрабатывает входящие события."""
+        logger.debug(event)
+        self._loop.create_task(self.router.process(event, self))
+
+    def get_channel(self, room_id: str) -> MessageChannel:
+        """Получает/создаёт канал сообщений для чата."""
+        channel = self.channels.get(room_id)
+        if channel is None:
+            channel = MessageChannel(room_id, self.bot, self.default_markup)
+            self.channels[room_id] = channel
+
+        return channel
+
+    def remove_channel(self, room_id: str) -> None:
+        """Устанавливает канал сообщений для чата."""
+        self.channels.pop(room_id)

@@ -18,7 +18,6 @@ from mau.enums import GameState
 from mau.game import UnoGame
 from mau.player import Player
 from maubot import keyboards
-from maubot.events.journal import MessageJournal
 from maubot.filters import NowPlaying
 
 router = Router(name="Turn")
@@ -48,7 +47,6 @@ async def process_card_handler(
     result: ChosenInlineResult,
     game: UnoGame | None,
     player: Player | None,
-    journal: MessageJournal,
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
     logger.info("Process result {} in game {}", result, game)
@@ -83,8 +81,6 @@ async def process_card_handler(
         if game.state == GameState.TWIST_HAND:
             other_player = game.players[int(select_player.groups()[0])]
             player.twist_hand(other_player)
-        else:
-            journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
 
     card = card_from_str(result.result_id)
     if card is not None:
@@ -103,12 +99,9 @@ async def choose_color_call(
     game: UnoGame,
     player: Player,
     color: re.Match[str],
-    journal: MessageJournal,
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
-
-    # Поскольку цвет уже выбран, нам бы убрать клавиатуру
     game.choose_color(card_color)
     await query.answer(f"🎨 Вы выбрали {card_color}.")
 
@@ -121,14 +114,12 @@ async def select_player_call(
     game: UnoGame,
     player: Player,
     index: re.Match,
-    journal: MessageJournal,
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
     other_player = game.players[int(index.groups()[0])]
     if game.state == GameState.TWIST_HAND:
         player.twist_hand(other_player)
-    else:
-        journal.add("🍻 Что-то пошло не так, но мы не знаем что.")
-        await journal.send()
+    elif query.message is not None:
+        query.message.answer("🍻 Что-то пошло не так, но мы не знаем что.")
 
     await query.answer(f"🤝 Вы обменялись с {other_player}.")
