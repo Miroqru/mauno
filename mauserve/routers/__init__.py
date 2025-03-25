@@ -1,4 +1,4 @@
-"""Хранит в себе все публичные роутеры сервера."""
+"""Хранит в себе все публичные маршруты сервера."""
 
 from mauserve.routers import game, leaaderboard, roomlist, users
 

@@ -13,7 +13,6 @@ from loguru import logger
 from tortoise import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise
 
-# Подгружаем роутеры
 from mauserve.config import config
 from mauserve.routers import ROUTERS
 
@@ -47,25 +46,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         yield
         # app teardown
 
-    # db connections closed
-    # ? Тут мог бы быть более корректный код, но увы
-    # if config.debug:
-    #     await Tortoise._drop_databases()
-
 
 # Константы
 # =========
 
 app = FastAPI(
     lifespan=lifespan,
-    title="mauserve",
+    title="mau:serve",
     debug=config.debug,
-    version="v0.4",
+    version="v1.9",
     root_path="/api",
 )
 
 origins = [
-    "*",
     "http://localhost",
     "http://localhost:8000",
     "http://localhost:5173",
@@ -80,7 +73,7 @@ app.add_middleware(
 )
 
 
-# Подключает сторонние роутеры
+# Подключает сторонние маршруты
 for router in ROUTERS:
     app.include_router(router)
     logger.info("Include router: {}", router.prefix)

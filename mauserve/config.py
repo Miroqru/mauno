@@ -10,7 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from redis.asyncio.client import Redis
 
 from mau.session import SessionManager
-from mauserve.token import SimpleTokenManager
+from mauserve.services.token import SimpleTokenManager
 
 
 class Config(BaseSettings):
@@ -28,7 +28,6 @@ class Config(BaseSettings):
 
     jwt_key: str
     db_url: PostgresDsn
-    test_db_url: str
     redis_url: str
     debug: bool
 

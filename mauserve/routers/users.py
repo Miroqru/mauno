@@ -26,9 +26,6 @@ from mauserve.schemes.users import (
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-# Список пользователей
-# ====================
-
 
 @router.get("/")
 async def get_users() -> list[UserData]:
@@ -40,7 +37,7 @@ async def get_users() -> list[UserData]:
 # ========================
 
 
-@router.post("/", response_model=UserData)
+@router.post("/")
 async def register_user(
     user: Annotated[UserDataIn, "Данные для регистрации"],
 ) -> UserData:
@@ -127,7 +124,7 @@ async def edit_my_profile(
 
 @router.get("/{username}")
 async def get_user_by_username(username: str) -> UserData:
-    """Получает информацию о пользователе по его ID.
+    """Получает информацию о пользователе по его Username.
 
     Если такого пользователя не существует, то вернёт 404.
     """

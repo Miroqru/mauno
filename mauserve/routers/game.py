@@ -4,8 +4,6 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    WebSocket,
-    WebSocketDisconnect,
 )
 from loguru import logger
 
@@ -84,22 +82,6 @@ async def save_game(ctx: GameContext) -> None:
     sm.remove(str(ctx.room.id))
     ctx.game = None
     ctx.player = None
-
-
-@router.websocket("/{room_id}")
-async def add_client(
-    room_id: str,
-    websocket: WebSocket,
-) -> None:
-    """Добавляет нового клиента для прослушивания игровых событий."""
-    await sm.chat_journal[room_id].connect(websocket)
-
-    try:
-        while True:
-            data = await websocket.receive_text()
-            logger.info(data)
-    except WebSocketDisconnect:
-        await sm.chat_journal[room_id].disconnect(websocket)
 
 
 # Player routers

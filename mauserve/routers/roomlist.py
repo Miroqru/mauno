@@ -2,12 +2,17 @@
 
 import random
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from loguru import logger
 from tortoise.queryset import QuerySet
 
-from mauserve.config import redis, stm
-from mauserve.mau.rules import RULES
+from mauserve.config import redis, sm, stm
 from mauserve.models import RoomModel, UserModel
 from mauserve.schemes.db import RoomData
 from mauserve.schemes.roomlist import RoomDataIn, RoomMode, RoomModeIn
@@ -17,6 +22,26 @@ router = APIRouter(prefix="/rooms", tags=["room list"])
 
 # получение информации о комнатах
 # ===============================
+
+
+@router.websocket("/{room_id}")
+async def add_client(
+    room_id: str,
+    websocket: WebSocket,
+) -> None:
+    """Добавляет нового клиента для прослушивания игровых событий."""
+    logger.debug(sm.chat_journal)
+    await sm.chat_journal[room_id].connect(websocket)
+    # if room_id in sm.chat_journal:
+    # else:
+    #     raise HTTPException(404, "Room not found")
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            logger.info(data)
+    except WebSocketDisconnect:
+        await sm.chat_journal[room_id].disconnect(websocket)
 
 
 @router.get("/")
@@ -63,7 +88,13 @@ async def get_random_room() -> RoomData:
 @router.get("/{room_id}")
 async def get_room_info(room_id: str) -> RoomData:
     """Получает информацию о комнате по её ID."""
-    room = await RoomModel.get_or_none(id=room_id)
+    try:
+        room = await RoomModel.get_or_none(id=room_id)
+    # На тот случай, если пользователь передаст плохой UUID
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(404, e)
+
     if room is None:
         raise HTTPException(404, "Room not found")
     return await RoomData.from_tortoise_orm(room)
@@ -105,10 +136,8 @@ async def update_room(
     if room.owner_id != user.id:
         raise HTTPException(401, "User is not room owner")
 
-    logger.debug(room_data)
     await room.update_from_dict(room_data.model_dump(exclude_unset=True))
     await room.save()
-
     return await RoomData.from_tortoise_orm(room)
 
 
@@ -125,7 +154,7 @@ async def delete_room(
         raise HTTPException(401, "User is not room owner")
 
     await room.delete()
-    return {"ok": True, "room_id": room_id, "user": user}
+    return {"ok": True, "room_id": room_id}
 
 
 # Игровые режимы
@@ -133,43 +162,43 @@ async def delete_room(
 
 
 # TODO: А как режимы делать тут
-@router.get("/{room_id}/modes")
-async def get_room_modes(room_id: str) -> list[RoomMode]:
-    """Получает информацию о выбранных режимах."""
-    active_modes = await redis.lrange(f"room:{room_id}:rules", 0, -1)
-    res = []
-    for rule in RULES:
-        res.append(
-            RoomMode(
-                key=rule.key, name=rule.name, status=rule.key in active_modes
-            )
-        )
-    return res
+# @router.get("/{room_id}/rules")
+# async def get_room_rules(room_id: str) -> list[RoomMode]:
+#     """Получает информацию о выбранных режимах."""
+#     active_rules = await redis.lrange(f"room:{room_id}:rules", 0, -1)
+#     res = []
+#     for rule in RULES:
+#         res.append(
+#             RoomMode(
+#                 key=rule.key, name=rule.name, status=rule.key in active_modes
+#             )
+#         )
+#     return res
 
 
-@router.put("/{room_id}/modes")
-async def update_room_modes(
-    room_id: str,
-    rules: RoomModeIn,
-    user: UserModel = Depends(stm.read_token),
-) -> list[RoomMode]:
-    """Обновляет список игровых режимов для комнаты."""
-    room: RoomModel = await RoomModel.get_or_none(id=room_id)
-    if room is None:
-        raise HTTPException(404, "Room not found")
-    if room.owner_id != user.id:
-        raise HTTPException(401, "User is not room owner")
+# @router.put("/{room_id}/modes")
+# async def update_room_modes(
+#     room_id: str,
+#     rules: RoomModeIn,
+#     user: UserModel = Depends(stm.read_token),
+# ) -> list[RoomMode]:
+#     """Обновляет список игровых режимов для комнаты."""
+#     room: RoomModel = await RoomModel.get_or_none(id=room_id)
+#     if room is None:
+#         raise HTTPException(404, "Room not found")
+#     if room.owner_id != user.id:
+#         raise HTTPException(401, "User is not room owner")
 
-    await redis.delete(f"room:{room_id}:rules")
-    await redis.rpush(f"room:{room_id}:rules", *rules.rules)
-    res = []
-    for rule in RULES:
-        res.append(
-            RoomMode(
-                key=rule.name, name=rule.name, status=rule.key in rules.rules
-            )
-        )
-    return res
+#     await redis.delete(f"room:{room_id}:rules")
+#     await redis.rpush(f"room:{room_id}:rules", *rules.rules)
+#     res = []
+#     for rule in RULES:
+#         res.append(
+#             RoomMode(
+#                 key=rule.name, name=rule.name, status=rule.key in rules.rules
+#             )
+#         )
+#     return res
 
 
 # Участники комнаты
@@ -261,10 +290,3 @@ async def leave_from_room(
     else:
         await room.players.remove(room_user)
     return await RoomData.from_tortoise_orm(room)
-
-
-@router.post("/{room_id}/start")
-async def start_new_game(room_id: str) -> str:
-    """Начало новой игры."""
-    # TODO: Нормальный выхлоп тут бы нужен
-    return "New game!"
