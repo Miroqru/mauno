@@ -78,6 +78,7 @@ class GameEvents(StrEnum):
 class Event:
     """Игровое событие."""
 
+    room_id: str
     player: "Player"
     event_type: GameEvents
     data: str
@@ -108,15 +109,3 @@ class DebugEventHandler(BaseEventHandler):
     def push(self, event: Event) -> None:
         """Отравляет событие в консоль."""
         logger.info(event)
-
-
-class EventJournal:
-    """Журнал игровых событий."""
-
-    def __init__(self, room_id: str, handler: BaseEventHandler) -> None:
-        self.room_id = room_id
-        self.handler = handler
-
-    def push(self, event: Event) -> None:
-        """Отправляет игровое событие обработчику."""
-        self.handler.push(event)

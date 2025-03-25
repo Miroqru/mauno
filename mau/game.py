@@ -15,7 +15,7 @@ from loguru import logger
 from mau.card import BaseCard, CardColor
 from mau.deck import Deck
 from mau.enums import GameState
-from mau.events import Event, EventJournal, GameEvents
+from mau.events import BaseEventHandler, Event, GameEvents
 from mau.exceptions import (
     AlreadyJoinedError,
     LobbyClosedError,
@@ -67,12 +67,12 @@ class UnoGame:
     """
 
     def __init__(
-        self, journal: EventJournal, room_id: str, owner: BaseUser
+        self, journal: BaseEventHandler, room_id: str, owner: BaseUser
     ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
         self.deck = Deck()
-        self.journal: EventJournal = journal
+        self.event_handler: BaseEventHandler = journal
 
         # Игроки Uno
         self.current_player: int = 0
@@ -131,7 +131,9 @@ class UnoGame:
 
         Автоматически подставляет текущую игру.
         """
-        self.journal.push(Event(from_player, event_type, data, self))
+        self.event_handler.push(
+            Event(self.room_id, from_player, event_type, data, self)
+        )
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
