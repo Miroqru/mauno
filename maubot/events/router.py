@@ -193,5 +193,9 @@ async def set_game_state(ctx: EventContext) -> None:
 async def next_turn(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
     await ctx.clear()
-    ctx.add(f"\n🍰 <b>ход</b>: {ctx.event.game.player.name}")
+    cards = len(ctx.event.player.hand)
+    ctx.add(
+        f"\n🍰 <b>ход</b>: {ctx.event.game.player.name} "
+        f"(🃏 {cards} {plural_form(cards, ('карту', 'карты', 'карт'))})"
+    )
     await ctx.send()
