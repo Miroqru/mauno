@@ -78,11 +78,12 @@ async def say_uno(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_TAKE)
 async def player_take_cards(ctx: EventContext) -> None:
     """Оповещает что пользователь взял N карт."""
-    ctx.add(
-        f"🃏 Беру {ctx.event.data} "
-        f"{plural_form(int(ctx.event.data), ('карту', 'карты', 'карт'))}"
-    )
-    await ctx.send()
+    if not ctx._channel.lobby_message:
+        ctx.add(
+            f"🃏 {ctx.event.player.name} Берёт {ctx.event.data} "
+            f"{plural_form(int(ctx.event.data), ('карту', 'карты', 'карт'))}"
+        )
+        await ctx.send()
 
 
 @er.handler(event=GameEvents.GAME_ROTATE)
