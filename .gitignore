@@ -76,7 +76,7 @@ chart/charts
 uno.sqlite*
 data/
 
-images/api_auth.json
-images/sticker_config.json
+images/*.json
 images/sticker_uploader.session
+images/**/
 .env
