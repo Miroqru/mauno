@@ -12,10 +12,12 @@ from fastapi import (
 from loguru import logger
 from tortoise.queryset import QuerySet
 
+from mau.player import BaseUser
 from mauserve.config import redis, sm, stm
 from mauserve.models import RoomModel, UserModel
 from mauserve.schemes.db import RoomData
 from mauserve.schemes.roomlist import RoomDataIn, RoomMode, RoomModeIn
+from mauserve.services.game_context import get_context
 
 router = APIRouter(prefix="/rooms", tags=["room list"])
 
@@ -30,18 +32,13 @@ async def add_client(
     websocket: WebSocket,
 ) -> None:
     """Добавляет нового клиента для прослушивания игровых событий."""
-    logger.debug(sm.chat_journal)
-    await sm.chat_journal[room_id].connect(websocket)
-    # if room_id in sm.chat_journal:
-    # else:
-    #     raise HTTPException(404, "Room not found")
-
+    await sm.event_handler.connect(room_id, websocket)
     try:
         while True:
             data = await websocket.receive_text()
             logger.info(data)
     except WebSocketDisconnect:
-        await sm.chat_journal[room_id].disconnect(websocket)
+        sm.event_handler.disconnect(room_id, websocket)
 
 
 @router.get("/")
@@ -106,20 +103,26 @@ async def get_room_info(room_id: str) -> RoomData:
 
 @router.post("/")
 async def create_new_room(
-    user: UserModel = Depends(stm.read_token),
+    ctx: UserModel = Depends(get_context),
 ) -> RoomData:
     """Создаёт новую пользовательскую комнату."""
     current_room = await RoomModel.exclude(status="ended").get_or_none(
-        players=user.id
+        players=ctx.user.id
     )
     if current_room is not None:
         raise HTTPException(409, "User already in room")
 
     room = await RoomModel.create(
-        name=f"комната {user.name}",
-        owner_id=user.id,
+        name=f"комната {ctx.user.name}",
+        owner_id=ctx.user.id,
     )
-    await room.players.add(user)
+    await room.players.add(ctx.user)
+
+    ctx.game = sm.create(
+        str(ctx.room.id),
+        BaseUser(ctx.user.username, ctx.user.name),
+    )
+
     return await RoomData.from_tortoise_orm(room)
 
 

@@ -10,50 +10,17 @@ from loguru import logger
 from mau.card import BaseCard, CardColor, TakeCard, TakeFourCard
 from mau.enums import GameState
 from mau.player import BaseUser
-from mauserve.config import sm, stm
-from mauserve.models import GameModel, RoomModel, UserModel
+from mauserve.config import sm
+from mauserve.models import GameModel, UserModel
 from mauserve.schemes.game import (
     ContextData,
     GameContext,
     card_schema_to_card,
     context_to_data,
 )
-from mauserve.services.events import WebSocketEventHandler
+from mauserve.services.game_context import get_context
 
 router = APIRouter(prefix="/game", tags=["games"])
-
-
-async def get_context(user: UserModel = Depends(stm.read_token)) -> GameContext:
-    """Получает игровой контекст пользователя.
-
-    Контекст хранит в себе исчерпывающую информацию о состоянии игры.
-    Актуальная информация об активном игроке.
-    В какой комнате сейчас находится игрок.
-    Если игрок не находится в комнате, вернётся ошибка.
-    Также включат информацию об игре внутри комнаты и пользователя
-    как игрока.
-    """
-    room = (
-        await RoomModel.filter(players=user)
-        .exclude(status="ended")
-        .get_or_none()
-        .prefetch_related("players")
-    )
-    if room is None:
-        raise HTTPException(404, "user not in room, to join room game")
-
-    game = sm.games.get(str(room.id))
-    if game is not None:
-        player = game.get_player(user.username)
-    else:
-        player = None
-
-    return GameContext(
-        user=user,
-        room=room,
-        game=game,
-        player=player,
-    )
 
 
 async def save_game(ctx: GameContext) -> None:
@@ -155,12 +122,6 @@ async def start_room_game(
         )
     elif ctx.user.id != ctx.room.owner_id:
         raise HTTPException(401, "You are not a room owner to create new game")
-
-    ctx.game = sm.create(
-        str(ctx.room.id),
-        BaseUser(ctx.user.username, ctx.user.name),
-        WebSocketEventHandler(),
-    )
 
     # Сразу добавляем всех игроков из комнаты
     for user in ctx.room.players:

@@ -10,6 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from redis.asyncio.client import Redis
 
 from mau.session import SessionManager
+from mauserve.services.events import WebSocketEventHandler
 from mauserve.services.token import SimpleTokenManager
 
 
@@ -42,4 +43,4 @@ redis = Redis.from_url(
     config.redis_url, encoding="utf-8", decode_responses=True
 )
 
-sm = SessionManager()
+sm: SessionManager = SessionManager(event_handler=WebSocketEventHandler())

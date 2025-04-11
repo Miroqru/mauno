@@ -34,19 +34,21 @@ class WebSocketEventHandler(BaseEventHandler):
     """Отправляет события клиентам через веб сокеты."""
 
     def __init__(self) -> None:
-        self.clients: list[WebSocket] = []
+        self.clients: dict[str, WebSocket] = {}
         self.event_loop = asyncio.get_running_loop()
 
-    async def connect(self, websocket: WebSocket) -> None:
+    async def connect(self, room_id: str, websocket: WebSocket) -> None:
         """Добавляет нового клиента."""
         await websocket.accept()
-        self.clients.append(websocket)
+        if room_id not in self.clients:
+            self.clients[room_id] = []
+        self.clients[room_id].append(websocket)
         logger.info("New client, now {} clients", len(self.clients))
 
-    def disconnect(self, websocket: WebSocket) -> None:
+    def disconnect(self, room_id: str, websocket: WebSocket) -> None:
         """Отключает клиента от комнаты."""
-        if websocket in self.clients:
-            self.clients.remove(websocket)
+        if websocket in self.clients[room_id]:
+            self.clients[room_id].remove(websocket)
         logger.info("Client disconnect, now {} clients", len(self.clients))
 
     def push(self, event: Event) -> None:
@@ -58,7 +60,7 @@ class WebSocketEventHandler(BaseEventHandler):
             game=game_to_data(event.game),
         )
 
-        for connection in self.clients:
+        for connection in self.clients.get(event.room_id, []):
             try:
                 self.event_loop.create_task(
                     connection.send_text(event_data.model_dump_json())
