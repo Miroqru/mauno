@@ -309,9 +309,6 @@ class TakeCard(BaseCard):
         return f"{self.color} +{self.value}"
 
 
-CardColor
-
-
 class ChooseColorCard(BaseCard):
     """карта выбора цвета.
 
