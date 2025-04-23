@@ -137,20 +137,6 @@ def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
         )
 
 
-def get_all_hand_cards(
-    player: Player,
-) -> Iterator[InlineQueryResultCachedSticker]:
-    """Получает все карты пользователя, без действия при нажатии."""
-    for i, cover_card in enumerate(player.hand):
-        yield InlineQueryResultCachedSticker(
-            id=f"status:{i}",
-            sticker_file_id=stickers.not_playable[cover_card.to_str()],
-            input_message_content=InputTextMessageContent(
-                message_text=get_room_status(player.game)
-            ),
-        )
-
-
 def _add_sticker(
     id: str, sticker: str, message: str
 ) -> InlineQueryResultCachedSticker:
@@ -167,17 +153,14 @@ def get_hand_query(
     """Возвращает основную игровую клавиатуру."""
     # Если игрок сейчас не играет, то и действий никаких у него нету
     result = []
-    if not player.is_current and not player.game.rules.intervention.status:
-        return list(get_all_hand_cards(player))
-
-    elif player.game.state == GameState.CHOOSE_COLOR:
+    if player.game.state == GameState.CHOOSE_COLOR:
         return list(get_color_query(player))
 
     elif player.game.take_flag:
         result = [
             _add_sticker("pass", stickers.options.next_turn, "👀 Пропускаю")
         ]
-    elif player.is_current:
+    elif player == player.game.player:
         result = [_add_sticker("take", stickers.options.draw, "👀 Беру карту")]
 
     if (

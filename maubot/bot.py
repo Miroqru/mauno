@@ -8,7 +8,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import CallbackQuery, ErrorEvent, Update
+from aiogram.types import ErrorEvent, Update
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 

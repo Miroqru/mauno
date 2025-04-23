@@ -73,9 +73,9 @@ class Player:
         return self._user_name
 
     @property
-    def is_current(self) -> bool:
+    def can_play(self) -> bool:
         """Имеет ли право хода текущий игрок."""
-        return self == self.game.player
+        return self.game.can_play(self.user_id)
 
     def push_event(self, event_type: GameEvents, data: str = "") -> None:
         """Отправляет событие в журнал.
@@ -197,7 +197,7 @@ class Player:
 
         # Если сейчас не ход игрока, то активных карт нету
         # Это для глупенького веб клиента будет полезно
-        if not self.is_current and not self.game.rules.intervention.status:
+        if not self.can_play:
             return SortedCards([], self.hand)
 
         if self.game.rules.intervention.status and self.game.player != self:

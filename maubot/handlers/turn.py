@@ -42,21 +42,14 @@ async def inline_handler(
     await query.answer(list(res), cache_time=1, is_personal=True)
 
 
-@router.chosen_inline_result()
+@router.chosen_inline_result(NowPlaying())
 async def process_card_handler(
-    result: ChosenInlineResult,
-    game: UnoGame | None,
-    player: Player | None,
+    result: ChosenInlineResult, game: UnoGame, player: Player
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
     logger.info("Process result {} in game {}", result, game)
-    # Пропускаем если нам передали не действительные значения игрока и игры
-    # Нам не нужно повторно отправлять сообщения если это статус игры
-    if (
-        player is None
-        or game is None
-        or result.result_id in ("status", "nogame")
-        or re.match(r"status:\d", result.result_id)
+    if result.result_id in ("status", "nogame") or re.match(
+        r"status:\d", result.result_id
     ):
         return None
 
@@ -95,10 +88,7 @@ async def process_card_handler(
     F.data.regexp(r"color:([0-3])").as_("color"), NowPlaying()
 )
 async def choose_color_call(
-    query: CallbackQuery,
-    game: UnoGame,
-    player: Player,
-    color: re.Match[str],
+    query: CallbackQuery, game: UnoGame, player: Player, color: re.Match[str]
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
@@ -110,10 +100,7 @@ async def choose_color_call(
     F.data.regexp(r"select_player:(\d)").as_("index"), NowPlaying()
 )
 async def select_player_call(
-    query: CallbackQuery,
-    game: UnoGame,
-    player: Player,
-    index: re.Match,
+    query: CallbackQuery, game: UnoGame, player: Player, index: re.Match[str]
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
     other_player = game.players[int(index.groups()[0])]

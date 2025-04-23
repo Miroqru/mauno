@@ -121,6 +121,19 @@ class UnoGame:
 
         return None
 
+    def can_play(self, user_id: str) -> bool:
+        """Может ли текущий игрок совершать действия."""
+        player = self.get_player(user_id)
+        if player is None:
+            return False
+
+        # TODO: Убираем ahead_of_curve
+        return (
+            self.player == player
+            or self.rules.ahead_of_curve.status
+            or self.rules.intervention.status
+        )
+
     # Управление потоком игры
     # =======================
 

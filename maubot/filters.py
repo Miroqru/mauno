@@ -123,16 +123,8 @@ class NowPlaying(Filter):
 
     async def __call__(self, event: CallbackQuery) -> bool:
         """Проверяет что текущий игрок имеет право сделать ход."""
-        context = get_context(sm, event)
-        if context.game is None or context.player is None:
+        ctx = get_context(sm, event)
+        if ctx.player is None or not ctx.player.can_play:
             await event.answer("🍉 А вы точно сейчас играете?")
             return False
-
-        if (
-            context.game.player == context.player
-            or context.game.rules.ahead_of_curve.status
-        ):
-            return True
-
-        await event.answer("🍉 А сейчас точно ваш ход?")
-        return False
+        return True
