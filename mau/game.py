@@ -16,11 +16,7 @@ from mau.card import BaseCard, CardColor
 from mau.deck import Deck
 from mau.enums import GameEvents, GameState
 from mau.events import BaseEventHandler, Event
-from mau.exceptions import (
-    AlreadyJoinedError,
-    LobbyClosedError,
-    NoGameInChatError,
-)
+from mau.exceptions import AlreadyJoinedError, LobbyClosedError
 from mau.player import BaseUser, Player
 
 
@@ -52,7 +48,6 @@ class GameRules(NamedTuple):
     random_color: Rule = Rule("🎨 Какой цвет дальше?", False, "random_color")
     debug_cards: Rule = Rule("🦝 Отладочные карты!", False, "debug_cards")
     side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
-    ahead_of_curve: Rule = Rule("🔪 На опережение 🔧", False, "ahead_of_curve")
     intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
     twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
     one_winner: Rule = Rule("👑 Один победитель", False, "one_winner")
@@ -127,12 +122,7 @@ class UnoGame:
         if player is None:
             return False
 
-        # TODO: Убираем ahead_of_curve
-        return (
-            self.player == player
-            or self.rules.ahead_of_curve.status
-            or self.rules.intervention.status
-        )
+        return self.player == player or self.rules.intervention.status
 
     # Управление потоком игры
     # =======================
