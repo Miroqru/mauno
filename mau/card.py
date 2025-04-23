@@ -74,6 +74,7 @@ class CardType(IntEnum):
 # =============
 
 
+# TODO: Может вас в один класс всех?
 class BaseCard:
     """Описание каждой карты Uno.
 

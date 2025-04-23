@@ -126,6 +126,7 @@ class Deck:
     # Наполнение колоды
     # =================
 
+    # TODO: Время сделать нормальный генератор колод
     def fill_classic(self) -> None:
         """Наполняет колоду классическим набором карт."""
         logger.info("Add classic card set in deck")
