@@ -78,7 +78,7 @@ async def join_player(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_LEAVE)
 async def leave_player(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    if not ctx.event.game.started:
+    if ctx._channel.lobby_message is not None and not ctx.event.game.started:
         lobby_message = (
             f"{messages.get_room_status(ctx.event.game)}\n\n"
             f"👋 {ctx.event.player.name} покинул комнату!"
