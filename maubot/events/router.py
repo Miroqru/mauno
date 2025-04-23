@@ -43,6 +43,7 @@ async def start_game(ctx: EventContext) -> None:
     await ctx.send_message(messages.get_new_game_message(ctx.event.game))
 
 
+# TODO: Клавиатура для новой комнаты
 @er.handler(event=GameEvents.GAME_END)
 async def end_game(ctx: EventContext) -> None:
     """Завершает игру в чате."""
@@ -201,4 +202,11 @@ async def player_bluffing(ctx: EventContext) -> None:
         name = ctx.event.player.name
         ctx.add(f"{bluff_header}⚡ {name} получает {take_counter} карт.\n")
 
+    await ctx.send()
+
+
+@er.handler(event=GameEvents.PLAYER_INTERVENED)
+async def on_intervention(ctx: EventContext) -> None:
+    """Если игрок вмешивается в игру и перехватывает ход."""
+    ctx.add(f"⚡ {ctx.event.player.name} <b>навёл суеты!</b>")
     await ctx.send()
