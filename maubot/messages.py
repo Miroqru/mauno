@@ -234,8 +234,6 @@ def end_game_message(game: UnoGame) -> str:
     res += "\n👀 Проигравшие:\n"
     for i, loser in enumerate(game.losers):
         res += f"{i + 1}. {loser.name}\n"
-
-    res += "\n🍰 /game - чтобы создать новую комнату!"
     return res
 
 

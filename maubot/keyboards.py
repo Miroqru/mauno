@@ -57,6 +57,12 @@ SELECT_COLOR = InlineKeyboardMarkup(
     ]
 )
 
+NEW_GAME_MARKUP = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="🍪 Новая игра", callback_data="new_game")]
+    ]
+)
+
 
 def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
     """Вспомогательная клавиатура для управления комнатой.

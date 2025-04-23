@@ -7,7 +7,7 @@
 
 import random
 
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
@@ -39,28 +39,25 @@ ROOM_SETTINGS = (
 
 @router.message(Command("game"))
 async def create_game(
-    message: Message, sm: SessionManager, game: UnoGame | None, bot: Bot
+    message: Message, sm: SessionManager, game: UnoGame | None
 ) -> None:
     """Создаёт новую комнату."""
     if message.chat.type == "private":
         await message.answer("👀 Игры создаются в групповом чате.")
 
-    # Если игра ещё не началась, получаем её
-    if game is None:
-        if message.from_user is None:
-            raise ValueError("None User tries create new game")
-
-        game = sm.create(
-            str(message.chat.id),
-            BaseUser(
-                str(message.from_user.id), message.from_user.mention_html()
-            ),
-        )
-
-    if game.started:
+    if game is not None and game.started:
         await message.answer(
             "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
         )
+        return
+
+    if message.from_user is None:
+        raise ValueError("None User tries create new game")
+
+    game = sm.create(
+        str(message.chat.id),
+        BaseUser(str(message.from_user.id), message.from_user.mention_html()),
+    )
 
 
 @router.message(Command("start"))
@@ -140,12 +137,11 @@ async def kick_player(
 
     kicked_user = message.reply_to_message.from_user
     kick_player = game.get_player(str(kicked_user.id))
-    channel.add(
-        f"🧹 {game.owner.name} выгнал "
-        f"{kicked_user} из игры за плохое поведение.\n"
-    )
-    await channel.send()
     if kick_player is not None:
+        channel.add(
+            f"🧹 {game.owner.name} выгнал "
+            f"{kicked_user} из игры за плохое поведение.\n"
+        )
         sm.leave(kick_player)
 
 
@@ -167,11 +163,30 @@ async def skip_player(
         game.choose_color(CardColor(random.randint(0, 3)))
     else:
         game.next_turn()
-    await channel.send()
 
 
 # Обработчики событий
 # ===================
+
+
+@router.message(F.data == "new_game")
+async def create_game_call(
+    query: CallbackQuery, sm: SessionManager, game: UnoGame | None
+) -> None:
+    """Создаёт новую комнату."""
+    if query.message is None or query.from_user is None:
+        raise ValueError("None User tries create new game")
+
+    if game is not None and game.started:
+        await query.message.answer(
+            "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
+        )
+        return
+
+    game = sm.create(
+        str(query.message.chat.id),
+        BaseUser(str(query.from_user.id), query.from_user.mention_html()),
+    )
 
 
 @router.callback_query(F.data == "start_game")
@@ -180,6 +195,7 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     if not isinstance(query.message, Message):
         raise ValueError("Query.message is not a Message")
 
+    # TODO: Может просто будем чистить клавиатуру?
     try:
         await query.message.delete()
     except Exception as e:

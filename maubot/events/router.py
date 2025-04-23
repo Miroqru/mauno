@@ -43,13 +43,12 @@ async def start_game(ctx: EventContext) -> None:
     await ctx.send_message(messages.get_new_game_message(ctx.event.game))
 
 
-# TODO: Клавиатура для новой комнаты
 @er.handler(event=GameEvents.GAME_END)
 async def end_game(ctx: EventContext) -> None:
     """Завершает игру в чате."""
     sm.remove(ctx.event.room_id)
     ctx.add(messages.end_game_message(ctx.event.game))
-    ctx.set_markup(None)
+    ctx.set_markup(keyboards.NEW_GAME_MARKUP)
     await ctx.send()
 
 
