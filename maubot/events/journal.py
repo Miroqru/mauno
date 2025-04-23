@@ -9,7 +9,8 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 
-from mau.events import BaseEventHandler, Event, GameEvents
+from mau.enums import GameEvents
+from mau.events import BaseEventHandler, Event
 
 FuncType = Callable[..., Any] | Callable[..., Awaitable[Any]]
 

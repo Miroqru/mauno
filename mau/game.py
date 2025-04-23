@@ -14,8 +14,8 @@ from loguru import logger
 
 from mau.card import BaseCard, CardColor
 from mau.deck import Deck
-from mau.enums import GameState
-from mau.events import BaseEventHandler, Event, GameEvents
+from mau.enums import GameEvents, GameState
+from mau.events import BaseEventHandler, Event
 from mau.exceptions import (
     AlreadyJoinedError,
     LobbyClosedError,
@@ -286,7 +286,7 @@ class UnoGame:
         for i, pl in enumerate(self.players):
             if player == pl:
                 self.current_player = i
-                self.push_event(player, GameEvents.GAME_INTERVENTION)
+                self.push_event(player, GameEvents.PLAYER_INTERVENED)
                 return
 
     def process_turn(self, card: BaseCard, player: Player) -> None:
@@ -294,7 +294,7 @@ class UnoGame:
         logger.info("Playing card {}", card)
         self.deck.put_on_top(card)
         player.hand.remove(card)
-        self.push_event(player, GameEvents.GAME_PUSH, card.to_str())
+        self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
 
         card(self)
 

@@ -8,7 +8,8 @@ from typing import Generic, TypeVar, cast
 
 from loguru import logger
 
-from mau.events import BaseEventHandler, DebugEventHandler, Event, GameEvents
+from mau.enums import GameEvents
+from mau.events import BaseEventHandler, DebugEventHandler, Event
 from mau.exceptions import (
     LobbyClosedError,
     NoGameInChatError,

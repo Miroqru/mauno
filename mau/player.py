@@ -15,8 +15,8 @@ from mau.card import (
     TakeFourCard,
     TurnCard,
 )
-from mau.enums import GameState
-from mau.events import Event, GameEvents
+from mau.enums import GameEvents, GameState
+from mau.events import Event
 from mau.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
@@ -111,7 +111,7 @@ class Player:
         logger.debug("{} Draw first hand for player", self._user_name)
         try:
             self.hand = list(self.game.deck.take(7))
-            self.push_event(GameEvents.GAME_TAKE, "7")
+            self.push_event(GameEvents.PLAYER_TAKE, "7")
         except DeckEmptyError:
             for card in self.hand:
                 self.game.deck.put(card)
@@ -126,7 +126,7 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
-        self.push_event(GameEvents.GAME_TAKE, str(take_counter))
+        self.push_event(GameEvents.PLAYER_TAKE, str(take_counter))
         self.game.take_flag = True
 
         if self.game.rules.auto_skip.status:
@@ -252,13 +252,13 @@ class Player:
         bluff_player = self.game.bluff_player
         if bluff_player is not None and bluff_player.bluffing:
             self.push_event(
-                GameEvents.GAME_BLUFF, f"true;{self.game.take_counter}"
+                GameEvents.PLAYER_BLUFF, f"true;{self.game.take_counter}"
             )
             bluff_player.take_cards()
         else:
             self.game.take_counter += 2
             self.push_event(
-                GameEvents.GAME_BLUFF, f"false;{self.game.take_counter}"
+                GameEvents.PLAYER_BLUFF, f"false;{self.game.take_counter}"
             )
             self.take_cards()
 

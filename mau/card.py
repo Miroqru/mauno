@@ -17,8 +17,7 @@ from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
-from mau.enums import GameState
-from mau.events import GameEvents
+from mau.enums import GameEvents, GameState
 
 if TYPE_CHECKING:
     from mau.game import UnoGame

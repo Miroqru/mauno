@@ -1,6 +1,6 @@
 """Маршрутизация событий от движка."""
 
-from mau.events import GameEvents
+from mau.enums import GameEvents
 from maubot import keyboards, messages
 from maubot.config import sm, stickers
 from maubot.events.journal import EventContext, EventRouter
@@ -75,7 +75,7 @@ async def say_uno(ctx: EventContext) -> None:
     await ctx.send()
 
 
-@er.handler(event=GameEvents.GAME_TAKE)
+@er.handler(event=GameEvents.PLAYER_TAKE)
 async def player_take_cards(ctx: EventContext) -> None:
     """Оповещает что пользователь взял N карт."""
     if not ctx._channel.lobby_message:
@@ -133,7 +133,7 @@ async def twist_hand(ctx: EventContext) -> None:
     await ctx.send()
 
 
-@er.handler(event=GameEvents.GAME_BLUFF)
+@er.handler(event=GameEvents.PLAYER_BLUFF)
 async def player_bluffing(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
     bluff_flag, take_counter = ctx.event.data.split(";")
