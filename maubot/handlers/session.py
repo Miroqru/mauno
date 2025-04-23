@@ -89,11 +89,9 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
 
 
 @router.message(Command("stop"), filters.GameOwner())
-async def stop_gama(
-    message: Message, game: UnoGame, sm: SessionManager
-) -> None:
+async def stop_gama(message: Message, game: UnoGame) -> None:
     """Принудительно завершает текущую игру."""
-    sm.remove(game.room_id)
+    game.end()
 
 
 # Управление настройками комнаты

@@ -6,12 +6,42 @@
 Поскольку могут использоваться не в одном роутере.
 """
 
+from aiogram.enums import ChatMemberStatus
 from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
 from maubot.config import sm
 from maubot.context import get_context
 from maubot.messages import NO_JOIN_MESSAGE, NO_ROOM_MESSAGE
+
+
+async def _send(event: CallbackQuery | Message, message: str) -> None:
+    if isinstance(event, CallbackQuery) and event.message is not None:
+        await event.message.answer(message)
+
+    elif isinstance(event, Message):
+        await event.answer(message)
+
+
+async def _is_admin(event: CallbackQuery | Message) -> bool:
+    if isinstance(event, Message):
+        chat = event.chat
+    elif isinstance(event, CallbackQuery):
+        if event.message is None:
+            return False
+        chat = event.message.chat
+
+    if event.from_user is None:
+        return False
+    member = await chat.get_member(event.from_user.id)
+    return member.status in (
+        ChatMemberStatus.CREATOR,
+        ChatMemberStatus.ADMINISTRATOR,
+    )
+
+
+# Фильтры
+# =======
 
 
 class ActiveGame(Filter):
@@ -22,17 +52,11 @@ class ActiveGame(Filter):
 
     async def __call__(self, event: CallbackQuery | Message) -> bool:
         """Проверяет что игра существует."""
-        context = get_context(sm, event)
-        if context.game is not None:
-            return True
+        if get_context(sm, event).game is None:
+            await _send(event, NO_ROOM_MESSAGE)
+            return False
 
-        if isinstance(event, CallbackQuery) and event.message is not None:
-            await event.message.answer(NO_ROOM_MESSAGE)
-
-        elif isinstance(event, Message):
-            await event.answer(NO_ROOM_MESSAGE)
-
-        return False
+        return True
 
 
 class ActivePlayer(Filter):
@@ -48,19 +72,11 @@ class ActivePlayer(Filter):
         context = get_context(sm, event)
 
         if context.game is None:
-            if isinstance(event, CallbackQuery) and event.message is not None:
-                await event.message.answer(NO_ROOM_MESSAGE)
-
-            elif isinstance(event, Message):
-                await event.answer(NO_ROOM_MESSAGE)
+            await _send(event, NO_ROOM_MESSAGE)
             return False
 
         if context.player is None:
-            if isinstance(event, CallbackQuery) and event.message is not None:
-                await event.message.answer(NO_JOIN_MESSAGE)
-
-            elif isinstance(event, Message):
-                await event.answer(NO_JOIN_MESSAGE)
+            await _send(event, NO_JOIN_MESSAGE)
             return False
 
         return True
@@ -79,31 +95,21 @@ class GameOwner(Filter):
         context = get_context(sm, event)
 
         if context.game is None:
-            if isinstance(event, CallbackQuery) and event.message is not None:
-                await event.message.answer(NO_ROOM_MESSAGE)
-
-            elif isinstance(event, Message):
-                await event.answer(NO_ROOM_MESSAGE)
+            await _send(event, NO_ROOM_MESSAGE)
             return False
+
+        if _is_admin(event):
+            return True
 
         if context.player is None:
-            if isinstance(event, CallbackQuery) and event.message is not None:
-                await event.message.answer(NO_JOIN_MESSAGE)
-
-            elif isinstance(event, Message):
-                await event.answer(NO_JOIN_MESSAGE)
+            await _send(event, NO_JOIN_MESSAGE)
             return False
 
-        if context.player != context.game.owner:
-            if isinstance(event, CallbackQuery) and event.message is not None:
-                await event.message.answer(
-                    "🔑 Выполнить эту команду может только создатель комнаты."
-                )
-
-            elif isinstance(event, Message):
-                await event.answer(
-                    "🔑 Выполнить эту команду может только создатель комнаты."
-                )
+        if context.player == context.game.owner:
+            await _send(
+                event,
+                "🔑 Выполнить это действие может только создатель комнаты.",
+            )
             return False
 
         return True
