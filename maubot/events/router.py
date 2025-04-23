@@ -39,6 +39,11 @@ async def end_session(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_START)
 async def start_game(ctx: EventContext) -> None:
     """Оповещает о начале новой игры."""
+    await ctx.send_lobby(
+        message=messages.get_room_status(ctx.event.game),
+        reply_markup=None,
+    )
+    await ctx.clear()
     await ctx.send_card(stickers.normal[ctx.event.game.deck.top.to_str()])
     await ctx.send_message(messages.get_new_game_message(ctx.event.game))
 

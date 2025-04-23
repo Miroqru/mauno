@@ -195,15 +195,6 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
     if not isinstance(query.message, Message):
         raise ValueError("Query.message is not a Message")
 
-    # TODO: Может просто будем чистить клавиатуру?
-    try:
-        await query.message.delete()
-    except Exception as e:
-        logger.warning("Unable to delete message: {}", e)
-        await query.message.answer(
-            "👀 Пожалуйста выдайте мне права удалять сообщения в чате."
-        )
-
     if game is None:
         raise NoGameInChatError
 
