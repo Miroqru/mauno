@@ -74,6 +74,17 @@ async def join_player(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_LEAVE)
 async def leave_player(ctx: EventContext) -> None:
     """Оповещает что пользователь зашёл в игру."""
+    if not ctx.event.game.started:
+        lobby_message = (
+            f"{messages.get_room_status(ctx.event.game)}\n\n"
+            f"👋 {ctx.event.player.name} покинул комнату!"
+        )
+        await ctx.send_lobby(
+            message=lobby_message,
+            reply_markup=keyboards.get_room_markup(ctx.event.game),
+        )
+        return
+
     if ctx.event.data == "win":
         ctx.add(f"👑 {ctx.event.player.name} закончил(а)!\n")
     else:

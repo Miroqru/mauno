@@ -172,6 +172,9 @@ class UnoGame:
 
     def end(self) -> None:
         """Завершает текущую игру."""
+        for pl in self.players:
+            pl.on_leave()
+            self.losers.append(pl)
         self.players.clear()
         self.started = False
         self.push_event(self.owner, GameEvents.GAME_END)
@@ -228,10 +231,6 @@ class UnoGame:
     def remove_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", player, self.room_id)
-        if player is None:
-            # TODO: Тту должно быть более конкретное исключение
-            raise NoGameInChatError
-
         if len(player.hand) == 0:
             self.winners.append(player)
             self.push_event(player, GameEvents.GAME_LEAVE, "win")
@@ -245,15 +244,8 @@ class UnoGame:
         player.on_leave()
         self.players.remove(player)
 
-        if len(self.players) <= 1:
-            # Если игрок сам вышел/проиграл. другие побеждают
-            if self.started and player == self.player:
-                self.winners.extend(self.players)
-            else:
-                self.losers.extend(self.players)
-            self.end()
-        elif player == self.player:
-            # Скорее всего игрок застрелился, больше карты не берём
+        # Скорее всего игрок застрелился, больше карты не берём
+        if player == self.player:
             self.take_counter = 0
             self.next_turn()
 
