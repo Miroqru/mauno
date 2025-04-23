@@ -1,6 +1,6 @@
 """Игровой контекст.
 
-Вспомогательные функции для получения игрового контекста.
+Вспомогательные функция для получения игрового контекста.
 """
 
 from dataclasses import dataclass
@@ -35,7 +35,7 @@ def get_context(
     sm: SessionManager,
     event: Message | ChatMemberUpdated | CallbackQuery | Message | Update,
 ) -> GameContext:
-    """Получает игровой контекста."""
+    """Получает игровой контекст."""
     if isinstance(event, Message | ChatMemberUpdated):
         game = sm.storage.get_game(str(event.chat.id))
 

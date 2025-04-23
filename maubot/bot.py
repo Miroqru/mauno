@@ -13,11 +13,11 @@ from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
 from maubot.config import config, default, sm
+from maubot.context import get_context
 from maubot.events.journal import MessageJournal
 from maubot.events.router import er
 from maubot.handlers import ROUTERS
 from maubot.messages import get_error_message
-from maubot.utils import get_context
 
 # Константы
 # =========

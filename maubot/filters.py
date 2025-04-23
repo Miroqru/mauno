@@ -10,8 +10,8 @@ from aiogram.filters import Filter
 from aiogram.types import CallbackQuery, Message
 
 from maubot.config import sm
+from maubot.context import get_context
 from maubot.messages import NO_JOIN_MESSAGE, NO_ROOM_MESSAGE
-from maubot.utils import get_context
 
 
 class ActiveGame(Filter):
