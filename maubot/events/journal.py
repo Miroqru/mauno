@@ -35,9 +35,13 @@ class EventContext:
         """Отправляет сообщение-лобби о начале новой игры."""
         return await self._channel.send_lobby(message, reply_markup)
 
-    async def send_message(self, text: str) -> Message:
-        """Отправляет сообщение в комнату."""
-        return await self._channel.send_message(text)
+    async def send_personal(
+        self, text: str, reply_markup: InlineKeyboardMarkup | None = None
+    ) -> Message:
+        """Отправляет личное сообщение текущему пользователю."""
+        return await self._channel.send_to(
+            int(self.event.player.user_id), text, reply_markup=reply_markup
+        )
 
     async def send(self) -> None:
         """Отправляет журнал в чат.
@@ -126,12 +130,17 @@ class MessageChannel:
                 reply_markup=reply_markup,
             )
 
-    async def send_message(self, text: str) -> Message:
+    async def send_to(
+        self,
+        chat_id: int,
+        text: str,
+        reply_markup: InlineKeyboardMarkup | None = None,
+    ) -> Message:
         """Отправляет сообщение в комнату."""
         return await self.bot.send_message(
-            chat_id=self.room_id,
+            chat_id=chat_id,
             text=text,
-            reply_markup=self.markup,
+            reply_markup=reply_markup,
         )
 
     async def send(self) -> None:
@@ -146,8 +155,10 @@ class MessageChannel:
             return None
 
         if self.room_message is None:
-            self.room_message = await self.send_message(
+            self.room_message = await self.bot.send_message(
+                chat_id=self.room_id,
                 text="\n".join(self.message_queue),
+                reply_markup=self.markup,
             )
         else:
             await self.room_message.edit_text(
