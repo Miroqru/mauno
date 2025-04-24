@@ -98,7 +98,7 @@ class GameOwner(Filter):
             await _send(event, NO_ROOM_MESSAGE)
             return False
 
-        if _is_admin(event):
+        if await _is_admin(event):
             return True
 
         if context.player is None:
