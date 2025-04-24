@@ -14,6 +14,7 @@ from loguru import logger
 
 from mau.card import BaseCard, CardColor
 from mau.deck import Deck
+from mau.deck_generator import DeckGenerator
 from mau.enums import GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.exceptions import AlreadyJoinedError, LobbyClosedError
@@ -40,7 +41,6 @@ class GameRules(NamedTuple):
     )
     single_shotgun: Rule = Rule("🎲 Общий револьвер.", False, "single_shotgun")
     shotgun: Rule = Rule("🔫 Рулетка.", False, "shotgun")
-    wild: Rule = Rule("🐉 Дикие карты", False, "wild")
     auto_choose_color: Rule = Rule("🃏 самоцвет", False, "auto_choose_color")
     choose_random_color: Rule = Rule(
         "🎨 Случайный цвет", False, "choose_random_color"
@@ -67,6 +67,7 @@ class UnoGame:
         self.room_id = room_id
         self.rules = GameRules()
         self.deck = Deck()
+        self.deck_generator = DeckGenerator.from_preset("classic")
         self.event_handler: BaseEventHandler = journal
 
         # Игроки Uno
@@ -145,10 +146,8 @@ class UnoGame:
         self.losers.clear()
         shuffle(self.players)
 
-        if self.rules.wild.status:
-            self.deck.fill_wild()
-        else:
-            self.deck.fill_classic()
+        self.deck = self.deck_generator.get_deck()
+        self.deck.shuffle()
 
         if self.rules.single_shotgun.status:
             self.shotgun_lose = randint(1, 8)
