@@ -138,7 +138,7 @@ async def kick_player(
     if kick_player is not None:
         channel.add(
             f"🧹 {game.owner.name} выгнал "
-            f"{kicked_user} из игры за плохое поведение.\n"
+            f"{kick_player.name} из игры за плохое поведение.\n"
         )
         sm.leave(kick_player)
 
