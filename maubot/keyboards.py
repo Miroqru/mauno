@@ -78,6 +78,7 @@ def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(text="🪄 Правила", callback_data="room_rules"),
+            InlineKeyboardButton(text="🃏 Колода", callback_data="deck_edit"),
             InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
         ]
     ]
