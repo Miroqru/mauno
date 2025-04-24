@@ -53,7 +53,12 @@ SELECT_COLOR = InlineKeyboardMarkup(
             InlineKeyboardButton(text="💛", callback_data="color:1"),
             InlineKeyboardButton(text="💚", callback_data="color:2"),
             InlineKeyboardButton(text="💙", callback_data="color:3"),
-        ]
+        ],
+        [
+            InlineKeyboardButton(
+                text="🃏 Ваши карты", switch_inline_query_current_chat=""
+            )
+        ],
     ]
 )
 

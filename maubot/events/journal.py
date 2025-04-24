@@ -13,7 +13,6 @@ from mau.enums import GameEvents
 from mau.events import BaseEventHandler, Event
 
 FuncType = Callable[..., Any] | Callable[..., Awaitable[Any]]
-
 T = TypeVar("T", bound=FuncType)
 
 
