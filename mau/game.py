@@ -285,6 +285,8 @@ class UnoGame:
 
         if len(player.hand) == 0:
             self.remove_player(player)
+            if len(self.players) <= 1:
+                self.end()
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
