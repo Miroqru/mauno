@@ -210,10 +210,6 @@ class NumberCard(BaseCard):
         self.value = value
         self.cost = value
 
-    def __str__(self) -> str:
-        """Представление карты в строковом виде."""
-        return f"{self.color} {self.value}"
-
     def use_card(self, game: "UnoGame") -> None:
         """С некоторыми правилами карты с цифрами также играют роль."""
         if self.cost == TWIST_HAND_NUM and game.rules.twist_hand.status:
@@ -245,10 +241,6 @@ class TurnCard(BaseCard):
         logger.info("Skip {} players", self.value)
         game.skip_players(self.value)
 
-    def __str__(self) -> str:
-        """Представление карты в строковое виде."""
-        return f"{self.color} skip {self.value if self.value != 1 else ''}"
-
 
 class ReverseCard(BaseCard):
     """Карта разворота.
@@ -273,10 +265,6 @@ class ReverseCard(BaseCard):
         else:
             game.reverse = not game.reverse
             logger.info("Reverse flag now {}", game.reverse)
-
-    def __str__(self) -> str:
-        """Представление карты в строковое виде."""
-        return f"{self.color} reverse"
 
 
 class TakeCard(BaseCard):
@@ -304,10 +292,6 @@ class TakeCard(BaseCard):
             self.value,
             game.take_counter,
         )
-
-    def __str__(self) -> str:
-        """Представление карты в строковое виде."""
-        return f"{self.color} +{self.value}"
 
 
 class ChooseColorCard(BaseCard):
@@ -351,10 +335,6 @@ class ChooseColorCard(BaseCard):
             logger.info("Set choose color flag to True")
             game.state = GameState.CHOOSE_COLOR
             game.push_event(game.player, GameEvents.GAME_STATE, "choose_color")
-
-    def __str__(self) -> str:
-        """Представление карты в строковое виде."""
-        return f"{self.card_type} {self.color}"
 
     def __eq__(self, other_card: object) -> bool:
         """Проверяет соответствие двух карт."""
