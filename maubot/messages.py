@@ -144,8 +144,8 @@ def get_new_game_message(game: UnoGame) -> str:
     """
     return (
         "🌳 Да начнётся <b>Новая игра!</b>!\n"
-        f"✨ И первым у нас ходит {game.player.name}\n\n"
-        f"{get_room_rules(game)}"
+        f"✨ И первым у нас ходит {game.player.name}\n"
+        f"{get_room_rules(game)}\n"
         "/close если не хотите чтобы вашей игре помешали.\n"
     )
 

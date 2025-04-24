@@ -203,21 +203,11 @@ async def player_bluffing(ctx: EventContext) -> None:
     bluff_flag, take_counter = ctx.event.data.split(";")
     bluff_player = ctx.event.game.bluff_player
     if bluff_player is not None and bluff_flag == "true":
-        ctx.add(
-            "🔎 <b>Замечен блеф</b>!\n"
-            f"⚡ {bluff_player.name} получает "
-            f"{take_counter} карт."
-        )
+        ctx.add("🔎 <b>Замечен блеф</b>!")
+    elif bluff_player is None:
+        ctx.add("🎩 <b>Никто не блефовал</b>!")
     else:
-        if bluff_player is None:
-            bluff_header = "🎩 <b>Никто не блефовал</b>!\n"
-        else:
-            bluff_header = f"🎩 {bluff_player.name} <b>Честный игрок</b>!\n"
-
-        name = ctx.event.player.name
-        ctx.add(f"{bluff_header}⚡ {name} получает {take_counter} карт.\n")
-
-    await ctx.send()
+        ctx.add(f"🎩 {bluff_player.name} <b>Честный игрок</b>!")
 
 
 @er.handler(event=GameEvents.PLAYER_INTERVENED)
