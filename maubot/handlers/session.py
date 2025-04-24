@@ -167,7 +167,7 @@ async def skip_player(
 # ===================
 
 
-@router.message(F.data == "new_game")
+@router.callback_query(F.data == "new_game")
 async def create_game_call(
     query: CallbackQuery, sm: SessionManager, game: UnoGame | None
 ) -> None:
@@ -176,15 +176,14 @@ async def create_game_call(
         raise ValueError("None User tries create new game")
 
     if game is not None and game.started:
-        await query.message.answer(
-            "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
-        )
+        await query.answer("🔑 Игра уже начата. Для начала её нужно завершить.")
         return
 
     game = sm.create(
         str(query.message.chat.id),
         BaseUser(str(query.from_user.id), query.from_user.mention_html()),
     )
+    await query.answer("Понеслась!")
 
 
 @router.callback_query(F.data == "start_game")
