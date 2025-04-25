@@ -99,8 +99,8 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.REVERSE, 1, ALL_COLORS, 2),
             CardGroup(CardType.TURN, 1, ALL_COLORS, 2),
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 2),
-            CardGroup(CardType.TAKE_FOUR, 0, ALL_COLORS, 4),
-            CardGroup(CardType.CHOOSE_COLOR, 0, ALL_COLORS, 4),
+            CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 4),
+            CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 4),
         ],
     ),
     "wild": DeckPreset(
@@ -116,8 +116,8 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.REVERSE, 1, ALL_COLORS, 4),
             CardGroup(CardType.TURN, 1, ALL_COLORS, 4),
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 4),
-            CardGroup(CardType.TAKE_FOUR, 0, ALL_COLORS, 6),
-            CardGroup(CardType.CHOOSE_COLOR, 0, ALL_COLORS, 6),
+            CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 6),
+            CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 6),
         ],
     ),
     "single": DeckPreset(
@@ -137,8 +137,8 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.REVERSE, 1, ALL_COLORS, 1),
             CardGroup(CardType.TURN, 1, ALL_COLORS, 1),
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 1),
-            CardGroup(CardType.TAKE_FOUR, 0, ALL_COLORS, 1),
-            CardGroup(CardType.CHOOSE_COLOR, 0, ALL_COLORS, 1),
+            CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 1),
+            CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 1),
         ],
     ),
 }
