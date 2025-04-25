@@ -63,7 +63,6 @@ class SessionManager(Generic[_H]):
         game = self.storage.get_player_game(player.user_id)
         game.remove_player(player)
         if game.started and len(game.players) <= 1:
-            game.winners.extend(game.players)
             game.end()
         self.storage.remove_player(player.user_id)
         self.event_handler.push(
