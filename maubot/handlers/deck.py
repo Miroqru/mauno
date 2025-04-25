@@ -23,7 +23,9 @@ router = Router(name="Deck editor")
 # =========
 
 
-def get_presets(presets: dict[str, DeckPreset]) -> InlineKeyboardMarkup:
+def get_presets(
+    presets: dict[str, DeckPreset], now_preset: str
+) -> InlineKeyboardMarkup:
     """Собирает клавиатуру доступных шаблонов колоды."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -33,6 +35,7 @@ def get_presets(presets: dict[str, DeckPreset]) -> InlineKeyboardMarkup:
                 )
             ]
             for name, preset in presets.items()
+            if name != now_preset
         ]
     )
 
@@ -49,11 +52,12 @@ def get_deck_info(groups: list[CardGroup]) -> str:
     return res
 
 
-def deck_editor_message(groups: list[CardGroup]) -> str:
+def deck_editor_message(deck: DeckGenerator, preset: DeckPreset) -> str:
     """Собирает сообщение редактора колоды."""
     return (
         "✏️ <b>Редактор колоды</b>:\n"
-        f"{get_deck_info(groups)}\n\n"
+        f"Шаблон: {preset.name}:\n{preset.desc}\n"
+        f"{get_deck_info(deck.groups)}\n\n"
         "💡 Вы можете выбрать один из готовых <b>шаблонов</b>."
     )
 
@@ -66,9 +70,13 @@ def deck_editor_message(groups: list[CardGroup]) -> str:
 async def get_deck_editor(query: CallbackQuery, game: UnoGame) -> None:
     """Получает сообщение редактора колоды с готовыми шаблонами."""
     await query.answer()
+    preset = CARD_PRESETS.get(
+        game.deck_generator.preset_name,
+        DeckPreset("Свой", "Время творить чудеса", []),
+    )
     await query.message.answer(
-        deck_editor_message(game.deck_generator.groups),
-        reply_markup=get_presets(CARD_PRESETS),
+        deck_editor_message(game.deck_generator, preset),
+        reply_markup=get_presets(CARD_PRESETS, game.deck_generator.preset_name),
     )
 
 
@@ -78,14 +86,18 @@ class PresetCallback(CallbackData, prefix="preset"):
     name: str
 
 
-@router.callback_query(PresetCallback.filter())
+@router.callback_query(PresetCallback.filter(), GameOwner())
 async def set_deck_preset(
     query: CallbackQuery, game: UnoGame, callback_data: PresetCallback
 ) -> None:
     """Выбирает один из заготовленных шаблонов колоды для игры."""
     await query.answer()
     game.deck_generator = DeckGenerator.from_preset(callback_data.name)
+    preset = CARD_PRESETS.get(
+        game.deck_generator.preset_name,
+        DeckPreset("Свой", "Время творить чудеса", []),
+    )
     await query.message.edit_text(
-        deck_editor_message(game.deck_generator.groups),
-        reply_markup=get_presets(CARD_PRESETS),
+        deck_editor_message(game.deck_generator, preset),
+        reply_markup=get_presets(CARD_PRESETS, game.deck_generator.preset_name),
     )

@@ -151,8 +151,13 @@ class DeckGenerator:
     Позволяет редактировать правила сборки колоды.
     """
 
-    def __init__(self, groups: list[CardGroup] | None = None) -> None:
+    def __init__(
+        self,
+        groups: list[CardGroup] | None = None,
+        preset_name: str = "custom",
+    ) -> None:
         self.groups: list[CardGroup] = groups or []
+        self.preset_name = preset_name
 
     def _get_cards(self) -> list[BaseCard]:
         res = []
@@ -169,4 +174,4 @@ class DeckGenerator:
     @classmethod
     def from_preset(cls, preset_name: str) -> Self:
         """Получает новый генератор колоды по названию шаблона."""
-        return cls(CARD_PRESETS[preset_name].groups)
+        return cls(CARD_PRESETS[preset_name].groups, preset_name)
