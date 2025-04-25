@@ -12,7 +12,6 @@
 import re
 from collections.abc import Iterable, Iterator
 from enum import IntEnum
-from random import randint
 from typing import TYPE_CHECKING, Self
 
 from loguru import logger
@@ -253,12 +252,7 @@ class ReverseCard(BaseCard):
         self.cost = 20
 
     def use_card(self, game: "UnoGame") -> None:
-        """Разворачивает очерёдность ходов для игры.
-
-        Args:
-            game (UnoGame): Текущая сессия игры.
-
-        """
+        """Разворачивает очерёдность ходов для игры."""
         # Когда игроков двое, работает как карта пропуска
         if len(game.players) == 2:  # noqa
             game.skip_players()
@@ -280,12 +274,7 @@ class TakeCard(BaseCard):
         self.cost = 20
 
     def use_card(self, game: "UnoGame") -> None:
-        """Следующий игрок берёт несколько карт.
-
-        Args:
-            game (UnoGame): Текущая сессия игры.
-
-        """
+        """Следующий игрок берёт несколько карт."""
         game.take_counter += self.value
         logger.info(
             "Take counter increase by {} and now {}",
@@ -305,12 +294,7 @@ class ChooseColorCard(BaseCard):
         self.cost = 50
 
     def use_card(self, game: "UnoGame") -> None:
-        """Следующий игрок берёт несколько карт.
-
-        Args:
-            game (UnoGame): Текущая сессия игры.
-
-        """
+        """Следующий игрок берёт несколько карт."""
         if game.rules.auto_choose_color.status:
             logger.info("Auto choose color for card")
             if game.reverse:
@@ -322,15 +306,6 @@ class ChooseColorCard(BaseCard):
                 GameEvents.GAME_SELECT_COLOR,
                 str(self.color),
             )
-        elif game.rules.choose_random_color.status:
-            logger.info("Choose random color for card")
-            self.color = CardColor(randint(0, 3))
-            game.push_event(
-                game.player,
-                GameEvents.GAME_SELECT_COLOR,
-                str(self.color),
-            )
-
         else:
             logger.info("Set choose color flag to True")
             game.state = GameState.CHOOSE_COLOR
@@ -359,26 +334,13 @@ class TakeFourCard(BaseCard):
         self.cost = 50
 
     def use_card(self, game: "UnoGame") -> None:
-        """Следующий игрок берёт несколько карт.
-
-        Args:
-            game (UnoGame): Текущая сессия игры.
-
-        """
+        """Следующий игрок берёт несколько карт."""
         if game.rules.auto_choose_color.status:
             logger.info("Auto choose color for card")
             if game.reverse:
                 self.color = CardColor((game.deck.top.color + 1) % 4)
             else:
                 self.color = CardColor((game.deck.top.color - 1) % 4)
-            game.push_event(
-                game.player,
-                GameEvents.GAME_SELECT_COLOR,
-                str(self.color),
-            )
-        elif game.rules.choose_random_color.status:
-            logger.info("Choose random color for card")
-            self.color = CardColor(randint(0, 3))
             game.push_event(
                 game.player,
                 GameEvents.GAME_SELECT_COLOR,
