@@ -5,23 +5,11 @@
 
 
 class NoGameInChatError(Exception):
-    """If there is no active game created in the chat.
+    """Когда в чате нету активной игры.
 
-    For example, when a user tries to join a game that does not exist.
+    К примеру если игрок пытается зайти в несуществующую комнату.
     """
 
 
-class AlreadyJoinedError(Exception):
-    """When the user tries to reconnect to the game."""
-
-
 class LobbyClosedError(Exception):
-    """When a user tries to join a closed lobby."""
-
-
-class NotEnoughPlayersError(Exception):
-    """When there are not enough players to start the game."""
-
-
-class DeckEmptyError(Exception):
-    """When the deck runs out of cards."""
+    """Когда игрок пытается зайти в закрытое лобби."""
