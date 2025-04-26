@@ -37,13 +37,13 @@ def get_context(
 ) -> GameContext:
     """Получает игровой контекст."""
     if isinstance(event, Message | ChatMemberUpdated):
-        game = sm.storage.get_game(str(event.chat.id))
+        game = sm.room_game(str(event.chat.id))
 
     elif isinstance(event, CallbackQuery):
         if event.message is None:
             game = sm.player_game(str(event.from_user.id))
         else:
-            game = sm.storage.get_game(str(event.message.chat.id))
+            game = sm.room_game(str(event.message.chat.id))
 
     elif isinstance(event, InlineQuery | ChosenInlineResult):
         game = sm.player_game(str(event.from_user.id))

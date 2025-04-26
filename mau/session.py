@@ -40,7 +40,7 @@ class SessionManager(Generic[_H]):
 
     def join_game(self, room_id: str, user: BaseUser) -> None:
         """Добавляет нового игрока в игру."""
-        game = self._storage.get_game(room_id)
+        game = self._storage.room_game(room_id)
         player = game.add_player(user)
         self._storage.add_player(room_id, player.user_id)
         game.push_event(player, GameEvents.SESSION_JOIN)
@@ -58,7 +58,11 @@ class SessionManager(Generic[_H]):
 
         Если такой игры нет - выплюнет исключение.
         """
-        return self._storage.get_player_game(user_id)
+        return self._storage.player_game(user_id)
+
+    def room_game(self, room_id: str) -> UnoGame:
+        """Возвращает игру по указанному ID комнаты."""
+        return self._storage.room_game(room_id)
 
     def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""

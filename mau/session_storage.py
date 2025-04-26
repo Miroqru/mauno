@@ -29,12 +29,7 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    def get_room(self, user_id: str) -> str:
-        """Возвращает room_id для указанного игрока."""
-        pass
-
-    @abstractmethod
-    def get_player_game(self, user_id: str) -> UnoGame:
+    def player_game(self, user_id: str) -> UnoGame:
         """Возвращает игру, в которой находится игрок."""
         pass
 
@@ -44,8 +39,8 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    def get_game(self, room_id: str) -> UnoGame:
-        """Возвращает игру по указанному room_id."""
+    def room_game(self, room_id: str) -> UnoGame:
+        """Возвращает игру по указанному id комнаты."""
         pass
 
     @abstractmethod
@@ -64,55 +59,50 @@ class MemoryStorage(BaseStorage):
     У каждого игрока может быть только одна активная игра.
     """
 
+    __slots__ = ("_games", "_user_room")
+
     def __init__(self) -> None:
-        self.games: dict[str, UnoGame] = {}
-        self.user_to_room: dict[str, str] = {}
+        self._games: dict[str, UnoGame] = {}
+        self._user_room: dict[str, str] = {}
 
     def add_player(self, room_id: str, user_id: str) -> None:
         """Добавляет игрока в указанную комнату."""
-        self.user_to_room[user_id] = room_id
+        self._user_room[user_id] = room_id
 
     def remove_player(self, user_id: str) -> None:
         """Удаляет игрока из хранилища."""
-        self.user_to_room.pop(user_id)
+        self._user_room.pop(user_id)
 
     def remove_room_players(self, room_id: str) -> None:
         """Удаляет пользователей, привязанных к комнате."""
-        self.user_to_room = {
+        self._user_room = {
             user: room
-            for user, room in self.user_to_room.items()
+            for user, room in self._user_room.items()
             if room != room_id
         }
 
-    def get_room(self, user_id: str) -> str:
-        """Возвращает room_id для указанного игрока."""
-        try:
-            return self.user_to_room[user_id]
-        except KeyError:
-            raise exceptions.NoGameInChatError from KeyError
-
-    def get_player_game(self, user_id: str) -> UnoGame:
+    def player_game(self, user_id: str) -> UnoGame:
         """Возвращает игру, в которой находится игрок."""
         try:
-            room_id = self.user_to_room[user_id]
-            return self.games[room_id]
+            room_id = self._user_room[user_id]
+            return self._games[room_id]
         except KeyError:
             raise exceptions.NoGameInChatError from KeyError
 
-    def get_game(self, room_id: str) -> UnoGame:
-        """Возвращает игру по room_id."""
+    def room_game(self, room_id: str) -> UnoGame:
+        """Возвращает игру по ID комнаты."""
         try:
-            return self.games[room_id]
+            return self._games[room_id]
         except KeyError:
             raise exceptions.NoGameInChatError from KeyError
 
     def add_game(self, room_id: str, game: UnoGame) -> None:
         """Добавляет новую игру в хранилище."""
-        self.games[room_id] = game
+        self._games[room_id] = game
 
     def remove_game(self, room_id: str) -> UnoGame:
         """Удаляет комнату из хранилища."""
         try:
-            return self.games.pop(room_id)
+            return self._games.pop(room_id)
         except KeyError:
             raise exceptions.NoGameInChatError from KeyError
