@@ -153,9 +153,9 @@ class UnoGame:
         for player in self.players:
             player.take_first_hand()
 
-        self.take_first_card()
         self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
+        self.deck.top(self)
 
     def end(self) -> None:
         """Завершает текущую игру."""
@@ -165,18 +165,6 @@ class UnoGame:
         self.players.clear()
         self.started = False
         self.push_event(self.owner, GameEvents.GAME_END)
-
-    def take_first_card(self) -> None:
-        """Берёт первую карту для начали игры."""
-        # Это конечно костыль, тем ен менее сейчас это лучшее решение
-        while self.deck._top is None or self.deck._top.color == CardColor.BLACK:
-            card = self.deck.take_one()
-            if card.color == CardColor.BLACK:
-                self.deck.put(card)
-            else:
-                self.deck.put_on_top(card)
-
-        self.deck.top(self)
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
@@ -271,7 +259,7 @@ class UnoGame:
     def process_turn(self, card: BaseCard, player: Player) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
-        self.deck.put_on_top(card)
+        self.deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
 

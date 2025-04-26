@@ -1,8 +1,7 @@
-"""Колода карт для игры.
+"""Колода игровых карт.
 
 В колоде располагаются все карты для игры.
 После эти карты могут перемещаться в руку игрока или обратно в колоду.
-Также хранит информацию о текущей верхней карте колоды.
 """
 
 from collections.abc import Iterator
@@ -10,15 +9,19 @@ from random import shuffle
 
 from loguru import logger
 
-from mau.card import BaseCard, CardColor, CardType
+from mau.card import BaseCard, CardColor
 
 
 class Deck:
     """Колода карт.
 
     В колоде располагаются все карты для игры.
+    Карты из колоды попадают в руку игроков, а после использования
+    возвращаются в колоду.
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
+
+    __slots__ = ("cards", "used_cards", "_top")
 
     def __init__(self, cards: list[BaseCard] | None = None) -> None:
         self.cards: list[BaseCard] = cards or []
@@ -29,77 +32,70 @@ class Deck:
     def top(self) -> BaseCard:
         """Возвращает верхнюю карту из колоды."""
         if self._top is None:
-            raise ValueError("Top card not be None, is deck fill?")
+            self._top = self._get_top_card()
         return self._top
+
+    def shuffle(self) -> None:
+        """Перемешивает доступные карты в колоде.
+
+        Обязательно перемешивайте карты до начала игры.
+        """
+        logger.debug("Shuffle deck")
+        shuffle(self.cards)
 
     def clear(self) -> None:
         """Очищает колоду карт."""
-        self.cards.clear()
-        self.used_cards.clear()
+        logger.debug("Clear deck")
+        self.cards = []
+        self.used_cards = []
         self._top = None
-        logger.info("Deck cleared")
 
-    def shuffle(self) -> None:
-        """Перемешивает карты в колоде.
+    def _get_top_card(self) -> BaseCard:
+        """Устанавливает подходящую верную карту колоды."""
+        for i, card in enumerate(self.cards):
+            if card.color != CardColor.BLACK:
+                return self.cards.pop(i)
+        raise ValueError("No suitable card for deck top")
 
-        Обязательно перемешивайте карты в колоде как добавили их.
-        """
-        shuffle(self.cards)
-
-    def prepared_used_cards(self) -> None:
-        """Возвращает использованные карты в колоду."""
-        self.cards.extend(self.used_cards)
-        self.used_cards.clear()
-        self.shuffle()
-
-    def take(self, count: int = 1) -> Iterator:
-        """Берёт одну карту из колоды.
+    def take(self, count: int = 1) -> Iterator[BaseCard]:
+        """Берёт несколько карт из колоды.
 
         Используется чтобы дать участнику несколько карт.
-
-        Args:
-            count (int, optional): Сколько взять карт (одну).
-
-        Yields:
-            Iterator: Возвращает по одной карте из всех взятых.
-
         """
         if len(self.cards) < count:
-            self.prepared_used_cards()
+            self._prepared_used_cards()
+
         if len(self.cards) < count:
-            for card in self.cards:
-                yield card
+            raise ValueError("Not enough cards to take")
 
         for i in range(count):
             card = self.cards.pop()
             logger.debug("Take {} / {} card: {}", i, count, card)
             yield card
 
-    def take_one(self) -> BaseCard:
-        """Берёт одну карту из колоды.
-
-        В тех случаях, когда нужно взять только одну карту.
-        """
-        logger.debug("Take one card from deck")
-        return self.cards.pop()
-
     def count_until_cover(self) -> int:
-        """Получает количество кард в колоде до подходящей."""
+        """Получает количество кард в колоде до покрывающей верную."""
         for i, card in enumerate(reversed(self.cards)):
             if self.top.can_cover(card):
                 return i + 1
         return 1
 
+    def _prepared_used_cards(self) -> None:
+        """Возвращает использованные карты в колоду."""
+        self.cards.extend(self.used_cards)
+        self.used_cards = []
+        self.shuffle()
+
     def put(self, card: BaseCard) -> None:
         """Возвращает использованную карту в колоду."""
-        if card.card_type in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
-            card.color = CardColor.BLACK
+        card.prepare_used()
         self.used_cards.append(card)
 
-    def put_on_top(self, card: BaseCard) -> None:
+    def put_top(self, card: BaseCard) -> None:
         """Ложит карту на вершину стопки."""
         if self._top is None:
             self._top = card
+            return
 
         self.put(self._top)
         self._top = card

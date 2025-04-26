@@ -17,7 +17,6 @@ from mau.card import (
 )
 from mau.enums import GameEvents, GameState
 from mau.events import Event
-from mau.exceptions import DeckEmptyError
 
 if TYPE_CHECKING:
     from mau.game import UnoGame
@@ -107,14 +106,8 @@ class Player:
             return
 
         logger.debug("{} Draw first hand for player", self._user_name)
-        try:
-            self.hand = list(self.game.deck.take(7))
-            self.push_event(GameEvents.PLAYER_TAKE, "7")
-        except DeckEmptyError:
-            for card in self.hand:
-                self.game.deck.put(card)
-            logger.warning("There not enough cards in deck for player")
-            raise DeckEmptyError()
+        self.hand = list(self.game.deck.take(7))
+        self.push_event(GameEvents.PLAYER_TAKE, "7")
 
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
