@@ -135,9 +135,7 @@ class UnoGame:
 
         Автоматически подставляет текущую игру.
         """
-        self.event_handler.push(
-            Event(self.room_id, from_player, event_type, data, self)
-        )
+        self.event_handler.push(Event(self, from_player, event_type, data))
 
     def start(self) -> None:
         """Начинает новую игру в чате."""

@@ -82,9 +82,7 @@ class Player:
 
         Автоматически подставляет игрока и игру.
         """
-        self.game.event_handler.push(
-            Event(self.game.room_id, self, event_type, data, self.game)
-        )
+        self.game.event_handler.push(Event(self.game, self, event_type, data))
 
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""

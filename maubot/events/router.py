@@ -29,7 +29,7 @@ async def start_session(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.SESSION_END)
 async def end_session(ctx: EventContext) -> None:
     """Очищает устаревший канал сообщений."""
-    ctx.journal.remove_channel(ctx.event.room_id)
+    ctx.journal.remove_channel(ctx.event.game.room_id)
 
 
 # Обработка событий игры
@@ -52,7 +52,7 @@ async def start_game(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_END)
 async def end_game(ctx: EventContext) -> None:
     """Завершает игру в чате."""
-    sm.remove(ctx.event.room_id)
+    sm.remove(ctx.event.game.room_id)
     ctx.add(messages.end_game_message(ctx.event.game))
     ctx.set_markup(keyboards.NEW_GAME_MARKUP)
     await ctx.send()

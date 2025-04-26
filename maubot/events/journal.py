@@ -23,7 +23,7 @@ class EventContext:
         self.event = event
         self.journal = journal
         self._channel: MessageChannel = self.journal.get_channel(
-            self.event.room_id
+            self.event.game.room_id
         )
 
     # Сокращение для методов
