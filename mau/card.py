@@ -196,6 +196,10 @@ class BaseCard:
             and self.cost < other_card.cost
         )
 
+    def prepare_used(self) -> None:
+        """Подготавливает карту к повторному использованию в колоде."""
+        pass
+
 
 class NumberCard(BaseCard):
     """Карта с числом.
@@ -317,6 +321,10 @@ class ChooseColorCard(BaseCard):
             and self.cost == other_card.cost
         )
 
+    def prepare_used(self) -> None:
+        """Подготавливает карту к повторному использованию в колоде."""
+        self.color = CardColor.BLACK
+
 
 class TakeFourCard(BaseCard):
     """Карта дать +4.
@@ -357,6 +365,10 @@ class TakeFourCard(BaseCard):
             and self.value == other_card.value
             and self.cost == other_card.cost
         )
+
+    def prepare_used(self) -> None:
+        """Подготавливает карту к повторному использованию в колоде."""
+        self.color = CardColor.BLACK
 
 
 # Сборка карт из строки
