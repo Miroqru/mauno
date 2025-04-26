@@ -140,7 +140,7 @@ async def kick_player(
             f"🧹 {game.owner.name} выгнал "
             f"{kick_player.name} из игры за плохое поведение.\n"
         )
-        sm.leave(kick_player)
+        sm.leave_game(kick_player)
 
 
 @router.message(Command("skip"), filters.GameOwner())

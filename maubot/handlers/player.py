@@ -29,7 +29,7 @@ async def join_player(message: Message, sm: SessionManager) -> None:
     if message.from_user is None:
         raise ValueError("User can`t be none")
 
-    sm.join(
+    sm.join_game(
         str(message.chat.id),
         BaseUser(str(message.from_user.id), message.from_user.mention_html()),
     )
@@ -48,7 +48,7 @@ async def leave_player(
     message: Message, sm: SessionManager, player: Player
 ) -> None:
     """Выход пользователя из игры."""
-    sm.leave(player)
+    sm.leave_game(player)
 
 
 # Обработчики для кнопок
@@ -62,7 +62,7 @@ async def join_callback(query: CallbackQuery, sm: SessionManager) -> None:
         raise ValueError("Query message should be Message instance")
 
     try:
-        sm.join(
+        sm.join_game(
             str(query.message.chat.id),
             BaseUser(str(query.from_user.id), query.from_user.mention_html()),
         )
@@ -118,4 +118,4 @@ async def shotgun_call(
             channel.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
             channel.add(f"😴 {player.name} попал под пулю..\n")
-        sm.leave(player)
+        sm.leave_game(player)

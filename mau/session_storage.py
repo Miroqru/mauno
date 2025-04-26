@@ -24,6 +24,11 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
+    def remove_room_players(self, room_id: str) -> None:
+        """Удаляет пользователей, привязанных к комнате."""
+        pass
+
+    @abstractmethod
     def get_room(self, user_id: str) -> str:
         """Возвращает room_id для указанного игрока."""
         pass
@@ -70,6 +75,14 @@ class MemoryStorage(BaseStorage):
     def remove_player(self, user_id: str) -> None:
         """Удаляет игрока из хранилища."""
         self.user_to_room.pop(user_id)
+
+    def remove_room_players(self, room_id: str) -> None:
+        """Удаляет пользователей, привязанных к комнате."""
+        self.user_to_room = {
+            user: room
+            for user, room in self.user_to_room.items()
+            if room != room_id
+        }
 
     def get_room(self, user_id: str) -> str:
         """Возвращает room_id для указанного игрока."""

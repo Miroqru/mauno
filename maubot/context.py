@@ -41,12 +41,12 @@ def get_context(
 
     elif isinstance(event, CallbackQuery):
         if event.message is None:
-            game = sm.storage.get_player_game(str(event.from_user.id))
+            game = sm.player_game(str(event.from_user.id))
         else:
             game = sm.storage.get_game(str(event.message.chat.id))
 
     elif isinstance(event, InlineQuery | ChosenInlineResult):
-        game = sm.storage.get_player_game(str(event.from_user.id))
+        game = sm.player_game(str(event.from_user.id))
 
     else:
         raise ValueError("Unknown update type")
