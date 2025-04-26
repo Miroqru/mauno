@@ -1,6 +1,6 @@
 """Маршрутизация событий от движка."""
 
-from mau.enums import GameEvents
+from mau.enums import GameEvents, GameState
 from maubot import keyboards, messages
 from maubot.config import sm, stickers
 from maubot.events.journal import EventContext, EventRouter
@@ -136,12 +136,6 @@ async def next_turn(ctx: EventContext) -> None:
     await ctx.send()
 
 
-@er.handler(event=GameEvents.GAME_UNO)
-async def say_uno(ctx: EventContext) -> None:
-    """Оповещает что у игрока осталась одна карта."""
-    ctx.add("\n🌟 <b>UNO!</b>")
-
-
 @er.handler(event=GameEvents.GAME_ROTATE)
 async def rotate_cards(ctx: EventContext) -> None:
     """Все игрока обменялись картами, возвращает статистику."""
@@ -152,7 +146,9 @@ async def rotate_cards(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_STATE)
 async def set_game_state(ctx: EventContext) -> None:
     """Изменение игрового состояния."""
-    if ctx.event.data == "shotgun" and (
+    state = GameState(int(ctx.event.data))
+
+    if state == GameState.SHOTGUN and (
         ctx.event.game.rules.shotgun.status
         or ctx.event.game.rules.single_shotgun.status
     ):
@@ -171,11 +167,11 @@ async def set_game_state(ctx: EventContext) -> None:
         )
         ctx.set_markup(keyboards.SHOTGUN_KEYBOARD)
 
-    elif ctx.event.data == "twist_hand":
+    elif state == GameState.TWIST_HAND:
         ctx.add(f"✨ {ctx.event.player.name} Задумывается c кем обменяться.")
         ctx.set_markup(keyboards.select_player_markup(ctx.event.game))
 
-    elif ctx.event.data == "choose_color":
+    elif state == GameState.CHOOSE_COLOR:
         ctx.add(f"✨ {ctx.event.player.name} Задумывается о выборе цвета..")
         ctx.set_markup(keyboards.SELECT_COLOR)
 
@@ -184,6 +180,12 @@ async def set_game_state(ctx: EventContext) -> None:
 
 # Обработка действий игрока
 # =========================
+
+
+@er.handler(event=GameEvents.PLAYER_UNO)
+async def say_uno(ctx: EventContext) -> None:
+    """Оповещает что у игрока осталась одна карта."""
+    ctx.add("\n🌟 <b>UNO!</b>")
 
 
 @er.handler(event=GameEvents.PLAYER_TAKE)

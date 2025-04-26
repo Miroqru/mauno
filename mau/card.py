@@ -212,9 +212,7 @@ class NumberCard(BaseCard):
     def use_card(self, game: "UnoGame") -> None:
         """С некоторыми правилами карты с цифрами также играют роль."""
         if self.cost == TWIST_HAND_NUM and game.rules.twist_hand.status:
-            game.state = GameState.TWIST_HAND
-            game.push_event(game.player, GameEvents.GAME_STATE, "twist_hand")
-
+            game.set_state(GameState.TWIST_HAND)
         elif game.rules.rotate_cards.status and game.deck.top.cost == 0:
             game.rotate_cards()
 
@@ -307,9 +305,7 @@ class ChooseColorCard(BaseCard):
                 str(self.color),
             )
         else:
-            logger.info("Set choose color flag to True")
-            game.state = GameState.CHOOSE_COLOR
-            game.push_event(game.player, GameEvents.GAME_STATE, "choose_color")
+            game.set_state(GameState.CHOOSE_COLOR)
 
     def __eq__(self, other_card: object) -> bool:
         """Проверяет соответствие двух карт."""
@@ -347,8 +343,7 @@ class TakeFourCard(BaseCard):
                 str(self.color),
             )
         else:
-            game.state = GameState.CHOOSE_COLOR
-            game.push_event(game.player, GameEvents.GAME_STATE, "choose_color")
+            game.set_state(GameState.CHOOSE_COLOR)
 
         game.take_counter += 4
         game.bluff_player = game.player

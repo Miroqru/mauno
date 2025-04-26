@@ -17,7 +17,7 @@ from mau.deck import Deck
 from mau.deck_generator import DeckGenerator
 from mau.enums import GameEvents, GameState
 from mau.events import BaseEventHandler, Event
-from mau.exceptions import AlreadyJoinedError, LobbyClosedError
+from mau.exceptions import LobbyClosedError
 from mau.player import BaseUser, Player
 
 
@@ -199,12 +199,12 @@ class UnoGame:
     def add_player(self, user: BaseUser) -> Player:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
-        if not self.open:
-            raise LobbyClosedError()
-
         player = self.get_player(user.id)
         if player is not None:
-            raise AlreadyJoinedError()
+            return player
+
+        if not self.open:
+            raise LobbyClosedError from None
 
         player = Player(self, user.id, user.name)
         player.on_leave()
@@ -278,7 +278,7 @@ class UnoGame:
         card(self)
 
         if len(player.hand) == 1:
-            self.push_event(player, GameEvents.GAME_UNO, card.to_str())
+            self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
 
         if len(player.hand) == 0:
             self.remove_player(player)
@@ -296,3 +296,8 @@ class UnoGame:
                 logger.info("Player continue turn")
             else:
                 self.next_turn()
+
+    def set_state(self, state: GameState) -> None:
+        """Устанавливает новое состояние для игры."""
+        self.state = state
+        self.push_event(self.player, GameEvents.GAME_STATE, str(state.value))

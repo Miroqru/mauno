@@ -287,8 +287,7 @@ class Player:
             )
             and self.game.state != GameState.SHOTGUN
         ):
-            self.game.state = GameState.SHOTGUN
-            self.push_event(GameEvents.GAME_STATE, "shotgun")
+            self.game.set_state(GameState.SHOTGUN)
             return
 
         logger.info("{} take cards", self)

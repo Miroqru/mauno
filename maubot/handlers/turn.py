@@ -69,6 +69,7 @@ async def process_card_handler(
     if change_color is not None:
         game.choose_color(CardColor(int(change_color.groups()[0])))
 
+    # TODO: Больше не используется, время удалять
     select_player = re.match(r"select_player:(\d)", result.result_id)
     if select_player is not None:
         if game.state == GameState.TWIST_HAND:
