@@ -112,7 +112,6 @@ class UnoGame:
         self.pm.next(1, self.reverse)
         self.push_event(self.player, GameEvents.GAME_TURN)
 
-    # TODO: Никому не требуется результат
     def join_player(self, user: BaseUser) -> Player:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
@@ -123,13 +122,11 @@ class UnoGame:
         if not self.open:
             raise LobbyClosedError from None
 
-        # TODO: Метод on_join для игрока
         player = Player(self, user.id, user.name)
         self.pm.add(player)
+        self.push_event(player, GameEvents.GAME_JOIN)
         if self.started:
-            player.take_first_hand()
-            self.push_event(player, GameEvents.GAME_JOIN)
-        return player
+            player.on_join()
 
     def leave_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""

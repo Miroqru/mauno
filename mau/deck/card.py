@@ -16,7 +16,6 @@ class UnoCard:
     Предоставляет общий функционал для всех карт.
     """
 
-    # TODO: Как там приватность?
     __slots__ = ("color", "card_type", "value", "cost", "behavior")
 
     def __init__(

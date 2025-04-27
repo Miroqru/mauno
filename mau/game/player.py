@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from random import randint
-from typing import TYPE_CHECKING, NamedTuple, Self
+from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
@@ -13,9 +13,6 @@ if TYPE_CHECKING:
     from mau.deck.card import UnoCard
     from mau.game.game import UnoGame
 
-
-# Дополнительные типы данных
-# ==========================
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
@@ -33,8 +30,8 @@ class BaseUser:
     name: str
 
 
-# TODO: датаклассы ждут
-class SortedCards(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class SortedCards:
     """Распределяет карты на: покрывающие и не покрывающие."""
 
     cover: list["UnoCard"]
@@ -53,10 +50,7 @@ class Player:
         self.game: UnoGame = game
         self.user_id = user_id
         self._user_name = user_name
-
         self.bluffing = False
-        self.anti_cheat = 0
-
         self.shotgun_current = 0
         self.shotgun_lose = 0
 
@@ -77,14 +71,6 @@ class Player:
         """
         self.game.event_handler.push(Event(self.game, self, event_type, data))
 
-    def take_first_hand(self) -> None:
-        """Берёт начальный набор карт для игры."""
-        self.shotgun_lose = randint(1, 8)
-        # TODO: Режим отладки
-        logger.debug("{} Draw first hand for player", self._user_name)
-        self.hand = list(self.game.deck.take(7))
-        self.push_event(GameEvents.PLAYER_TAKE, "7")
-
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
         take_counter = self.game.take_counter or 1
@@ -94,56 +80,14 @@ class Player:
             self.hand.append(card)
         self.game.take_counter = 0
         self.push_event(GameEvents.PLAYER_TAKE, str(take_counter))
+
+        # TODO: Можно использовать состояние
         self.game.take_flag = True
 
         if self.game.rules.auto_skip.status:
             cards = self.get_cover_cards()
             if len(cards.cover) == 0:
                 self.game.next_turn()
-
-    def _sort_hand_cards(self, top: "UnoCard") -> SortedCards:
-        cover = []
-        uncover = []
-        for card, can_cover in top.iter_covering(self.hand):
-            if not can_cover:
-                uncover.append(card)
-                continue
-            if (
-                top.card_type == CardType.TAKE
-                and self.game.take_counter
-                and card.card_type != CardType.TAKE
-            ):
-                uncover.append(card)
-                continue
-
-            cover.append(card)
-            self.bluffing = (
-                self.bluffing or card.color == self.game.deck.top.color
-            )
-
-        return SortedCards(sorted(cover), sorted(uncover))
-
-    def _get_equal_cards(self, top: "UnoCard") -> SortedCards:
-        cover = []
-        uncover = []
-        for card in self.hand:
-            if card != top:
-                uncover.append(card)
-                continue
-            if (
-                top.card_type == CardType.TAKE
-                and self.game.take_counter
-                and card.card_type != CardType.TAKE
-            ):
-                uncover.append(card)
-                continue
-
-            cover.append(card)
-            self.bluffing = (
-                self.bluffing or card.color == self.game.deck.top.color
-            )
-
-        return SortedCards(sorted(cover), sorted(uncover))
 
     def get_cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
@@ -154,36 +98,68 @@ class Player:
         top = self.game.deck.top
         logger.debug("Last card was {}", top)
         self.bluffing = False
-        if top.card_type == CardType.TAKE_FOUR and self.game.take_counter:
-            return SortedCards([], self.hand)
-
         # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
         # то нам сейчас карты нне очень важны
-        if self.game.state not in (GameState.NEXT, GameState.CONTINUE):
-            return SortedCards([], self.hand)
-
         # Если сейчас не ход игрока, то активных карт нету
         # Это для глупенького веб клиента будет полезно
-        if not self.can_play:
+        if (
+            top.card_type == CardType.TAKE_FOUR
+            and self.game.take_counter
+            or self.game.state not in (GameState.NEXT, GameState.CONTINUE)
+            or not self.can_play
+        ):
             return SortedCards([], self.hand)
 
-        if self.game.rules.intervention.status and self.game.player != self:
-            return self._get_equal_cards(top)
-        return self._sort_hand_cards(top)
+        # if self.game.rules.intervention.status and self.game.player != self:
+        #     return self._get_equal_cards(top)
 
-    # Обработка событий
-    # =================
+        cover = []
+        uncover = []
+        for card, can_cover in top.iter_covering(self.hand):
+            if (
+                self.game.rules.intervention.status
+                and card != top
+                and self != self.game.player
+            ):
+                uncover.append(card)
+                continue
+
+            if not can_cover:
+                uncover.append(card)
+                continue
+
+            if (
+                top.card_type == CardType.TAKE
+                and self.game.take_counter
+                and card.card_type != CardType.TAKE
+            ):
+                uncover.append(card)
+                continue
+
+            cover.append(card)
+            self.bluffing = (
+                self.bluffing or card.color == self.game.deck.top.color
+            )
+
+        return SortedCards(
+            cover=sorted(cover, key=lambda c: c.cost, reverse=True),
+            uncover=sorted(uncover, key=lambda c: c.cost, reverse=True),
+        )
+
+    # TODO: Режим отладки
+    def on_join(self) -> None:
+        """Берёт начальный набор карт для игры."""
+        self.shotgun_lose = randint(1, 8)
+        logger.debug("{} Draw first hand for player", self._user_name)
+        self.hand = list(self.game.deck.take(7))
+        self.push_event(GameEvents.PLAYER_TAKE, "7")
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
         logger.debug("{} Leave from game", self._user_name)
-        # Если он последний игрок, подчищать за собой не приходится
-        if len(self.game.pm) == 1:
-            return
-
         for card in self.hand:
             self.game.deck.put(card)
-        self.hand.clear()
+        self.hand = []
 
     def twist_hand(self, other_player: Self) -> None:
         """Меняет местами руки для двух игроков."""
@@ -194,6 +170,7 @@ class Player:
         self.push_event(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
         self.game.next_turn()
 
+    # TODO: Время написать небольшой класс для револьвера
     def shotgun(self) -> bool:
         """Выстрелить из револьвера."""
         if self.game.rules.single_shotgun.status:
@@ -206,9 +183,6 @@ class Player:
         self.shotgun_current += 1
         return self.shotgun_current >= self.shotgun_lose
 
-    # Обработка игровых действий
-    # ==========================
-
     def call_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.
 
@@ -217,6 +191,7 @@ class Player:
         """
         logger.info("{} call bluff {}", self, self.game.bluff_player)
         bluff_player = self.game.bluff_player
+        # TODO: а нам обязательно?
         if bluff_player is not None and bluff_player.bluffing:
             self.push_event(
                 GameEvents.PLAYER_BLUFF, f"true;{self.game.take_counter}"
@@ -271,13 +246,6 @@ class Player:
             self.game.next_turn()
         else:
             self.game.state = GameState.NEXT
-
-    # Магические методы
-    # =================
-
-    def __repr__(self) -> str:
-        """Представление игрока при отладке."""
-        return repr(self._user_name)
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""

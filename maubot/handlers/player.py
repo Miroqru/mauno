@@ -13,7 +13,6 @@ from mau.enums import GameState
 from mau.exceptions import AlreadyJoinedError
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser, Player
-from mau.session import SessionManager
 from maubot import filters
 from maubot.events.journal import MessageChannel
 

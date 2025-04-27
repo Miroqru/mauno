@@ -70,7 +70,7 @@ class PlayerManager:
         self._cp = 0
         shuffle(self._players)
         for player in self.iter(self._players):
-            player.take_first_hand()
+            player.on_join()
 
     def end(self) -> None:
         """Подготавливает к завершению игры."""

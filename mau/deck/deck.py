@@ -22,7 +22,6 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    # TODO: как там приватность?
     __slots__ = ("cards", "used_cards", "_top")
 
     def __init__(self, cards: list[UnoCard] | None = None) -> None:
