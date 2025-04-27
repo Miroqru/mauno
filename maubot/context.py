@@ -7,15 +7,13 @@ from dataclasses import dataclass
 
 from aiogram.types import (
     CallbackQuery,
-    ChatMemberUpdated,
     ChosenInlineResult,
     InlineQuery,
     Message,
-    Update,
 )
 
-from mau.game import UnoGame
-from mau.player import Player
+from mau.game.game import UnoGame
+from mau.game.player import Player
 from mau.session import SessionManager
 
 
@@ -33,27 +31,25 @@ class GameContext:
 
 def get_context(
     sm: SessionManager,
-    event: Message | ChatMemberUpdated | CallbackQuery | Message | Update,
+    event: Message | CallbackQuery | InlineQuery | ChosenInlineResult,
 ) -> GameContext:
     """Получает игровой контекст."""
-    if isinstance(event, Message | ChatMemberUpdated):
-        game = sm.room_game(str(event.chat.id))
+    player = (
+        sm.player(str(event.from_user.id))
+        if event.from_user is not None
+        else None
+    )
 
-    elif isinstance(event, CallbackQuery):
-        if event.message is None:
-            game = sm.player_game(str(event.from_user.id))
-        else:
-            game = sm.room_game(str(event.message.chat.id))
+    if player is not None:
+        return GameContext(game=player.game, player=player)
 
-    elif isinstance(event, InlineQuery | ChosenInlineResult):
-        game = sm.player_game(str(event.from_user.id))
+    if isinstance(event, Message):
+        game = sm.room(str(event.chat.id))
+
+    elif isinstance(event, CallbackQuery) and event.message is not None:
+        game = sm.room(str(event.message.chat.id))
 
     else:
-        raise ValueError("Unknown update type")
+        game = None
 
-    player = (
-        None
-        if game is None or event.from_user is None
-        else game.get_player(str(event.from_user.id))
-    )
-    return GameContext(game=game, player=player)
+    return GameContext(game=game, player=None)

@@ -54,8 +54,9 @@ async def process_card_handler(
         return None
 
     if player != game.player:
-        game.set_current_player(player)
+        game.pm.set_cp(player)
 
+    # TODO: Переименовать в next
     elif result.result_id == "pass":
         game.next_turn()
 
@@ -65,6 +66,7 @@ async def process_card_handler(
     elif result.result_id == "bluff":
         player.call_bluff()
 
+    # TODO: Удалить
     change_color = re.match(r"color:([0-3])", result.result_id)
     if change_color is not None:
         game.choose_color(CardColor(int(change_color.groups()[0])))

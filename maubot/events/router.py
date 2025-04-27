@@ -111,7 +111,7 @@ async def select_card_color(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_SELECT_PLAYER)
 async def twist_hand(ctx: EventContext) -> None:
     """Сообщает об обмене картами между пользователями."""
-    other_player = ctx.event.game.get_player(ctx.event.data)
+    other_player = sm.player(ctx.event.data)
     if other_player is None:
         ctx.add("🍺 Куда подевался второй игрок?")
         return

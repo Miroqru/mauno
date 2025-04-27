@@ -134,7 +134,7 @@ async def kick_player(
         )
 
     kicked_user = message.reply_to_message.from_user
-    kick_player = game.get_player(str(kicked_user.id))
+    kick_player = sm.player(str(kicked_user.id))
     if kick_player is not None:
         channel.add(
             f"🧹 {game.owner.name} выгнал "

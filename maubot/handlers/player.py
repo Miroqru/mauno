@@ -78,7 +78,7 @@ async def take_cards_call(
     if game.player == player:
         channel.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
     else:
-        game.set_current_player(player)
+        game.pm.set_cp(player)
         channel.add(f"🃏 {player.name} решил <b>взять карты</b>.")
 
     player.take_cards()
@@ -110,7 +110,7 @@ async def shotgun_call(
         )
         await channel.send()
         if game.player != player:
-            game.set_current_player(player)
+            game.pm.set_cp(player)
         game.next_turn()
         game.state = GameState.SHOTGUN
     else:
