@@ -42,21 +42,6 @@ class SessionManager(Generic[_H]):
         """Устанавливает обработчик событий."""
         self._event_handler = handler
 
-    # TODO: Время удалять
-    def join_game(self, room_id: str, user: BaseUser) -> None:
-        """Добавляет нового игрока в игру."""
-        game = self._games.get(room_id)
-        if game is None:
-            raise NoGameInChatError from None
-        player = game.join_player(user)
-        game.push_event(player, GameEvents.SESSION_JOIN)
-
-    def leave_game(self, player: Player) -> None:
-        """Убирает игрока из игры."""
-        player.game.remove_player(player)
-        self._games.remove(player.user_id)
-        player.push_event(GameEvents.SESSION_LEAVE)
-
     def player(self, user_id: str) -> Player | None:
         """Получает экземпляр игры, в которой находится игрок.
 

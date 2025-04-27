@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
 
+# TODO: Отдельно добавить имя игрока, кроме упомянашки
 @dataclass(frozen=True, slots=True)
 class BaseUser:
     """Абстрактное представление пользователя.

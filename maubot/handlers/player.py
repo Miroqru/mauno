@@ -11,8 +11,8 @@ from loguru import logger
 from mau.card import TakeCard, TakeFourCard
 from mau.enums import GameState
 from mau.exceptions import AlreadyJoinedError
-from mau.game import UnoGame
-from mau.player import BaseUser, Player
+from mau.game.game import UnoGame
+from mau.game.player import BaseUser, Player
 from mau.session import SessionManager
 from maubot import filters
 from maubot.events.journal import MessageChannel
@@ -24,13 +24,12 @@ router = Router(name="Player")
 
 
 @router.message(Command("join"), filters.ActiveGame())
-async def join_player(message: Message, sm: SessionManager) -> None:
+async def join_player(message: Message, game: UnoGame) -> None:
     """Подключает пользователя к игре."""
     if message.from_user is None:
         raise ValueError("User can`t be none")
 
-    sm.join_game(
-        str(message.chat.id),
+    game.join_player(
         BaseUser(str(message.from_user.id), message.from_user.mention_html()),
     )
 
@@ -44,11 +43,9 @@ async def join_player(message: Message, sm: SessionManager) -> None:
 
 
 @router.message(Command("leave"), filters.ActivePlayer())
-async def leave_player(
-    message: Message, sm: SessionManager, player: Player
-) -> None:
+async def leave_player(message: Message, player: Player) -> None:
     """Выход пользователя из игры."""
-    sm.leave_game(player)
+    player.game.leave_player(player)
 
 
 # Обработчики для кнопок
@@ -56,15 +53,14 @@ async def leave_player(
 
 
 @router.callback_query(F.data == "join", filters.ActiveGame())
-async def join_callback(query: CallbackQuery, sm: SessionManager) -> None:
+async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
     """Добавляет игрока в текущую комнату."""
     if not isinstance(query.message, Message):
         raise ValueError("Query message should be Message instance")
 
     try:
-        sm.join_game(
-            str(query.message.chat.id),
-            BaseUser(str(query.from_user.id), query.from_user.mention_html()),
+        game.join_player(
+            BaseUser(str(query.from_user.id), query.from_user.mention_html())
         )
     except AlreadyJoinedError:
         await query.answer("👋 Вы уже с нами в комнате")
@@ -93,11 +89,7 @@ async def take_cards_call(
 
 @router.callback_query(F.data == "shot", filters.NowPlaying())
 async def shotgun_call(
-    query: CallbackQuery,
-    sm: SessionManager,
-    game: UnoGame,
-    player: Player,
-    channel: MessageChannel,
+    query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
 ) -> None:
     """Игрок выбирает взять карты."""
     res = player.shotgun()
@@ -118,4 +110,4 @@ async def shotgun_call(
             channel.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
             channel.add(f"😴 {player.name} попал под пулю..\n")
-        sm.leave_game(player)
+        game.leave_player(player)

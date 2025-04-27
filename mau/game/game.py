@@ -131,7 +131,7 @@ class UnoGame:
             self.push_event(player, GameEvents.GAME_JOIN)
         return player
 
-    def remove_player(self, player: Player) -> None:
+    def leave_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", player, self.room_id)
         if len(player.hand) == 0:
@@ -175,7 +175,7 @@ class UnoGame:
             self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
 
         if len(player.hand) == 0:
-            self.remove_player(player)
+            self.leave_player(player)
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:

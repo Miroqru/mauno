@@ -59,6 +59,7 @@ class GameEvents(IntEnum):
     - player_intervened: Игрок вмешался в ход другого игрока.
     """
 
+    # TODO: Вы ребятки бесполезные :)
     SESSION_START = 10
     SESSION_END = 11
     SESSION_JOIN = 12
