@@ -9,8 +9,8 @@ from loguru import logger
 from mau.enums import GameEvents
 
 if TYPE_CHECKING:
-    from mau.game import UnoGame
-    from mau.player import Player
+    from mau.game.game import UnoGame
+    from mau.game.player import Player
 
 
 @dataclass(slots=True, frozen=True)

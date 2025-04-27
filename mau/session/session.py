@@ -10,9 +10,9 @@ from loguru import logger
 
 from mau.enums import GameEvents
 from mau.events import BaseEventHandler, DebugEventHandler
-from mau.game import UnoGame
-from mau.player import BaseUser, Player
-from mau.session_storage import BaseStorage, MemoryStorage
+from mau.game.game import UnoGame
+from mau.game.player import BaseUser, Player
+from mau.session.storage import BaseStorage, MemoryStorage
 
 _H = TypeVar("_H", bound=BaseEventHandler)
 

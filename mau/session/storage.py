@@ -1,9 +1,14 @@
 """Хранилище игровых сессий."""
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from mau import exceptions
-from mau.game import UnoGame
+
+if TYPE_CHECKING:
+    from mau.game.game import UnoGame
+
+# TODO: Может дженерики?
 
 
 class BaseStorage(ABC):
@@ -29,22 +34,22 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    def player_game(self, user_id: str) -> UnoGame:
+    def player_game(self, user_id: str) -> "UnoGame":
         """Возвращает игру, в которой находится игрок."""
         pass
 
     @abstractmethod
-    def add_game(self, room_id: str, game: UnoGame) -> None:
+    def add_game(self, room_id: str, game: "UnoGame") -> None:
         """Добавляет новую игру в хранилище."""
         pass
 
     @abstractmethod
-    def room_game(self, room_id: str) -> UnoGame:
+    def room_game(self, room_id: str) -> "UnoGame":
         """Возвращает игру по указанному id комнаты."""
         pass
 
     @abstractmethod
-    def remove_game(self, room_id: str) -> UnoGame:
+    def remove_game(self, room_id: str) -> "UnoGame":
         """Удаляет комнату из хранилища."""
         pass
 
@@ -81,7 +86,7 @@ class MemoryStorage(BaseStorage):
             if room != room_id
         }
 
-    def player_game(self, user_id: str) -> UnoGame:
+    def player_game(self, user_id: str) -> "UnoGame":
         """Возвращает игру, в которой находится игрок."""
         try:
             room_id = self._user_room[user_id]
@@ -89,18 +94,18 @@ class MemoryStorage(BaseStorage):
         except KeyError:
             raise exceptions.NoGameInChatError from KeyError
 
-    def room_game(self, room_id: str) -> UnoGame:
+    def room_game(self, room_id: str) -> "UnoGame":
         """Возвращает игру по ID комнаты."""
         try:
             return self._games[room_id]
         except KeyError:
             raise exceptions.NoGameInChatError from KeyError
 
-    def add_game(self, room_id: str, game: UnoGame) -> None:
+    def add_game(self, room_id: str, game: "UnoGame") -> None:
         """Добавляет новую игру в хранилище."""
         self._games[room_id] = game
 
-    def remove_game(self, room_id: str) -> UnoGame:
+    def remove_game(self, room_id: str) -> "UnoGame":
         """Удаляет комнату из хранилища."""
         try:
             return self._games.pop(room_id)
