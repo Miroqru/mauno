@@ -46,7 +46,6 @@ class GameRules(NamedTuple):
         "🎨 Случайный цвет", False, "choose_random_color"
     )
     random_color: Rule = Rule("🎨 Какой цвет дальше?", False, "random_color")
-    debug_cards: Rule = Rule("🦝 Отладочные карты!", False, "debug_cards")
     side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
     intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
     twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
