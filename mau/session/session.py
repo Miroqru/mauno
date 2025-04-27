@@ -24,14 +24,16 @@ class SessionManager(Generic[_H]):
     Предоставляет методы для создания и завершения сессий.
     """
 
-    __slots__ = ("_storage", "_event_handler")
+    __slots__ = ("_games", "_players", "_event_handler")
 
     def __init__(
         self,
-        storage: BaseStorage | None = None,
+        game_storage: BaseStorage | None = None,
+        player_storage: BaseStorage | None = None,
         event_handler: _H | None = None,
     ) -> None:
-        self._storage: BaseStorage[UnoGame] = storage or MemoryStorage()
+        self._games: BaseStorage[UnoGame] = game_storage or MemoryStorage()
+        self._players: BaseStorage[Player] = player_storage or MemoryStorage()
         self._event_handler = event_handler or cast(_H, DebugEventHandler())
 
     def set_handler(self, handler: _H) -> None:
@@ -40,9 +42,9 @@ class SessionManager(Generic[_H]):
 
     def join_game(self, room_id: str, user: BaseUser) -> None:
         """Добавляет нового игрока в игру."""
-        game = self._storage.room_game(room_id)
+        game = self._games.get(room_id)
         player = game.add_player(user)
-        self._storage.add_player(room_id, player.user_id)
+        self._players.add(player.user_id, player)
         game.push_event(player, GameEvents.SESSION_JOIN)
 
     def leave_game(self, player: Player) -> None:
@@ -50,7 +52,7 @@ class SessionManager(Generic[_H]):
         player.game.remove_player(player)
         if player.game.started and len(player.game.players) <= 1:
             player.game.end()
-        self._storage.remove_player(player.user_id)
+        self._games.remove(player.user_id)
         player.push_event(GameEvents.SESSION_LEAVE)
 
     def player_game(self, user_id: str) -> UnoGame:
@@ -58,18 +60,18 @@ class SessionManager(Generic[_H]):
 
         Если такой игры нет - выплюнет исключение.
         """
-        return self._storage.player_game(user_id)
+        return self._players.get(user_id).game
 
     def room_game(self, room_id: str) -> UnoGame:
         """Возвращает игру по указанному ID комнаты."""
-        return self._storage.room_game(room_id)
+        return self._games.get(room_id)
 
     def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""
         logger.info("User {} Create new game session in {}", user, room_id)
         game = UnoGame(self._event_handler, room_id, user)
-        self._storage.add_game(room_id, game)
-        self._storage.add_player(room_id, user.id)
+        self._games.add(room_id, game)
+        self._players.add(user.id, game.owner)
         game.push_event(game.owner, GameEvents.SESSION_START)
         return game
 
@@ -80,6 +82,7 @@ class SessionManager(Generic[_H]):
         `UnoGame.end()`.
         """
         logger.info("End session in room {}", room_id)
-        game: UnoGame = self._storage.remove_game(room_id)
-        self._storage.remove_room_players(room_id)
+        game: UnoGame = self._games.remove(room_id)
+        # FIXME: А вот тут надо уже красиво использовать хранилище игроков
+        # self._storage.remove_room_players(room_id)
         game.push_event(game.owner, GameEvents.SESSION_END)

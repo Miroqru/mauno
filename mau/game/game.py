@@ -1,9 +1,4 @@
-"""Игровая сессия.
-
-Представляет класс игровой сессии.
-Иначе говоря игровой движок, обрабатывающий ходы игроков и
-действия карт из колоды.
-"""
+"""Игровая сессия."""
 
 from datetime import datetime
 from random import randint, shuffle
@@ -28,13 +23,14 @@ class UnoGame:
     """
 
     def __init__(
-        self, journal: BaseEventHandler, room_id: str, owner: BaseUser
+        self, event_handler: BaseEventHandler, room_id: str, owner: BaseUser
     ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
-        self.deck = Deck()
         self.deck_generator = DeckGenerator.from_preset("classic")
-        self.event_handler: BaseEventHandler = journal
+
+        self._deck = Deck()
+        self._event_handler: BaseEventHandler = event_handler
 
         # Игроки Uno
         self.current_player: int = 0
@@ -101,7 +97,7 @@ class UnoGame:
 
         Автоматически подставляет текущую игру.
         """
-        self.event_handler.push(Event(self, from_player, event_type, data))
+        self._event_handler.push(Event(self, from_player, event_type, data))
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
@@ -110,8 +106,8 @@ class UnoGame:
         self.losers.clear()
         shuffle(self.players)
 
-        self.deck = self.deck_generator.deck
-        self.deck.shuffle()
+        self._deck = self.deck_generator.deck
+        self._deck.shuffle()
 
         if self.rules.single_shotgun.status:
             self.shotgun_lose = randint(1, 8)
@@ -121,7 +117,7 @@ class UnoGame:
 
         self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
-        self.deck.top(self)
+        self._deck.top(self)
 
     def end(self) -> None:
         """Завершает текущую игру."""
@@ -134,7 +130,7 @@ class UnoGame:
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
-        self.deck.top.color = color
+        self._deck.top.color = color
         self.push_event(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
         self.next_turn()
 
@@ -225,7 +221,7 @@ class UnoGame:
     def process_turn(self, card: UnoCard, player: Player) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
-        self.deck.put_top(card)
+        self._deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
 
@@ -242,11 +238,11 @@ class UnoGame:
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
                 color = CardColor(randint(0, 3))
-                self.deck.top.color = color
+                self._deck.top.color = color
                 self.push_event(
                     player, GameEvents.GAME_SELECT_COLOR, str(color)
                 )
-            if self.deck.top.cost == 1 and self.rules.side_effect.status:
+            if self._deck.top.cost == 1 and self.rules.side_effect.status:
                 logger.info("Player continue turn")
             else:
                 self.next_turn()
