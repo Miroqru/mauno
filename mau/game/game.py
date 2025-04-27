@@ -149,12 +149,12 @@ class UnoGame:
         if self.started and len(self.pm) <= 1:
             self.end()
 
+    # TODO: Может удалим?
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
 
         В зависимости от направления игры пропускает несколько игроков.
         """
-        self.push_event(self.player, GameEvents.GAME_NEXT, str(n))
         self.pm.next(n, self.reverse)
 
     def rotate_cards(self) -> None:
