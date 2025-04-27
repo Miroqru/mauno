@@ -177,7 +177,7 @@ class Player:
         """Действия игрока при выходе из игры."""
         logger.debug("{} Leave from game", self._user_name)
         # Если он последний игрок, подчищать за собой не приходится
-        if len(self.game.players) == 1:
+        if len(self.game.pm) == 1:
             return
 
         for card in self.hand:

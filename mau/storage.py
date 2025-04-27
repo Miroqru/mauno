@@ -24,7 +24,7 @@ class BaseStorage(ABC, Generic[_V]):
         pass
 
     @abstractmethod
-    def get(self, key: str) -> _V:
+    def get(self, key: str) -> _V | None:
         """Возвращает значение из хранилища."""
         pass
 
@@ -52,6 +52,6 @@ class MemoryStorage(BaseStorage, Generic[_V]):
         """Удаляет игрока из хранилища."""
         return self._storage.pop(key)
 
-    def get(self, key: str) -> _V:
+    def get(self, key: str) -> _V | None:
         """Возвращает значение из хранилища."""
-        return self._storage[key]
+        return self._storage.get(key)

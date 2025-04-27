@@ -1,7 +1,7 @@
 """Игровая сессия."""
 
 from datetime import datetime
-from random import randint, shuffle
+from random import randint
 
 from loguru import logger
 
@@ -12,6 +12,7 @@ from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.exceptions import LobbyClosedError
 from mau.game.player import BaseUser, Player
+from mau.game.player_manager import PlayerManager
 from mau.game.rules import GameRules
 
 
@@ -23,24 +24,22 @@ class UnoGame:
     """
 
     def __init__(
-        self, event_handler: BaseEventHandler, room_id: str, owner: BaseUser
+        self,
+        player_manager: PlayerManager,
+        event_handler: BaseEventHandler,
+        room_id: str,
+        owner: BaseUser,
     ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
         self.deck_generator = DeckGenerator.from_preset("classic")
 
-        self._deck = Deck()
-        self._event_handler: BaseEventHandler = event_handler
+        self.pm = player_manager
+        self.deck = Deck()
+        self.event_handler: BaseEventHandler = event_handler
 
-        # Игроки Uno
-        self.current_player: int = 0
         self.owner = Player(self, owner.id, owner.name)
         self.bluff_player: Player | None = None
-        self.players: list[Player] = [self.owner]
-        self.winners: list[Player] = []
-        self.losers: list[Player] = []
-
-        # Настройки игры
         self.started: bool = False
         self.open: bool = True
         self.reverse: bool = False
@@ -58,37 +57,15 @@ class UnoGame:
     @property
     def player(self) -> Player:
         """Возвращает текущего игрока."""
-        if len(self.players) == 0:
-            raise ValueError("Game not started to get players")
-        return self.players[self.current_player % len(self.players)]
-
-    @property
-    def prev(self) -> Player:
-        """Возвращает предыдущего игрока."""
-        if self.reverse:
-            prev_index = (self.current_player + 1) % len(self.players)
-        else:
-            prev_index = (self.current_player - 1) % len(self.players)
-        return self.players[prev_index]
-
-    def get_player(self, user_id: str) -> Player | None:
-        """Получает игрока среди списка игроков по его ID."""
-        for player in self.players:
-            if player.user_id == user_id:
-                return player
-
-        return None
+        return self.pm.current
 
     def can_play(self, user_id: str) -> bool:
         """Может ли текущий игрок совершать действия."""
-        player = self.get_player(user_id)
+        player = self.pm.get(user_id)
         if player is None:
             return False
 
         return self.player == player or self.rules.intervention.status
-
-    # Управление потоком игры
-    # =======================
 
     def push_event(
         self, from_player: Player, event_type: GameEvents, data: str = ""
@@ -97,40 +74,32 @@ class UnoGame:
 
         Автоматически подставляет текущую игру.
         """
-        self._event_handler.push(Event(self, from_player, event_type, data))
+        self.event_handler.push(Event(self, from_player, event_type, data))
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
-        self.winners.clear()
-        self.losers.clear()
-        shuffle(self.players)
+        self.deck = self.deck_generator.deck
+        self.deck.shuffle()
+        self.pm.start()
 
-        self._deck = self.deck_generator.deck
-        self._deck.shuffle()
-
+        # TODO: Небольшой класс для револьвера
         if self.rules.single_shotgun.status:
             self.shotgun_lose = randint(1, 8)
 
-        for player in self.players:
-            player.take_first_hand()
-
         self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
-        self._deck.top(self)
+        self.deck.top(self)
 
     def end(self) -> None:
         """Завершает текущую игру."""
-        for pl in self.players:
-            pl.on_leave()
-            self.losers.append(pl)
-        self.players.clear()
+        self.pm.end()
         self.started = False
         self.push_event(self.owner, GameEvents.GAME_END)
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
-        self._deck.top.color = color
+        self.deck.top.color = color
         self.push_event(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
         self.next_turn()
 
@@ -140,88 +109,63 @@ class UnoGame:
         self.state = GameState.NEXT
         self.take_flag = False
         self.turn_start = datetime.now()
-        self.skip_players()
+        self.pm.next(1, self.reverse)
         self.push_event(self.player, GameEvents.GAME_TURN)
 
-    # Управление списком игроков
-    # ==========================
-
-    def add_player(self, user: BaseUser) -> Player:
+    # TODO: Никому не требуется результат
+    def join_player(self, user: BaseUser) -> Player:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
-        player = self.get_player(user.id)
+        player = self.pm.get(user.id)
         if player is not None:
             return player
 
         if not self.open:
             raise LobbyClosedError from None
 
+        # TODO: Метод on_join для игрока
         player = Player(self, user.id, user.name)
-        player.on_leave()
+        self.pm.add(player)
         if self.started:
             player.take_first_hand()
-
-        self.players.append(player)
-        self.push_event(player, GameEvents.GAME_JOIN)
+            self.push_event(player, GameEvents.GAME_JOIN)
         return player
 
     def remove_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", player, self.room_id)
         if len(player.hand) == 0:
-            self.winners.append(player)
             self.push_event(player, GameEvents.GAME_LEAVE, "win")
-
             if self.rules.one_winner.status:
                 self.end()
         else:
-            self.losers.append(player)
             self.push_event(player, GameEvents.GAME_LEAVE, "lose")
 
         player.on_leave()
-        self.players.remove(player)
-
-        # Скорее всего игрок застрелился, больше карты не берём
+        self.pm.remove(player)
         if player == self.player:
             self.take_counter = 0
             self.next_turn()
+        if self.started and len(self.pm) <= 1:
+            self.end()
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
 
         В зависимости от направления игры пропускает несколько игроков.
-
-        Args:
-            n (int): Сколько игроков пропустить (1).
-
         """
         self.push_event(self.player, GameEvents.GAME_NEXT, str(n))
-        if self.reverse:
-            self.current_player = (self.current_player - n) % len(self.players)
-        else:
-            self.current_player = (self.current_player + n) % len(self.players)
+        self.pm.next(n, self.reverse)
 
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
-        last_hand = self.players[-1].hand.copy()
-        for i in range(len(self.players) - 1, 0, -1):
-            self.players[i].hand = self.players[i - 1].hand.copy()
-
-        self.players[0].hand = last_hand
+        self.pm.rotate_cards(self.reverse)
         self.push_event(self.player, GameEvents.GAME_ROTATE)
-
-    def set_current_player(self, player: Player) -> None:
-        """Устанавливает курсор текущего игрока на переданного."""
-        for i, pl in enumerate(self.players):
-            if player == pl:
-                self.current_player = i
-                self.push_event(player, GameEvents.PLAYER_INTERVENED)
-                return
 
     def process_turn(self, card: UnoCard, player: Player) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
-        self._deck.put_top(card)
+        self.deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
 
@@ -232,17 +176,15 @@ class UnoGame:
 
         if len(player.hand) == 0:
             self.remove_player(player)
-            if len(self.players) <= 1:
-                self.end()
 
         if self.state == GameState.NEXT and self.started:
             if self.rules.random_color.status:
                 color = CardColor(randint(0, 3))
-                self._deck.top.color = color
+                self.deck.top.color = color
                 self.push_event(
                     player, GameEvents.GAME_SELECT_COLOR, str(color)
                 )
-            if self._deck.top.cost == 1 and self.rules.side_effect.status:
+            if self.deck.top.cost == 1 and self.rules.side_effect.status:
                 logger.info("Player continue turn")
             else:
                 self.next_turn()

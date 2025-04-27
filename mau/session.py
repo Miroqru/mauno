@@ -10,9 +10,11 @@ from loguru import logger
 
 from mau.enums import GameEvents
 from mau.events import BaseEventHandler, DebugEventHandler
+from mau.exceptions import NoGameInChatError
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser, Player
-from mau.session.storage import BaseStorage, MemoryStorage
+from mau.game.player_manager import PlayerManager
+from mau.storage import BaseStorage, MemoryStorage
 
 _H = TypeVar("_H", bound=BaseEventHandler)
 
@@ -40,36 +42,40 @@ class SessionManager(Generic[_H]):
         """Устанавливает обработчик событий."""
         self._event_handler = handler
 
+    # TODO: Время удалять
     def join_game(self, room_id: str, user: BaseUser) -> None:
         """Добавляет нового игрока в игру."""
         game = self._games.get(room_id)
-        player = game.add_player(user)
-        self._players.add(player.user_id, player)
+        if game is None:
+            raise NoGameInChatError from None
+        player = game.join_player(user)
         game.push_event(player, GameEvents.SESSION_JOIN)
 
     def leave_game(self, player: Player) -> None:
         """Убирает игрока из игры."""
         player.game.remove_player(player)
-        if player.game.started and len(player.game.players) <= 1:
-            player.game.end()
         self._games.remove(player.user_id)
         player.push_event(GameEvents.SESSION_LEAVE)
 
-    def player_game(self, user_id: str) -> UnoGame:
+    def player(self, user_id: str) -> Player | None:
         """Получает экземпляр игры, в которой находится игрок.
 
         Если такой игры нет - выплюнет исключение.
         """
-        return self._players.get(user_id).game
+        return self._players.get(user_id)
 
-    def room_game(self, room_id: str) -> UnoGame:
+    def room(self, room_id: str) -> UnoGame:
         """Возвращает игру по указанному ID комнаты."""
-        return self._games.get(room_id)
+        game = self._games.get(room_id)
+        if game is None:
+            raise NoGameInChatError from ValueError
+        return game
 
     def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""
         logger.info("User {} Create new game session in {}", user, room_id)
-        game = UnoGame(self._event_handler, room_id, user)
+        pm = PlayerManager(self._players)
+        game = UnoGame(pm, self._event_handler, room_id, user)
         self._games.add(room_id, game)
         self._players.add(user.id, game.owner)
         game.push_event(game.owner, GameEvents.SESSION_START)
@@ -83,6 +89,5 @@ class SessionManager(Generic[_H]):
         """
         logger.info("End session in room {}", room_id)
         game: UnoGame = self._games.remove(room_id)
-        # FIXME: А вот тут надо уже красиво использовать хранилище игроков
-        # self._storage.remove_room_players(room_id)
+        game.pm.remove_players()
         game.push_event(game.owner, GameEvents.SESSION_END)

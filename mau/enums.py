@@ -68,6 +68,7 @@ class GameEvents(IntEnum):
     GAME_END = 21
     GAME_JOIN = 22
     GAME_LEAVE = 23
+    # TODO: Не используется больше?
     GAME_NEXT = 24
     GAME_SELECT_COLOR = 25
     GAME_SELECT_PLAYER = 26

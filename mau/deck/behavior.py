@@ -73,7 +73,7 @@ class ReverseBehavior(UnoBehavior):
 
         Если осталось 2 игрока, действует как карта пропуска хода.
         """
-        if len(game.players) == 2:  # noqa
+        if len(game.pm._players) == 2:  # noqa
             game.skip_players()
         else:
             game.reverse = not game.reverse
