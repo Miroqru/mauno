@@ -5,10 +5,8 @@
 действия карт из колоды.
 """
 
-from dataclasses import dataclass
 from datetime import datetime
 from random import randint, shuffle
-from typing import NamedTuple
 
 from loguru import logger
 
@@ -19,38 +17,7 @@ from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.exceptions import LobbyClosedError
 from mau.game.player import BaseUser, Player
-
-
-@dataclass(slots=True)
-class Rule:
-    """Правило для игры."""
-
-    name: str
-    status: bool
-    key: str
-
-
-# TODO: Давайте заменим вот этот бред на что-то нормальное
-class GameRules(NamedTuple):
-    """Набор игровых правил, которые можно менять при запуске игры."""
-
-    twist_hand: Rule = Rule("🤝 Обмен руками", False, "twist_hand")
-    rotate_cards: Rule = Rule("🧭 Обмен телами.", False, "rotate_cards")
-    take_until_cover: Rule = Rule(
-        "🍷 Беру до последнего.", False, "take_until_cover"
-    )
-    single_shotgun: Rule = Rule("🎲 Общий револьвер.", False, "single_shotgun")
-    shotgun: Rule = Rule("🔫 Рулетка.", False, "shotgun")
-    auto_choose_color: Rule = Rule("🃏 самоцвет", False, "auto_choose_color")
-    choose_random_color: Rule = Rule(
-        "🎨 Случайный цвет", False, "choose_random_color"
-    )
-    random_color: Rule = Rule("🎨 Какой цвет дальше?", False, "random_color")
-    side_effect: Rule = Rule("🌀 Побочный выброс", False, "side_effect")
-    intervention: Rule = Rule("😈 Вмешательство 🔧", False, "intervention")
-    twist_hand_pass: Rule = Rule("👋 Без обмена", False, "twist_hand_pass")
-    one_winner: Rule = Rule("👑 Один победитель", False, "one_winner")
-    auto_skip: Rule = Rule("💸 Авто пропуск", False, "auto_skip")
+from mau.game.rules import GameRules
 
 
 class UnoGame:
