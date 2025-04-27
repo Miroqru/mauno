@@ -31,7 +31,7 @@ class SessionManager(Generic[_H]):
         storage: BaseStorage | None = None,
         event_handler: _H | None = None,
     ) -> None:
-        self._storage: BaseStorage = storage or MemoryStorage()
+        self._storage: BaseStorage[UnoGame] = storage or MemoryStorage()
         self._event_handler = event_handler or cast(_H, DebugEventHandler())
 
     def set_handler(self, handler: _H) -> None:
