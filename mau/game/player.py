@@ -6,20 +6,12 @@ from typing import TYPE_CHECKING, NamedTuple, Self
 
 from loguru import logger
 
-from mau.card import (
-    BaseCard,
-    CardColor,
-    NumberCard,
-    ReverseCard,
-    TakeCard,
-    TakeFourCard,
-    TurnCard,
-)
-from mau.enums import GameEvents, GameState
+from mau.enums import CardType, GameEvents, GameState
 from mau.events import Event
 
 if TYPE_CHECKING:
-    from mau.game import UnoGame
+    from mau.deck.card import UnoCard
+    from mau.game.game import UnoGame
 
 
 # Дополнительные типы данных
@@ -28,7 +20,7 @@ if TYPE_CHECKING:
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class BaseUser:
     """Абстрактное представление пользователя.
 
@@ -40,11 +32,12 @@ class BaseUser:
     name: str
 
 
+# TODO: датаклассы ждут
 class SortedCards(NamedTuple):
     """Распределяет карты на: покрывающие и не покрывающие."""
 
-    cover: list[BaseCard]
-    uncover: list[BaseCard]
+    cover: list["UnoCard"]
+    uncover: list["UnoCard"]
 
 
 class Player:
@@ -55,7 +48,7 @@ class Player:
     """
 
     def __init__(self, game: "UnoGame", user_id: str, user_name: str) -> None:
-        self.hand: list[BaseCard] = []
+        self.hand: list[UnoCard] = []
         self.game: UnoGame = game
         self.user_id = user_id
         self._user_name = user_name
@@ -86,25 +79,7 @@ class Player:
     def take_first_hand(self) -> None:
         """Берёт начальный набор карт для игры."""
         self.shotgun_lose = randint(1, 8)
-        if self.game.rules.debug_cards.status:
-            logger.debug("{} Draw debug first hand for player", self._user_name)
-            self.hand = [
-                TakeFourCard(),
-                TakeFourCard(),
-            ]
-            for x in (0, 1, 2, 3):
-                self.hand.extend(
-                    (
-                        TakeCard(CardColor(x)),
-                        TurnCard(CardColor(x), 1),
-                        ReverseCard(CardColor(x)),
-                        NumberCard(CardColor(x), 7),
-                        NumberCard(CardColor(x), 2),
-                        NumberCard(CardColor(x), 0),
-                    )
-                )
-            return
-
+        # TODO: Режим отладки
         logger.debug("{} Draw first hand for player", self._user_name)
         self.hand = list(self.game.deck.take(7))
         self.push_event(GameEvents.PLAYER_TAKE, "7")
@@ -125,17 +100,17 @@ class Player:
             if len(cards.cover) == 0:
                 self.game.next_turn()
 
-    def _sort_hand_cards(self, top: BaseCard) -> SortedCards:
+    def _sort_hand_cards(self, top: "UnoCard") -> SortedCards:
         cover = []
         uncover = []
-        for card, can_cover in top.get_cover_cards(self.hand):
+        for card, can_cover in top.iter_covering(self.hand):
             if not can_cover:
                 uncover.append(card)
                 continue
             if (
-                isinstance(top, TakeCard)
+                top.card_type == CardType.TAKE
                 and self.game.take_counter
-                and not isinstance(card, TakeCard)
+                and card.card_type != CardType.TAKE
             ):
                 uncover.append(card)
                 continue
@@ -147,7 +122,7 @@ class Player:
 
         return SortedCards(sorted(cover), sorted(uncover))
 
-    def _get_equal_cards(self, top: BaseCard) -> SortedCards:
+    def _get_equal_cards(self, top: "UnoCard") -> SortedCards:
         cover = []
         uncover = []
         for card in self.hand:
@@ -155,9 +130,9 @@ class Player:
                 uncover.append(card)
                 continue
             if (
-                isinstance(top, TakeCard)
+                top.card_type == CardType.TAKE
                 and self.game.take_counter
-                and not isinstance(card, TakeCard)
+                and card.card_type != CardType.TAKE
             ):
                 uncover.append(card)
                 continue
@@ -178,7 +153,7 @@ class Player:
         top = self.game.deck.top
         logger.debug("Last card was {}", top)
         self.bluffing = False
-        if isinstance(top, TakeFourCard) and self.game.take_counter:
+        if top.card_type == CardType.TAKE_FOUR and self.game.take_counter:
             return SortedCards([], self.hand)
 
         # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
@@ -289,7 +264,7 @@ class Player:
 
         # Если пользователь выбрал взять карты, то он пропускает свой ход
         if (
-            isinstance(self.game.deck.top, TakeCard | TakeFourCard)
+            self.game.deck.top.card_type in (CardType.TAKE, CardType.TAKE_FOUR)
             and take_counter
         ):
             self.game.next_turn()

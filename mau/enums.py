@@ -80,3 +80,55 @@ class GameEvents(IntEnum):
     PLAYER_TAKE = 32
     PLAYER_PUSH = 33
     PLAYER_INTERVENED = 34
+
+
+# Emoji для представления цвета карты
+COLOR_EMOJI = ["❤️", "💛", "💚", "💙", "🖤"]
+CARD_TYPES = ["", "skip", "reverse", "take", "color", "take_four"]
+
+
+class CardColor(IntEnum):
+    """Все доступные цвета карт UNO."""
+
+    RED = 0
+    YELLOW = 1
+    GREEN = 2
+    BLUE = 3
+    BLACK = 4
+
+    def __str__(self) -> str:
+        """Представление цвета в виде смайлика."""
+        return COLOR_EMOJI[self.value]
+
+
+class CardType(IntEnum):
+    """Основные типы карт UNO.
+
+    - NUMBER: Числа от 0 до 9.
+    - TURN: Пропуск хода следующего игрока.
+    - REVERSE: Переворачивает очередь ходов.
+    - TAKE: Следующий игрок берёт карты.
+    - CHOOSE_COLOR: Выбирает любой цвет для карты.
+    - TAKE_FOUR: Выбирает цвет, даёт +4 карты следующему игроку.
+    """
+
+    NUMBER = 0
+    TURN = 1
+    REVERSE = 2
+    TAKE = 3
+    CHOOSE_COLOR = 4
+    TAKE_FOUR = 5
+
+    def __str__(self) -> str:
+        """Представление тип карты одним словом."""
+        return CARD_TYPES[self.value]
+
+    @property
+    def cost(self) -> int:
+        """Подсчитывает стоимость карты на основе её типа."""
+        if self in (CardType.TAKE_FOUR, CardType.CHOOSE_COLOR):
+            return 50
+        elif self == CardType.NUMBER:
+            return 0
+        else:
+            return 20

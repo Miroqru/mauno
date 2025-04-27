@@ -4,22 +4,14 @@
 или по готовым шаблонам.
 """
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from typing import Self
 
-from mau.card import (
-    BaseCard,
-    CardColor,
-    CardType,
-    ChooseColorCard,
-    NumberCard,
-    ReverseCard,
-    TakeCard,
-    TakeFourCard,
-    TurnCard,
-)
-from mau.deck import Deck
+from mau.deck.card import UnoCard
+from mau.deck.deck import Deck
+from mau.deck.generator import get_card
+from mau.enums import CardColor, CardType
 
 
 @dataclass(slots=True, frozen=True)
@@ -34,32 +26,17 @@ class CardGroup:
 
     card_type: CardType
     value: int
-    colors: list[CardColor]
+    colors: Iterable[CardColor]
     count: int
 
-    def _to_card(self, color: CardColor, value: int) -> BaseCard:
-        if self.card_type == CardType.NUMBER:
-            return NumberCard(color, value)
-        elif self.card_type == CardType.TURN:
-            return TurnCard(color, value)
-        elif self.card_type == CardType.REVERSE:
-            return ReverseCard(color)
-        elif self.card_type == CardType.TAKE:
-            return TakeCard(color, value)
-        elif self.card_type == CardType.CHOOSE_COLOR:
-            return ChooseColorCard()
-        elif self.card_type == CardType.TAKE_FOUR:
-            return TakeFourCard()
-        raise ValueError("Unknown card type")
-
-    def get_cards(self) -> Iterator[BaseCard]:
+    def cards(self) -> Iterator[UnoCard]:
         """Преобразует группу карт в итератор экземпляров карт.
 
         Если было указано по 3 карты всех цветов, то он вернёт 12 карт.
         """
         for count in range(self.count):
             for color in self.colors:
-                yield self._to_card(color, self.value)
+                yield get_card(self.card_type, color, self.value)
 
 
 @dataclass(slots=True, frozen=True)
@@ -72,20 +49,20 @@ class DeckPreset:
 
     name: str
     desc: str
-    groups: list[CardGroup]
+    groups: Iterable[CardGroup]
 
 
 # Пресеты колод
 # =============
 
-ALL_COLORS = [CardColor.RED, CardColor.YELLOW, CardColor.GREEN, CardColor.BLUE]
+ALL_COLORS = (CardColor.RED, CardColor.YELLOW, CardColor.GREEN, CardColor.BLUE)
 
 # Все готовые пресеты колод
 CARD_PRESETS: dict[str, DeckPreset] = {
     "classic": DeckPreset(
         name="🎻 Классика",
         desc="Стандартная колода Уно",
-        groups=[
+        groups=(
             CardGroup(CardType.NUMBER, 0, ALL_COLORS, 1),
             CardGroup(CardType.NUMBER, 1, ALL_COLORS, 2),
             CardGroup(CardType.NUMBER, 2, ALL_COLORS, 2),
@@ -101,12 +78,12 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 2),
             CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 4),
             CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 4),
-        ],
+        ),
     ),
     "wild": DeckPreset(
         name="🐍 Дикие карты",
         desc="Меньше цифр, больше действий.",
-        groups=[
+        groups=(
             CardGroup(CardType.NUMBER, 0, ALL_COLORS, 4),
             CardGroup(CardType.NUMBER, 1, ALL_COLORS, 4),
             CardGroup(CardType.NUMBER, 2, ALL_COLORS, 4),
@@ -118,12 +95,12 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 4),
             CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 6),
             CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 6),
-        ],
+        ),
     ),
     "single": DeckPreset(
         name="🗑️ Отладочные",
         desc="По одной карте для каждого типа.",
-        groups=[
+        groups=(
             CardGroup(CardType.NUMBER, 0, ALL_COLORS, 1),
             CardGroup(CardType.NUMBER, 1, ALL_COLORS, 1),
             CardGroup(CardType.NUMBER, 2, ALL_COLORS, 1),
@@ -139,7 +116,7 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.TAKE, 2, ALL_COLORS, 1),
             CardGroup(CardType.TAKE_FOUR, 0, [CardColor.BLACK], 1),
             CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 1),
-        ],
+        ),
     ),
 }
 
@@ -159,19 +136,17 @@ class DeckGenerator:
         self.groups: list[CardGroup] = groups or []
         self.preset_name = preset_name
 
-    def _get_cards(self) -> list[BaseCard]:
-        res = []
-
+    def _cards(self) -> Iterator[UnoCard]:
+        """Получает полный список карт для всего шаблона со всех групп."""
         for group in self.groups:
-            for card in group.get_cards():
-                res.append(card)
-        return res
+            yield from group.cards()
 
-    def get_deck(self) -> Deck:
+    @property
+    def deck(self) -> Deck:
         """Собирает новую колоду из правил."""
-        return Deck(self._get_cards())
+        return Deck(list(self._cards()))
 
     @classmethod
     def from_preset(cls, preset_name: str) -> Self:
         """Получает новый генератор колоды по названию шаблона."""
-        return cls(CARD_PRESETS[preset_name].groups, preset_name)
+        return cls(list(CARD_PRESETS[preset_name].groups), preset_name)

@@ -12,13 +12,13 @@ from typing import NamedTuple
 
 from loguru import logger
 
-from mau.card import BaseCard, CardColor
-from mau.deck import Deck
-from mau.deck_generator import DeckGenerator
-from mau.enums import GameEvents, GameState
+from mau.deck.card import UnoCard
+from mau.deck.deck import Deck
+from mau.deck.presets import DeckGenerator
+from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.exceptions import LobbyClosedError
-from mau.player import BaseUser, Player
+from mau.game.player import BaseUser, Player
 
 
 @dataclass(slots=True)
@@ -144,7 +144,7 @@ class UnoGame:
         self.losers.clear()
         shuffle(self.players)
 
-        self.deck = self.deck_generator.get_deck()
+        self.deck = self.deck_generator.deck
         self.deck.shuffle()
 
         if self.rules.single_shotgun.status:
@@ -256,7 +256,7 @@ class UnoGame:
                 self.push_event(player, GameEvents.PLAYER_INTERVENED)
                 return
 
-    def process_turn(self, card: BaseCard, player: Player) -> None:
+    def process_turn(self, card: UnoCard, player: Player) -> None:
         """Обрабатываем текущий ход."""
         logger.info("Playing card {}", card)
         self.deck.put_top(card)

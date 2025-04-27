@@ -9,7 +9,8 @@ from random import shuffle
 
 from loguru import logger
 
-from mau.card import BaseCard, CardColor
+from mau.deck.card import UnoCard
+from mau.enums import CardColor
 
 
 class Deck:
@@ -21,15 +22,16 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
+    # TODO: как там приватность?
     __slots__ = ("cards", "used_cards", "_top")
 
-    def __init__(self, cards: list[BaseCard] | None = None) -> None:
-        self.cards: list[BaseCard] = cards or []
-        self.used_cards: list[BaseCard] = []
-        self._top: BaseCard | None = None
+    def __init__(self, cards: list[UnoCard] | None = None) -> None:
+        self.cards: list[UnoCard] = cards or []
+        self.used_cards: list[UnoCard] = []
+        self._top: UnoCard | None = None
 
     @property
-    def top(self) -> BaseCard:
+    def top(self) -> UnoCard:
         """Возвращает верхнюю карту из колоды."""
         if self._top is None:
             self._top = self._get_top_card()
@@ -50,14 +52,14 @@ class Deck:
         self.used_cards = []
         self._top = None
 
-    def _get_top_card(self) -> BaseCard:
+    def _get_top_card(self) -> UnoCard:
         """Устанавливает подходящую верную карту колоды."""
         for i, card in enumerate(self.cards):
             if card.color != CardColor.BLACK:
                 return self.cards.pop(i)
         raise ValueError("No suitable card for deck top")
 
-    def take(self, count: int = 1) -> Iterator[BaseCard]:
+    def take(self, count: int = 1) -> Iterator[UnoCard]:
         """Берёт несколько карт из колоды.
 
         Используется чтобы дать участнику несколько карт.
@@ -86,12 +88,12 @@ class Deck:
         self.used_cards = []
         self.shuffle()
 
-    def put(self, card: BaseCard) -> None:
+    def put(self, card: UnoCard) -> None:
         """Возвращает использованную карту в колоду."""
         card.prepare_used()
         self.used_cards.append(card)
 
-    def put_top(self, card: BaseCard) -> None:
+    def put_top(self, card: UnoCard) -> None:
         """Ложит карту на вершину стопки."""
         if self._top is None:
             self._top = card
