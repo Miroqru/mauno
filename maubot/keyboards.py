@@ -105,31 +105,6 @@ _COLOR_INFO = (
 )
 
 
-def get_color_query(player: Player) -> list[InlineQueryResultArticle]:
-    """Клавиатура для выбора следующего цвета."""
-    result = [
-        InlineQueryResultArticle(
-            id=f"color:{i}",
-            title=f"Выбрать {name}",
-            input_message_content=InputTextMessageContent(
-                message_text=(f"🎨 Я выбираю.. {sim}")
-            ),
-        )
-        for i, name, sim in _COLOR_INFO
-    ]
-    result.append(
-        InlineQueryResultArticle(
-            id="status",
-            title="Ваши карты (жмяк для статуса комнаты):",
-            description=", ".join([str(card) for card in player.hand]),
-            input_message_content=InputTextMessageContent(
-                message_text=get_room_status(player.game)
-            ),
-        )
-    )
-    return result
-
-
 def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     """Возвращает карты пользователя из руки."""
     player_cards = player.get_cover_cards()
@@ -163,12 +138,8 @@ def get_hand_query(
     player: Player,
 ) -> Sequence[InlineQueryResultCachedSticker | InlineQueryResultArticle]:
     """Возвращает основную игровую клавиатуру."""
-    # Если игрок сейчас не играет, то и действий никаких у него нету
     result = []
-    if player.game.state == GameState.CHOOSE_COLOR:
-        return list(get_color_query(player))
-
-    elif player.game.take_flag:
+    if player.game.take_flag:
         result = [
             _add_sticker("pass", stickers.options.next_turn, "👀 Пропускаю")
         ]
