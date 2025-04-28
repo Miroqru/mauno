@@ -5,13 +5,23 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from loguru import logger
 
-from maubot.messages import HELP_MESSAGE, STATUS_MESSAGE
+from maubot.messages import HELP_MESSAGE
 
 router = Router(name="simple commands")
 
-
-# Обработчики
-# ===========
+# Рассказывает об авторстве проекта и новостном канале
+# Просто как минутка рекламы
+STATUS_MESSAGE = (
+    "🌟 <b>Немного о Mauno v2.0</b>:\n\n"
+    "🃏 Это Telegram бот для игры с друзьями в групповом чате.\n"
+    "Поддерживается Uno с множеством игровых правил для большего веселья.\n"
+    "Исходный код проекта доступен в:\n"
+    "- <a href='https://git.miroq.ru/salormoon/mauno'>Miroq</a>\n"
+    "- <a href='https://github.com/miroqru/mauno'>Github</a>.\n"
+    "🌱 Мы будем очень рады ваше <b>поддержке</b> в развитие бота.\n\n"
+    "🪄 Следить за новостями можно в канале "
+    "<a href='https://t.me/mili_qlaster'>Salorhard</a>."
+)
 
 
 @router.message(Command("help"))
