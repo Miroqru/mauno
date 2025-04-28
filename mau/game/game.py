@@ -40,6 +40,7 @@ class UnoGame:
         self.event_handler: BaseEventHandler = event_handler
 
         self.owner = Player(self, owner.id, owner.name)
+        # TODO: Может стоит хранить не всего игрока?
         self.bluff_player: Player | None = None
         self.started: bool = False
         self.open: bool = True

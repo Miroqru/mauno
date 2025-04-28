@@ -141,4 +141,5 @@ class ColorTakeBehavior(WildBehavior):
             game.set_state(GameState.CHOOSE_COLOR)
 
         game.take_counter += card.value
-        game.bluff_player = game.player
+        if game.player.is_bluffing():
+            game.bluff_player = game.player

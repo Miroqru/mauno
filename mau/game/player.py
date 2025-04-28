@@ -51,7 +51,6 @@ class Player:
         self.game: UnoGame = game
         self.user_id = user_id
         self._user_name = user_name
-        self.bluffing = False
         self.shotgun = Shotgun()
 
     @property
@@ -63,6 +62,13 @@ class Player:
     def can_play(self) -> bool:
         """Имеет ли право хода текущий игрок."""
         return self.game.can_play(self.user_id)
+
+    def is_bluffing(self) -> bool:
+        """Проверяет блефует ли игрок, когда выкидывает дикую карту."""
+        for card in self.cover_cards().cover:
+            if card.color == self.game.deck.top.color:
+                return True
+        return False
 
     def push_event(self, event_type: GameEvents, data: str = "") -> None:
         """Отправляет событие в журнал.
@@ -84,11 +90,11 @@ class Player:
 
         if (
             self.game.rules.auto_skip.status
-            and len(self.get_cover_cards().cover) == 0
+            and len(self.cover_cards().cover) == 0
         ):
             self.game.next_turn()
 
-    def get_cover_cards(self) -> SortedCards:
+    def cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
 
         Карты делятся на те, которыми он может покрыть и которыми не может
@@ -96,7 +102,6 @@ class Player:
         """
         top = self.game.deck.top
         logger.debug("Last card was {}", top)
-        self.bluffing = False
         # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
         # то нам сейчас карты нне очень важны
         # Если сейчас не ход игрока, то активных карт нету
@@ -108,9 +113,6 @@ class Player:
             or not self.can_play
         ):
             return SortedCards([], self.hand)
-
-        # if self.game.rules.intervention.status and self.game.player != self:
-        #     return self._get_equal_cards(top)
 
         cover = []
         uncover = []
@@ -136,9 +138,6 @@ class Player:
                 continue
 
             cover.append(card)
-            self.bluffing = (
-                self.bluffing or card.color == self.game.deck.top.color
-            )
 
         return SortedCards(
             cover=sorted(cover, key=lambda c: c.cost, reverse=True),
@@ -185,13 +184,11 @@ class Player:
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
         logger.info("{} call bluff {}", self, self.game.bluff_player)
-        bluff_player = self.game.bluff_player
-        # TODO: а нам обязательно?
-        if bluff_player is not None and bluff_player.bluffing:
+        if self.game.bluff_player is not None:
             self.push_event(
                 GameEvents.PLAYER_BLUFF, f"true;{self.game.take_counter}"
             )
-            bluff_player.take_cards()
+            self.game.bluff_player.take_cards()
         else:
             self.game.take_counter += 2
             self.push_event(

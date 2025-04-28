@@ -107,7 +107,7 @@ _COLOR_INFO = (
 
 def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
     """Возвращает карты пользователя из руки."""
-    player_cards = player.get_cover_cards()
+    player_cards = player.cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
         yield InlineQueryResultCachedSticker(
             id=f"{cover_card.to_str()}:{i}",
