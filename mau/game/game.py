@@ -45,7 +45,6 @@ class UnoGame:
         self.open: bool = True
         self.reverse: bool = False
         self.take_counter: int = 0
-        self.take_flag: bool = False
         self.state: GameState = GameState.NEXT
         self.shotgun = Shotgun()
 
@@ -105,7 +104,6 @@ class UnoGame:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player!")
         self.state = GameState.NEXT
-        self.take_flag = False
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
         self.push_event(self.player, GameEvents.GAME_TURN)

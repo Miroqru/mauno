@@ -14,6 +14,7 @@ class GameState(IntEnum):
     В зависимости от состояние изменяется поведение игры.
 
     - NEXT: После завершения действия игрока ход передаётся дальше.
+    - TAKE: Игрок уже брал карту в этом ходу.
     - CHOOSE_COLOR: Игрок разыграл дикую карту и выбирает цвет.
     - TWIST_HAND: Игрок выбирает с кем обменяться картами.
     - SHOTGUN: Игрок выбирает, стоит ли ему стрелять из револьвера.
@@ -21,10 +22,11 @@ class GameState(IntEnum):
     """
 
     NEXT = 0
-    CHOOSE_COLOR = 1
-    TWIST_HAND = 2
-    SHOTGUN = 3
-    CONTINUE = 4
+    TAKE = 1
+    CHOOSE_COLOR = 2
+    TWIST_HAND = 3
+    SHOTGUN = 4
+    CONTINUE = 5
 
 
 class GameEvents(IntEnum):

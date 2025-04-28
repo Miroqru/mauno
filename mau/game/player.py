@@ -80,14 +80,13 @@ class Player:
             self.hand.append(card)
         self.game.take_counter = 0
         self.push_event(GameEvents.PLAYER_TAKE, str(take_counter))
+        self.game.set_state(GameState.TAKE)
 
-        # TODO: Можно использовать состояние
-        self.game.take_flag = True
-
-        if self.game.rules.auto_skip.status:
-            cards = self.get_cover_cards()
-            if len(cards.cover) == 0:
-                self.game.next_turn()
+        if (
+            self.game.rules.auto_skip.status
+            and len(self.get_cover_cards().cover) == 0
+        ):
+            self.game.next_turn()
 
     def get_cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.

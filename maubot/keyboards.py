@@ -139,7 +139,7 @@ def get_hand_query(
 ) -> Sequence[InlineQueryResultCachedSticker | InlineQueryResultArticle]:
     """Возвращает основную игровую клавиатуру."""
     result = []
-    if player.game.take_flag:
+    if player.game.state == GameState.TAKE:
         result = [
             _add_sticker("pass", stickers.options.next_turn, "👀 Пропускаю")
         ]
@@ -158,9 +158,7 @@ def get_hand_query(
             )
         )
 
-    # Карты из руки уже отсортированы, остаётся только их добавить
     result.extend(get_hand_cards(player))
-
     return result
 
 
