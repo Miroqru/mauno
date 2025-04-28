@@ -91,7 +91,7 @@ async def shotgun_call(
     query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
 ) -> None:
     """Игрок выбирает взять карты."""
-    res = player.shotgun()
+    res = player.shot()
     channel.set_markup(channel.default_markup)
     if not res:
         game.take_counter = round(game.take_counter * 1.5)

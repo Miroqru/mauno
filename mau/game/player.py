@@ -8,6 +8,7 @@ from loguru import logger
 
 from mau.enums import CardType, GameEvents, GameState
 from mau.events import Event
+from mau.game.shotgun import Shotgun
 
 if TYPE_CHECKING:
     from mau.deck.card import UnoCard
@@ -51,8 +52,7 @@ class Player:
         self.user_id = user_id
         self._user_name = user_name
         self.bluffing = False
-        self.shotgun_current = 0
-        self.shotgun_lose = 0
+        self.shotgun = Shotgun()
 
     @property
     def name(self) -> str:
@@ -149,7 +149,7 @@ class Player:
     # TODO: Режим отладки
     def on_join(self) -> None:
         """Берёт начальный набор карт для игры."""
-        self.shotgun_lose = randint(1, 8)
+        self.shotgun.reset()
         logger.debug("{} Draw first hand for player", self._user_name)
         self.hand = list(self.game.deck.take(7))
         self.push_event(GameEvents.PLAYER_TAKE, "7")
@@ -170,18 +170,14 @@ class Player:
         self.push_event(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
         self.game.next_turn()
 
-    # TODO: Время написать небольшой класс для револьвера
-    def shotgun(self) -> bool:
+    def shot(self) -> bool:
         """Выстрелить из револьвера."""
         if self.game.rules.single_shotgun.status:
-            self.game.shotgun_current += 1
-            is_fired = self.game.shotgun_current >= self.game.shotgun_lose
-            if is_fired:
-                self.game.shotgun_lose = randint(1, 8)
-                self.game.shotgun_current = 0
-            return is_fired
-        self.shotgun_current += 1
-        return self.shotgun_current >= self.shotgun_lose
+            res = self.game.shotgun.shot()
+            if res:
+                self.game.shotgun.reset()
+            return res
+        return self.shotgun.shot()
 
     def call_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.

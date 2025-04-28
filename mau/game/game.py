@@ -14,6 +14,7 @@ from mau.exceptions import LobbyClosedError
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 from mau.game.rules import GameRules
+from mau.game.shotgun import Shotgun
 
 
 class UnoGame:
@@ -46,9 +47,7 @@ class UnoGame:
         self.take_counter: int = 0
         self.take_flag: bool = False
         self.state: GameState = GameState.NEXT
-
-        self.shotgun_lose: int = 0
-        self.shotgun_current: int = 0
+        self.shotgun = Shotgun()
 
         # Таймеры
         self.game_start = datetime.now()
@@ -83,9 +82,8 @@ class UnoGame:
         self.deck.shuffle()
         self.pm.start()
 
-        # TODO: Небольшой класс для револьвера
         if self.rules.single_shotgun.status:
-            self.shotgun_lose = randint(1, 8)
+            self.shotgun.reset()
 
         self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
