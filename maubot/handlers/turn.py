@@ -32,7 +32,11 @@ async def inline_handler(
 ) -> None:
     """Обработчик inline запросов. Предоставляет клавиатуру со всеми картами."""
     if game is None or player is None or query.from_user is None:
-        await query.answer([markups.NO_GAME_QUERY])
+        await query.answer(
+            [markups.NO_GAME_QUERY],
+            cache_time=0,
+            is_personal=True,
+        )
     else:
         await query.answer(
             list(markups.hand_query(player)),
