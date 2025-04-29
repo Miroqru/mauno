@@ -25,7 +25,7 @@ def default_behavior(card_type: CardType, value: int) -> behavior.UnoBehavior:
     if card_type == CardType.NUMBER and value == TWIST_NUMBER:
         return behavior.TwistBehavior()
     elif card_type == CardType.NUMBER and value == ROTATE_NUMBER:
-        return behavior.TwistBehavior()
+        return behavior.RotateBehavior()
     return DEFAULT_BEHAVIOR[card_type.value]()
 
 
