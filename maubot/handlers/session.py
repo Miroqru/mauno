@@ -20,7 +20,7 @@ from mau.session import SessionManager
 from maubot import filters, keyboards
 from maubot.config import config
 from maubot.events.journal import MessageChannel
-from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE
+from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, get_room_status
 
 router = Router(name="Sessions")
 
@@ -47,16 +47,26 @@ NOT_ENOUGH_PLAYERS = (
 
 @router.message(Command("game"))
 async def create_game(
-    message: Message, sm: SessionManager, game: UnoGame | None
+    message: Message,
+    sm: SessionManager,
+    game: UnoGame | None,
+    channel: MessageChannel,
 ) -> None:
     """Создаёт новую комнату."""
     if message.chat.type == "private":
         await message.answer("👀 Игры создаются в групповом чате.")
 
-    if game is not None and game.started:
-        await message.answer(
-            "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
-        )
+    if game is not None:
+        if game.started:
+            await message.answer(
+                "🔑 Игра уже начата. Для начала её нужно завершить. (/stop)"
+            )
+        else:
+            channel.lobby_message = None
+            await channel.send_lobby(
+                get_room_status(game),
+                reply_markup=keyboards.get_room_markup(game),
+            )
         return
 
     if message.from_user is None:
@@ -175,7 +185,7 @@ async def create_game_call(
     if query.message is None or query.from_user is None:
         raise ValueError("None User tries create new game")
 
-    if game is not None and game.started:
+    if game is not None:
         await query.answer("🔑 Игра уже начата. Для начала её нужно завершить.")
         return
 
