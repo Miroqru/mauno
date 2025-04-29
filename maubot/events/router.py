@@ -102,7 +102,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
 @er.event(GameEvents.GAME_SELECT_COLOR)
 async def select_card_color(event: Event, chan: MessageChannel) -> None:
     """Какой новый цвет был выбран для карты."""
-    chan.add(f"🎨 Я выбираю.. {event.data}!")
+    chan.add(f"🎨 Я выбираю {event.data}!")
 
 
 @er.event(GameEvents.GAME_SELECT_PLAYER)
@@ -135,42 +135,38 @@ async def next_turn(event: Event, chan: MessageChannel) -> None:
 
 @er.event(GameEvents.GAME_ROTATE)
 async def rotate_cards(event: Event, chan: MessageChannel) -> None:
-    """Все игрока обменялись картами, возвращает статистику."""
+    """Все игрока обменялись картами, возвращает сколько карт у игроков."""
     chan.add("🌀 Обмениваемся <b>картами</b>!")
     chan.add(messages.get_room_players(event.game))
 
 
 @er.event(GameEvents.GAME_STATE)
-async def set_game_state(event: Event, chan: MessageChannel) -> None:
-    """Изменение игрового состояния."""
+async def update_game_state(event: Event, chan: MessageChannel) -> None:
+    """При изменении игрового состояния."""
     state = GameState(int(event.data))
-
-    if state == GameState.SHOTGUN and (
-        event.game.rules.shotgun.status
-        or event.game.rules.single_shotgun.status
-    ):
+    if state == GameState.SHOTGUN:
         current = (
             event.game.shotgun.cur
             if event.game.rules.single_shotgun.status
             else event.player.shotgun.cur
         )
         chan.add(
-            f"🍷 беру {event.game.take_counter} карт.\n"
-            "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
-            f"Вы можете <b>взять свои карты</b> "
-            "или же попробовать <b>выстрелить из револьвера</b>.\n"
-            "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
+            "💼 <b>У нас для Вас деловое предложение</b>!\n\n"
+            f"Вы можете <b>взять {event.game.take_counter} карт</b> "
+            "или попробовать <b>выстрелить из револьвера</b>.\n"
+            "Если вам повезёт, то карты будет брать следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
         chan.set_markup(keyboards.SHOTGUN_KEYBOARD)
 
     elif state == GameState.TWIST_HAND:
-        chan.add(f"✨ {event.player.name} Задумывается c кем обменяться.")
+        chan.add("✨ С кем бы обменяться картами ..")
         chan.set_markup(keyboards.select_player_markup(event.game))
 
     elif state == GameState.CHOOSE_COLOR:
-        chan.add(f"✨ {event.player.name} Задумывается о выборе цвета..")
+        chan.add("✨ Какой бы выбрать цвет ...")
         chan.set_markup(keyboards.SELECT_COLOR)
+
     else:
         logger.warning("Unprocessed state {}", state)
         return
@@ -184,36 +180,46 @@ async def set_game_state(event: Event, chan: MessageChannel) -> None:
 
 @er.event(GameEvents.PLAYER_UNO)
 async def say_uno(event: Event, chan: MessageChannel) -> None:
-    """Оповещает что у игрока осталась одна карта."""
+    """Оповещает что у игрока осталась одна карта в руке."""
     chan.add("\n🌟 <b>UNO!</b>")
 
 
 @er.event(GameEvents.PLAYER_TAKE)
 async def player_take_cards(event: Event, chan: MessageChannel) -> None:
     """Оповещает что пользователь взял карты."""
-    if chan.lobby_message is None:
+    if chan.lobby_message is not None:
+        return
+
+    if event.player == event.game.player:
+        chan.add(
+            f"🃏 Беру {event.data} "
+            f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
+        )
+    else:
         chan.add(
             f"🃏 {event.player.name} Берёт {event.data} "
             f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
         )
-        await chan.send()
+
+    await chan.send()
 
 
 @er.event(GameEvents.PLAYER_BLUFF)
 async def player_bluffing(event: Event, chan: MessageChannel) -> None:
-    """Если изволите блефовать."""
+    """Проверка игрока на блеф."""
     if event.game.bluff_player is None:
         chan.add("🎩 <b>Никто не блефовал</b>!")
+        return
+
+    player, bluff_flag = event.game.bluff_player
+    if player is not None and bluff_flag:
+        chan.add("🔎 <b>Замечен блеф</b>!")
     else:
-        player, bluff_flag = event.game.bluff_player
-        if player is not None and bluff_flag:
-            chan.add("🔎 <b>Замечен блеф</b>!")
-        else:
-            chan.add(f"🎩 {player.name} <b>Честный игрок</b>!")
+        chan.add(f"🎩 {player.name} <b>Честный игрок</b>!")
 
 
 @er.event(GameEvents.PLAYER_INTERVENED)
 async def on_intervention(event: Event, chan: MessageChannel) -> None:
-    """Если игрок вмешивается в игру и перехватывает ход."""
+    """Когда игрок вмешивается в игру и перехватывает ход."""
     chan.add(f"⚡ {event.player.name} <b>навёл суеты!</b>")
     await chan.send()
