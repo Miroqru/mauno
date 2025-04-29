@@ -12,14 +12,13 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from mau.enums import CardColor
-from mau.exceptions import NoGameInChatError
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser
 from mau.session import SessionManager
 from maubot import filters, keyboards
 from maubot.config import config
 from maubot.events.journal import MessageChannel
-from maubot.messages import HELP_MESSAGE, game_status
+from maubot.messages import game_status
 
 router = Router(name="Sessions")
 
@@ -66,16 +65,11 @@ async def create_game(
     )
 
 
-# TODO: Переименуем :)
-@router.message(Command("start"))
-async def start_gama(message: Message, game: UnoGame | None) -> None:
+@router.message(Command("start_game"), filters.ActiveGame())
+async def start_gama(message: Message, game: UnoGame) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
-        await message.answer(HELP_MESSAGE)
         return None
-
-    if game is None:
-        raise NoGameInChatError
 
     elif game.started:
         await message.answer("👀 Игра уже началась ранее.")
@@ -173,13 +167,9 @@ async def create_game_call(
     await query.answer("Понеслась!")
 
 
-@router.callback_query(F.data == "start_game")
-async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
+@router.callback_query(F.data == "start_game", filters.ActiveGame())
+async def start_game_call(query: CallbackQuery, game: UnoGame) -> None:
     """Запускает игру в комнате."""
     if not isinstance(query.message, Message):
         raise ValueError("Query.message is not a Message")
-
-    if game is None:
-        raise NoGameInChatError
-
     game.start()

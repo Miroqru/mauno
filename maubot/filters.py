@@ -12,12 +12,16 @@ from aiogram.types import CallbackQuery, Message
 
 from maubot.config import sm
 from maubot.context import get_context
-from maubot.messages import NO_ROOM_MESSAGE
 
 NO_JOIN_MESSAGE = (
     "🍓 Для начала надо <b>зайти в комнату</b>.\n"
     "🍰 Сделать это можно командой /join.\n"
     "🔑 Если комната <b>закрыта</b> дождитесь окончания игры."
+)
+
+NO_ROOM_MESSAGE = (
+    "👀 В данном чате ещё <b>нет игровой комнаты</b>.\n"
+    "🍰 Вы можете <b>создайте новую</b> при помощи команды /game."
 )
 
 
@@ -50,6 +54,7 @@ async def _is_admin(event: CallbackQuery | Message) -> bool:
 # =======
 
 
+# TODO: Может теперь ты будешь открытой игрой?
 class ActiveGame(Filter):
     """Фильтр активной игры.
 
