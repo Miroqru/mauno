@@ -9,7 +9,6 @@ import random
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
 
 from mau.enums import CardColor
@@ -24,13 +23,6 @@ from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, get_room_status
 
 router = Router(name="Sessions")
 
-ROOM_SETTINGS = (
-    "⚙️ <b>Настройки комнаты</b>:\n\n"
-    "В этом разделе вы можете настроить дополнительные параметры для игры.\n"
-    "Они привносят дополнительное разнообразие в игровые правила.\n\n"
-    "Пункты помеченные 🌟 <b>активированы</b> и уже наводят суету."
-)
-
 # Когда недостаточно игроков для продолжения/начала игры
 NOT_ENOUGH_PLAYERS = (
     f"🌳 <b>Недостаточно игроков</b> (минимум {config.min_players}) для "
@@ -39,10 +31,6 @@ NOT_ENOUGH_PLAYERS = (
     "/join чтобы зайти в комнату.\n"
     "🍰 Или создайте новую комнату при помощи /game."
 )
-
-
-# Обработчики
-# ===========
 
 
 @router.message(Command("game"))
@@ -104,10 +92,6 @@ async def stop_gama(message: Message, game: UnoGame) -> None:
     game.end()
 
 
-# Управление настройками комнаты
-# ==============================
-
-
 @router.message(Command("open"), filters.GameOwner())
 async def open_gama(message: Message, game: UnoGame) -> None:
     """Открывает игровую комнату для всех участников чата."""
@@ -124,10 +108,6 @@ async def close_gama(message: Message, game: UnoGame) -> None:
     await message.answer(
         "🔒 Комната <b>закрыта</b>.\nНикто не помешает вам доиграть."
     )
-
-
-# Управление участниками комнатами
-# ================================
 
 
 @router.message(Command("kick"), filters.GameOwner())
@@ -173,10 +153,6 @@ async def skip_player(
         game.next_turn()
 
 
-# Обработчики событий
-# ===================
-
-
 @router.callback_query(F.data == "new_game")
 async def create_game_call(
     query: CallbackQuery, sm: SessionManager, game: UnoGame | None
@@ -206,47 +182,3 @@ async def start_game_call(query: CallbackQuery, game: UnoGame | None) -> None:
         raise NoGameInChatError
 
     game.start()
-
-
-# Настройки комнаты
-# =================
-
-
-@router.message(Command("rules"), filters.ActivePlayer())
-async def send_rules_list(message: Message, game: UnoGame) -> None:
-    """Отображает настройки для текущей комнаты."""
-    await message.answer(
-        ROOM_SETTINGS, reply_markup=keyboards.get_rules_markup(game.rules)
-    )
-
-
-@router.callback_query(F.data == "room_rules", filters.ActivePlayer())
-async def get_rules_call(query: CallbackQuery, game: UnoGame) -> None:
-    """Отображает настройки для текущей комнаты."""
-    if isinstance(query.message, Message):
-        await query.message.answer(
-            ROOM_SETTINGS,
-            reply_markup=keyboards.get_rules_markup(game.rules),
-        )
-    await query.answer()
-
-
-class RulesCallback(CallbackData, prefix="rule"):
-    """Переключатель настроек."""
-
-    key: str
-    value: bool
-
-
-@router.callback_query(RulesCallback.filter(), filters.ActivePlayer())
-async def edit_room_rules_call(
-    query: CallbackQuery, callback_data: RulesCallback, game: UnoGame
-) -> None:
-    """Изменяет настройки для текущей комнаты."""
-    getattr(game.rules, callback_data.key).status = callback_data.value
-    if isinstance(query.message, Message):
-        await query.message.edit_text(
-            ROOM_SETTINGS,
-            reply_markup=keyboards.get_rules_markup(game.rules),
-        )
-    await query.answer()
