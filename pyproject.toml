@@ -1,15 +1,15 @@
 [project]
 name = "maubot"
-version = "1.10.1"
+version = "2.0"
 description = "Play Uno with your friends in Telegram chats."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
 dependencies = [
-    "aiogram>=3.19.0",
+    "aiogram>=3.20.0",
     "loguru>=0.7.3",
-    "pydantic-settings>=2.8.1",
-    "tortoise-orm>=0.24.2",
+    "pydantic-settings>=2.9.1",
+    "tortoise-orm>=0.25.0",
 ]
 
 [dependency-groups]
@@ -19,24 +19,13 @@ dev = [
     "mypy>=1.15.0",
     "telethon>=1.39.0",
 ]
-web = [
-    "asyncpg>=0.30.0",
-    "bcrypt>=4.3.0",
-    "fastapi>=0.115.11",
-    "pyjwt>=2.10.1",
-    "redis>=5.2.1",
-    "uvicorn>=0.34.0",
-    "websockets>=15.0.1",
-]
 
 # Ruff linter ----------------------------------------------------------
 
 [tool.ruff]
 line-length = 80
 indent-width = 4
-
-# Assume Python 3.10
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "D", "N", "PL", "UP", "ANN", "W", "ASYNC"]
