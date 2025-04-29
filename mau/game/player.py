@@ -108,7 +108,8 @@ class Player:
         if (
             top.card_type == CardType.TAKE_FOUR
             and self.game.take_counter
-            or self.game.state not in (GameState.NEXT, GameState.CONTINUE)
+            or self.game.state
+            not in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
             or not self.can_play
         ):
             return SortedCards([], self.hand)
@@ -230,8 +231,6 @@ class Player:
             and take_counter
         ):
             self.game.next_turn()
-        else:
-            self.game.state = GameState.TAKE
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""
