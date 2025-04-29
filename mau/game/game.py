@@ -173,13 +173,14 @@ class UnoGame:
         if len(player.hand) == 0:
             self.leave_player(player)
 
-        if self.state == GameState.NEXT and self.started:
+        if not self.started:
+            logger.info("Game ended -> stop process turn")
+            return
+
+        if self.state in (GameState.NEXT, GameState.TAKE):
             if self.rules.random_color.status:
-                color = CardColor(randint(0, 3))
-                self.deck.top.color = color
-                self.push_event(
-                    player, GameEvents.GAME_SELECT_COLOR, str(color)
-                )
+                self.choose_color(CardColor(randint(0, 3)))
+            # TODO: Вынести в паттерн поведения
             if self.deck.top.cost == 1 and self.rules.side_effect.status:
                 logger.info("Player continue turn")
             else:
