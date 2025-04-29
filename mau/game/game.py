@@ -105,6 +105,8 @@ class UnoGame:
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player!")
+        if len(self.pm.current.hand) == 0:
+            self.leave_player(self.pm.current)
         self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
@@ -138,11 +140,11 @@ class UnoGame:
         else:
             self.push_event(player, GameEvents.GAME_LEAVE, "lose")
 
-        player.on_leave()
-        self.pm.remove(player)
         if player == self.player:
             self.take_counter = 0
-            self.next_turn()
+
+        player.on_leave()
+        self.pm.remove(player)
         if self.started and len(self.pm) <= 1:
             self.end()
 
@@ -169,9 +171,6 @@ class UnoGame:
 
         if len(player.hand) == 1:
             self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
-
-        if len(player.hand) == 0:
-            self.leave_player(player)
 
         if not self.started:
             logger.info("Game ended -> stop process turn")
