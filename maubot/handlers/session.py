@@ -15,7 +15,7 @@ from mau.enums import CardColor
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser
 from mau.session import SessionManager
-from maubot import filters, keyboards
+from maubot import filters, markups
 from maubot.config import config
 from maubot.events.journal import MessageChannel
 from maubot.messages import game_status
@@ -52,7 +52,7 @@ async def create_game(
             channel.lobby_message = None
             await channel.send_lobby(
                 game_status(game),
-                reply_markup=keyboards.get_room_markup(game),
+                reply_markup=markups.lobby_markup(game),
             )
         return
 

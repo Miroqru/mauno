@@ -17,7 +17,7 @@ from mau.deck.generator import card_from_str
 from mau.enums import CardColor, GameState
 from mau.game.game import UnoGame
 from mau.game.player import Player
-from maubot import keyboards
+from maubot import markups
 from maubot.filters import NowPlaying
 
 router = Router(name="Turn")
@@ -32,10 +32,10 @@ async def inline_handler(
 ) -> None:
     """Обработчик inline запросов. Предоставляет клавиатуру со всеми картами."""
     if game is None or player is None or query.from_user is None:
-        await query.answer([keyboards.NO_GAME_QUERY])
+        await query.answer([markups.NO_GAME_QUERY])
     else:
         await query.answer(
-            list(keyboards.get_hand_query(player)),
+            list(markups.hand_query(player)),
             cache_time=0,
             is_personal=True,
         )

@@ -4,7 +4,7 @@ from loguru import logger
 
 from mau.enums import GameEvents, GameState
 from mau.events import Event
-from maubot import keyboards, messages
+from maubot import markups, messages
 from maubot.config import sm, stickers
 from maubot.events.journal import EventRouter, MessageChannel
 from maubot.messages import plural_form
@@ -21,7 +21,7 @@ async def start_session(event: Event, chan: MessageChannel) -> None:
     )
     await chan.send_lobby(
         message=lobby_message,
-        reply_markup=keyboards.get_room_markup(event.game),
+        reply_markup=markups.lobby_markup(event.game),
     )
 
 
@@ -58,7 +58,7 @@ async def end_game(event: Event, chan: MessageChannel) -> None:
     """Завершает игру в чате."""
     sm.remove(event.game.room_id)
     chan.add(messages.end_game_players(event.game.pm))
-    chan.set_markup(keyboards.NEW_GAME_MARKUP)
+    chan.set_markup(markups.NEW_GAME_MARKUP)
     await chan.send()
 
 
@@ -72,7 +72,7 @@ async def join_player(event: Event, chan: MessageChannel) -> None:
         )
         await chan.send_lobby(
             message=lobby_message,
-            reply_markup=keyboards.get_room_markup(event.game),
+            reply_markup=markups.lobby_markup(event.game),
         )
         return
 
@@ -90,7 +90,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
         )
         await chan.send_lobby(
             message=lobby_message,
-            reply_markup=keyboards.get_room_markup(event.game),
+            reply_markup=markups.lobby_markup(event.game),
         )
         return
 
@@ -162,15 +162,19 @@ async def update_game_state(event: Event, chan: MessageChannel) -> None:
             "Если вам повезёт, то карты будет брать следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
-        chan.set_markup(keyboards.SHOTGUN_KEYBOARD)
+        chan.set_markup(markups.SHOTGUN_MARKUP)
 
     elif state == GameState.TWIST_HAND:
         chan.add("✨ С кем бы обменяться картами ..")
-        chan.set_markup(keyboards.select_player_markup(event.game))
+        chan.set_markup(
+            markups.select_player(
+                event.game.pm, event.game.rules.twist_hand_pass.status
+            )
+        )
 
     elif state == GameState.CHOOSE_COLOR:
         chan.add("✨ Какой бы выбрать цвет ...")
-        chan.set_markup(keyboards.SELECT_COLOR)
+        chan.set_markup(markups.SELECT_COLOR)
 
     else:
         logger.warning("Unprocessed state {}", state)
