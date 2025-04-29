@@ -11,12 +11,11 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery, Message
-from loguru import logger
 
-from mau.card import CardColor
-from mau.exceptions import NoGameInChatError, NotEnoughPlayersError
-from mau.game import UnoGame
-from mau.player import BaseUser
+from mau.enums import CardColor
+from mau.exceptions import NoGameInChatError
+from mau.game.game import UnoGame
+from mau.game.player import BaseUser
 from mau.session import SessionManager
 from maubot import filters, keyboards
 from maubot.config import config
@@ -30,6 +29,15 @@ ROOM_SETTINGS = (
     "В этом разделе вы можете настроить дополнительные параметры для игры.\n"
     "Они привносят дополнительное разнообразие в игровые правила.\n\n"
     "Пункты помеченные 🌟 <b>активированы</b> и уже наводят суету."
+)
+
+# Когда недостаточно игроков для продолжения/начала игры
+NOT_ENOUGH_PLAYERS = (
+    f"🌳 <b>Недостаточно игроков</b> (минимум {config.min_players}) для "
+    "игры.\n"
+    "Если игра ещё <b>не началась</b> воспользуйтесь командой "
+    "/join чтобы зайти в комнату.\n"
+    "🍰 Или создайте новую комнату при помощи /game."
 )
 
 
@@ -73,18 +81,10 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
     elif game.started:
         await message.answer("👀 Игра уже началась ранее.")
 
-    elif len(game.players) < config.min_players:
-        raise NotEnoughPlayersError
+    elif len(game.pm) < config.min_players:
+        await message.answer(NOT_ENOUGH_PLAYERS)
 
     else:
-        try:
-            await message.delete()
-        except Exception as e:
-            logger.warning("Unable to delete message: {}", e)
-            await message.answer(
-                "🧹 Пожалуйста выдайте мне права удалять сообщения в чате."
-            )
-
         game.start()
 
 
@@ -122,7 +122,7 @@ async def close_gama(message: Message, game: UnoGame) -> None:
 
 @router.message(Command("kick"), filters.GameOwner())
 async def kick_player(
-    message: Message, game: UnoGame, sm: SessionManager, channel: MessageChannel
+    message: Message, game: UnoGame, channel: MessageChannel
 ) -> None:
     """Выкидывает участника из комнаты."""
     if (
@@ -134,7 +134,7 @@ async def kick_player(
         )
 
     kicked_user = message.reply_to_message.from_user
-    kick_player = sm.player(str(kicked_user.id))
+    kick_player = game.pm.get_or_none(str(kicked_user.id))
     if kick_player is not None:
         channel.add(
             f"🧹 {game.owner.name} выгнал "

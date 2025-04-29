@@ -13,10 +13,10 @@ from aiogram.types import (
 )
 from loguru import logger
 
-from mau.card import CardColor, card_from_str
-from mau.enums import GameState
-from mau.game import UnoGame
-from mau.player import Player
+from mau.deck.generator import card_from_str
+from mau.enums import CardColor, GameState
+from mau.game.game import UnoGame
+from mau.game.player import Player
 from maubot import keyboards
 from maubot.filters import NowPlaying
 
@@ -30,16 +30,15 @@ router = Router(name="Turn")
 async def inline_handler(
     query: InlineQuery, game: UnoGame | None, player: Player | None
 ) -> None:
-    """Обработчик inline запросов к боту.
-
-    Здесь предоставляется клавиатура со всеми вашими картами.
-    """
+    """Обработчик inline запросов. Предоставляет клавиатуру со всеми картами."""
     if game is None or player is None or query.from_user is None:
-        res = keyboards.NO_GAME_QUERY
+        await query.answer([keyboards.NO_GAME_QUERY])
     else:
-        res = keyboards.get_hand_query(player)
-
-    await query.answer(list(res), cache_time=1, is_personal=True)
+        await query.answer(
+            list(keyboards.get_hand_query(player)),
+            cache_time=0,
+            is_personal=True,
+        )
 
 
 @router.chosen_inline_result(NowPlaying())
@@ -56,8 +55,7 @@ async def process_card_handler(
     if player != game.player:
         game.pm.set_cp(player)
 
-    # TODO: Переименовать в next
-    elif result.result_id == "pass":
+    elif result.result_id == "next":
         game.next_turn()
 
     elif result.result_id == "take":
@@ -71,15 +69,11 @@ async def process_card_handler(
         game.process_turn(card, player)
 
 
-# Обработчики для кнопок
-# ======================
-
-
 @router.callback_query(
     F.data.regexp(r"color:([0-3])").as_("color"), NowPlaying()
 )
 async def choose_color_call(
-    query: CallbackQuery, game: UnoGame, player: Player, color: re.Match[str]
+    query: CallbackQuery, game: UnoGame, color: re.Match[str]
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
@@ -94,9 +88,10 @@ async def select_player_call(
     query: CallbackQuery, game: UnoGame, player: Player, index: re.Match[str]
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
-    other_player = game.players[int(index.groups()[0])]
+    other_player = game.pm.get(index.groups()[0])
     if game.state == GameState.TWIST_HAND:
         player.twist_hand(other_player)
+
     elif query.message is not None:
         query.message.answer("🍻 Что-то пошло не так, но мы не знаем что.")
 

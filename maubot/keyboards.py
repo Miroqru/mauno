@@ -13,29 +13,26 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 
-from mau.card import TakeFourCard
-from mau.enums import GameState
-from mau.game import GameRules, Rule, UnoGame
-from mau.player import Player
+from mau.enums import CardType, GameState
+from mau.game.game import UnoGame
+from mau.game.player import Player
+from mau.game.rules import GameRules, Rule
 from maubot.config import config, stickers
 from maubot.messages import get_room_status
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
-NO_GAME_QUERY: Sequence[
-    InlineQueryResultArticle | InlineQueryResultCachedSticker
-] = (
-    InlineQueryResultArticle(
-        id="nogame",
-        title="В чате ещё нет игровой комнаты",
-        input_message_content=InputTextMessageContent(
-            message_text=(
-                "☕ Сейчас никто не играет.\n\n"
-                "Используйте /game для создания новой комнаты.\n"
-                "А после воспользуйтесь /join чтобы присоединиться к комнате. "
-            )
-        ),
+NO_GAME_QUERY = InlineQueryResultArticle(
+    id="nogame",
+    title="В чате ещё нет игровой комнаты",
+    input_message_content=InputTextMessageContent(
+        message_text=(
+            "☕ Сейчас никто не играет.\n\n"
+            "Используйте /game для создания новой комнаты.\n"
+            "А после воспользуйтесь /join чтобы присоединиться к комнате. "
+        )
     ),
 )
+
 
 SHOTGUN_KEYBOARD = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -82,7 +79,7 @@ def get_room_markup(game: UnoGame) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
         ]
     ]
-    if len(game.players) >= config.min_players:
+    if len(game.pm) >= config.min_players:
         buttons.append(
             [
                 InlineKeyboardButton(
@@ -141,13 +138,13 @@ def get_hand_query(
     result = []
     if player.game.state == GameState.TAKE:
         result = [
-            _add_sticker("pass", stickers.options.next_turn, "👀 Пропускаю")
+            _add_sticker("next", stickers.options.next_turn, "👀 Пропускаю")
         ]
     elif player == player.game.player:
         result = [_add_sticker("take", stickers.options.draw, "👀 Беру карту")]
 
     if (
-        isinstance(player.game.deck.top, TakeFourCard)
+        player.game.deck.top.card_type == CardType.TAKE_FOUR
         and player.game.take_counter
     ):
         result.append(
@@ -166,19 +163,18 @@ def get_hand_query(
 # =========================
 
 
-def create_button(rule: Rule) -> InlineKeyboardButton:
-    """Создает кнопку для заданного правила."""
-    status_sim = "🌟" if rule.status else ""
-    return InlineKeyboardButton(
-        text=f"{status_sim}{rule.name}",
-        callback_data=f"rule:{rule.key}:{not rule.status}",
-    )
-
-
 def get_rules_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     """Генерирует кнопки на основе правил игры."""
     return InlineKeyboardMarkup(
-        inline_keyboard=[[create_button(rule)] for rule in game_rules]
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"{'🌟' if rule[1] else ''}{rule[0]}",
+                    callback_data=f"rule:{i}",
+                )
+            ]
+            for i, rule in enumerate(game_rules.iter_rules())
+        ]
     )
 
 
@@ -188,13 +184,11 @@ def select_player_markup(game: "UnoGame") -> InlineKeyboardMarkup:
     Отображает имя игрока и сколько у него сейчас карт.
     """
     res = []
-
-    for i, pl in enumerate(game.players):
-        if i == game.current_player:
-            continue
+    for i, pl in game.pm.iter_others():
         res.append(
             [
                 InlineKeyboardButton(
+                    # TODO: Ну когда там username
                     text=f"{pl.name} ({len(pl.hand)} 🃏)",
                     callback_data=f"select_player:{i}",
                 )
@@ -203,7 +197,7 @@ def select_player_markup(game: "UnoGame") -> InlineKeyboardMarkup:
 
     if game.rules.twist_hand_pass.status:
         res.append(
-            [InlineKeyboardButton(text="🍷 Пропустить", callback_data="pass")]
+            [InlineKeyboardButton(text="🍷 Пропустить", callback_data="next")]
         )
 
     return InlineKeyboardMarkup(inline_keyboard=res)

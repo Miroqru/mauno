@@ -8,7 +8,14 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import ErrorEvent, Update
+from aiogram.types import (
+    CallbackQuery,
+    ChosenInlineResult,
+    ErrorEvent,
+    InlineQuery,
+    Message,
+    Update,
+)
 from aiogram.utils.token import TokenValidationError
 from loguru import logger
 
@@ -48,20 +55,17 @@ async def game_middleware(
     data: dict[str, Any],
 ) -> Callable[[Update, dict[str, Any]], Awaitable[Any]]:
     """Предоставляет экземпляр игры в обработчики сообщений."""
-    try:
+    if isinstance(
+        event, CallbackQuery | ChosenInlineResult | InlineQuery | Message
+    ):
         context = get_context(sm, event)
         data["game"] = context.game
         data["player"] = context.player
         data["channel"] = (
-            sm.event_handler.get_channel(context.game.room_id)
+            sm._event_handler.get_channel(context.game.room_id)
             if context.game is not None
             else None
         )
-    except Exception as e:
-        logger.error(e)
-        data["game"] = None
-        data["player"] = None
-        data["channel"] = None
 
     return await handler(event, data)
 
@@ -99,13 +103,10 @@ async def main() -> None:
 
     logger.info("Setup bot ...")
     try:
-        bot = Bot(
-            token=config.telegram_token.get_secret_value(), default=default
-        )
+        bot = Bot(config.telegram_token.get_secret_value(), default=default)
     except TokenValidationError as e:
         logger.error(e)
-        logger.info("Check your bot token in .env file.")
-        sys.exit(1)
+        sys.exit("Check your bot token in .env file.")
 
     logger.info("Load handlers ...")
     for router in ROUTERS:

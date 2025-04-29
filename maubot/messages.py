@@ -7,7 +7,7 @@
 from datetime import datetime
 
 from mau import exceptions
-from mau.game import UnoGame
+from mau.game.game import UnoGame
 from maubot.config import config
 
 # Когда пользователь пишет сообщение /help
@@ -41,16 +41,6 @@ NO_JOIN_MESSAGE = (
     "🍓 Для начала надо <b>зайти в комнату</b>.\n"
     "🍰 Сделать это можно командой /join.\n"
     "🔑 Если комната <b>закрыта</b> дождитесь окончания игры."
-)
-
-
-# Когда недостаточно игроков для продолжения/начала игры
-NOT_ENOUGH_PLAYERS = (
-    f"🌳 <b>Недостаточно игроков</b> (минимум {config.min_players}) для "
-    "игры.\n"
-    "Если игра ещё <b>не началась</b> воспользуйтесь командой "
-    "/join чтобы зайти в комнату.\n"
-    "🍰 Или создайте новую комнату при помощи /game."
 )
 
 
@@ -95,10 +85,10 @@ def get_room_rules(game: UnoGame) -> str:
     """
     rule_list = ""
     active_rules = 0
-    for rule in game.rules:
-        if rule.status:
+    for name, status in game.rules.iter_rules():
+        if status:
             active_rules += 1
-            rule_list += f"\n- {rule.name}"
+            rule_list += f"\n- {name}"
 
     if active_rules == 0:
         return ""
@@ -114,10 +104,10 @@ def get_all_room_players(game: UnoGame) -> str:
     Если игроков в комнате ещё нет, вернёт милое сообщение что в комнате
     ещё пусто.
     """
-    if len(game.players) == 0:
+    if len(game.pm) == 0:
         return "✨ В комнате пока никого нету.\n"
-    players_list = f"✨ всего игроков {len(game.players)}:\n"
-    for player in game.players:
+    players_list = f"✨ всего игроков {len(game.pm)}:\n"
+    for player in game.pm.iter():
         players_list += f"- {player.name}\n"
     return players_list
 
@@ -156,7 +146,7 @@ def get_room_status(game: UnoGame) -> str:
         )
 
     if game.rules.single_shotgun.status:
-        shotgun_stats = f"🔫 <b>Револьвер</b>: {game.shotgun_current} / 8"
+        shotgun_stats = f"🔫 <b>Револьвер</b>: {game.shotgun.cur} / 8"
     else:
         shotgun_stats = ""
 
@@ -188,9 +178,6 @@ def get_error_message(exc: Exception) -> str:
             "комнату или дождаться окончания игра."
         )
 
-    if isinstance(exc, exceptions.NotEnoughPlayersError):
-        return NOT_ENOUGH_PLAYERS
-
     return f"👀 Что-то пошло не по плану...\n\n{exc}"
 
 
@@ -201,10 +188,10 @@ def end_game_message(game: UnoGame) -> str:
     Ну и полезные команды, если будет нужно создать новую игру.
     """
     res = "✨ <b>Игра завершилась</b>!\n"
-    for i, winner in enumerate(game.winners):
+    for i, winner in enumerate(game.pm.iter(game.pm.winners)):
         res += f"{i + 1}. {winner.name}\n"
     res += "\n👀 Проигравшие:\n"
-    for i, loser in enumerate(game.losers):
+    for i, loser in enumerate(game.pm.iter(game.pm.losers)):
         res += f"{i + 1}. {loser.name}\n"
     return res
 
@@ -217,14 +204,15 @@ def get_room_players(game: UnoGame) -> str:
     Также указывает количество карт и выстрелов из револьвера.
     """
     reverse_sim = "🔺" if game.reverse else "🔻"
-    players_list = f"✨ Игроки ({len(game.players)}{reverse_sim}):\n"
-    for i, player in enumerate(game.players):
+    players_list = f"✨ Игроки ({len(game.pm)}{reverse_sim}):\n"
+    for i, player in enumerate(game.pm.iter()):
         if game.rules.shotgun.status:
-            shotgun_stat = f" {player.shotgun_current} / 8 🔫"
+            shotgun_stat = f" {player.shotgun.cur} / 8 🔫"
         else:
             shotgun_stat = ""
 
-        if i == game.current_player:
+        # FIXME: как-то оптимизации бы
+        if player == game.pm.current:
             players_list += (
                 f"- <b>{player.name}</b> 🃏{len(player.hand)} {shotgun_stat}\n"
             )

@@ -1,5 +1,7 @@
 """Маршрутизация событий от движка."""
 
+from loguru import logger
+
 from mau.enums import GameEvents, GameState
 from maubot import keyboards, messages
 from maubot.config import sm, stickers
@@ -111,7 +113,8 @@ async def select_card_color(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.GAME_SELECT_PLAYER)
 async def twist_hand(ctx: EventContext) -> None:
     """Сообщает об обмене картами между пользователями."""
-    other_player = sm.player(ctx.event.data)
+    # FIXME: Не, это надо порешать
+    other_player = ctx.event.game.pm.get_or_none(ctx.event.data)
     if other_player is None:
         ctx.add("🍺 Куда подевался второй игрок?")
         return
@@ -153,9 +156,9 @@ async def set_game_state(ctx: EventContext) -> None:
         or ctx.event.game.rules.single_shotgun.status
     ):
         current = (
-            ctx.event.game.shotgun_current
+            ctx.event.game.shotgun.cur
             if ctx.event.game.rules.single_shotgun.status
-            else ctx.event.player.shotgun_current
+            else ctx.event.player.shotgun.cur
         )
         ctx.add(
             f"🍷 беру {ctx.event.game.take_counter} карт.\n"
@@ -174,6 +177,9 @@ async def set_game_state(ctx: EventContext) -> None:
     elif state == GameState.CHOOSE_COLOR:
         ctx.add(f"✨ {ctx.event.player.name} Задумывается о выборе цвета..")
         ctx.set_markup(keyboards.SELECT_COLOR)
+    else:
+        logger.warning("Unprocessed state {}", state)
+        return
 
     await ctx.send()
 
@@ -203,14 +209,14 @@ async def player_take_cards(ctx: EventContext) -> None:
 @er.handler(event=GameEvents.PLAYER_BLUFF)
 async def player_bluffing(ctx: EventContext) -> None:
     """Если изволите блефовать."""
-    bluff_flag, take_counter = ctx.event.data.split(";")
-    bluff_player = ctx.event.game.bluff_player
-    if bluff_player is not None and bluff_flag == "true":
-        ctx.add("🔎 <b>Замечен блеф</b>!")
-    elif bluff_player is None:
+    if ctx.event.game.bluff_player is None:
         ctx.add("🎩 <b>Никто не блефовал</b>!")
     else:
-        ctx.add(f"🎩 {bluff_player.name} <b>Честный игрок</b>!")
+        player, bluff_flag = ctx.event.game.bluff_player
+        if player is not None and bluff_flag:
+            ctx.add("🔎 <b>Замечен блеф</b>!")
+        else:
+            ctx.add(f"🎩 {player.name} <b>Честный игрок</b>!")
 
 
 @er.handler(event=GameEvents.PLAYER_INTERVENED)

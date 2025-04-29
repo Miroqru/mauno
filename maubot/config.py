@@ -8,7 +8,7 @@
 from aiogram.client.default import DefaultBotProperties
 from loguru import logger
 from pydantic import BaseModel, Field, SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 from mau.session import SessionManager
 from maubot.events.journal import MessageJournal
@@ -25,16 +25,6 @@ class Config(BaseSettings):
     telegram_token: SecretStr = Field()
     stickers_path: str = Field()
     min_players: int = Field()
-
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="allow"
-    )
-
-
-config: Config = Config()  # type: ignore
-
-# Настройка стикеров
-# ==================
 
 
 class OptionStickersID(BaseModel):
@@ -60,17 +50,14 @@ class StickerSet(BaseModel):
     options: OptionStickersID
 
 
+# Настройки бота по умолчанию
+default = DefaultBotProperties(parse_mode="html")
+sm: SessionManager[MessageJournal] = SessionManager()
+config: Config = Config(_env_file=".env")  # type: ignore
+
 try:
     with open(config.stickers_path) as f:
         stickers: StickerSet = StickerSet.model_validate_json(f.read())
 except FileNotFoundError as e:
     logger.error(e)
     logger.info("First, create you own cards sticker pack.")
-
-
-# Параметры по умолчанию для бота aiogram
-# =======================================
-
-# Настройки бота по умолчанию
-default = DefaultBotProperties(parse_mode="html")
-sm: SessionManager[MessageJournal] = SessionManager()
