@@ -30,23 +30,41 @@ class PlayerManager:
         """Получает текущего игрока."""
         if len(self._players) == 0:
             raise ValueError("Game not started to get players")
-        return self.get(self._players[self._cp % len(self._players)])
+        pl = self.get(self._players[self._cp % len(self._players)])
+        if pl is None:
+            raise ValueError("No players in game")
+        return pl
 
     def get(self, user_id: str) -> Player:
         """Возвращает игрока из хранилища по его ID."""
         pl = self._storage.get(user_id)
         if pl is None:
-            raise ValueError("Player not found")
+            raise ValueError(f"Where player with ID {user_id}")
         return pl
 
-    def iter(self, players: Iterable[str]) -> Iterator[Player]:
+    def get_or_none(self, user_id: str) -> Player | None:
+        """Возвращает игрока из хранилища по его ID."""
+        return self._storage.get(user_id)
+
+    def iter(self, players: Iterable[str] | None = None) -> Iterator[Player]:
         """Проходится по всему списку игроков."""
-        for pl in players:
-            yield self.get(pl)
+        for pl in players or self._players:
+            storage_player = self.get(pl)
+            if storage_player is not None:
+                yield storage_player
+
+    def iter_others(self) -> Iterator[tuple[int, Player]]:
+        """Возвращает индекс и ID всех игроков, кроме текущего."""
+        yield from (
+            (i, self.get(uid))
+            for i, uid in enumerate(self._players)
+            if i != self._cp
+        )
 
     def add(self, player: Player) -> None:
         """Добавляет игрока в хранилище."""
         self._storage.add(player.user_id, player)
+        self._players.append(player.user_id)
 
     def remove(self, player: Player) -> None:
         """Удаляет игрока из списка игроков."""
@@ -80,7 +98,10 @@ class PlayerManager:
 
     def next(self, n: int = 1, reverse: bool = False) -> None:
         """Перемещает курсор игрока дальше."""
-        self._cp = (self._cp + -n if reverse else n) % len(self._players)
+        if reverse:
+            self._cp = (self._cp - n) % len(self._players)
+        else:
+            self._cp = (self._cp + n) % len(self._players)
 
     def set_cp(self, player: Player) -> None:
         """Устанавливает курсор текущего игрока на переданного."""

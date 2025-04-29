@@ -40,8 +40,10 @@ class UnoGame:
         self.event_handler: BaseEventHandler = event_handler
 
         self.owner = Player(self, owner.id, owner.name)
+        self.pm.add(self.owner)
+
         # TODO: Может стоит хранить не всего игрока?
-        self.bluff_player: Player | None = None
+        self.bluff_player: tuple[Player, bool] | None = None
         self.started: bool = False
         self.open: bool = True
         self.reverse: bool = False
@@ -60,7 +62,7 @@ class UnoGame:
 
     def can_play(self, user_id: str) -> bool:
         """Может ли текущий игрок совершать действия."""
-        player = self.pm.get(user_id)
+        player = self.pm.get_or_none(user_id)
         if player is None:
             return False
 
@@ -107,12 +109,13 @@ class UnoGame:
         self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
+        logger.warning(self.pm._cp)
         self.push_event(self.player, GameEvents.GAME_TURN)
 
     def join_player(self, user: BaseUser) -> Player:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
-        player = self.pm.get(user.id)
+        player = self.pm.get_or_none(user.id)
         if player is not None:
             return player
 
@@ -124,6 +127,7 @@ class UnoGame:
         self.push_event(player, GameEvents.GAME_JOIN)
         if self.started:
             player.on_join()
+        return player
 
     def leave_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
@@ -162,7 +166,6 @@ class UnoGame:
         self.deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
-
         card(self)
 
         if len(player.hand) == 1:

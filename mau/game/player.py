@@ -1,7 +1,6 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
 from dataclasses import dataclass
-from random import randint
 from typing import TYPE_CHECKING, Self
 
 from loguru import logger
@@ -184,18 +183,13 @@ class Player:
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
         logger.info("{} call bluff {}", self, self.game.bluff_player)
-        if self.game.bluff_player is not None:
-            self.push_event(
-                GameEvents.PLAYER_BLUFF, f"true;{self.game.take_counter}"
-            )
-            self.game.bluff_player.take_cards()
-        else:
+        if self.game.bluff_player is None or not self.game.bluff_player[1]:
             self.game.take_counter += 2
-            self.push_event(
-                GameEvents.PLAYER_BLUFF, f"false;{self.game.take_counter}"
-            )
+            self.push_event(GameEvents.PLAYER_BLUFF)
             self.take_cards()
-
+        else:
+            self.push_event(GameEvents.PLAYER_BLUFF)
+            self.game.bluff_player[0].take_cards()
         self.game.next_turn()
 
     def call_take_cards(self) -> None:
@@ -237,7 +231,7 @@ class Player:
         ):
             self.game.next_turn()
         else:
-            self.game.state = GameState.NEXT
+            self.game.state = GameState.TAKE
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""

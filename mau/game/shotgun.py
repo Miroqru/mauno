@@ -14,6 +14,11 @@ class Shotgun:
         self._cur = 0
         self._lose = 0
 
+    @property
+    def cur(self) -> int:
+        """Возвращает текущей число выстрелов револьвера."""
+        return self._cur
+
     def reset(self) -> None:
         """Перезаряжает револьвер."""
         self._cur = 0

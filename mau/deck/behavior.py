@@ -73,7 +73,7 @@ class ReverseBehavior(UnoBehavior):
 
         Если осталось 2 игрока, действует как карта пропуска хода.
         """
-        if len(game.pm._players) == 2:  # noqa
+        if len(game.pm) == 2:  # noqa
             game.skip_players()
         else:
             game.reverse = not game.reverse
@@ -141,5 +141,4 @@ class ColorTakeBehavior(WildBehavior):
             game.set_state(GameState.CHOOSE_COLOR)
 
         game.take_counter += card.value
-        if game.player.is_bluffing():
-            game.bluff_player = game.player
+        game.bluff_player = (game.player, game.player.is_bluffing())

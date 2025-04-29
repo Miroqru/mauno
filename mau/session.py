@@ -49,12 +49,9 @@ class SessionManager(Generic[_H]):
         """
         return self._players.get(user_id)
 
-    def room(self, room_id: str) -> UnoGame:
+    def room(self, room_id: str) -> UnoGame | None:
         """Возвращает игру по указанному ID комнаты."""
-        game = self._games.get(room_id)
-        if game is None:
-            raise NoGameInChatError from ValueError
-        return game
+        return self._games.get(room_id)
 
     def create(self, room_id: str, user: BaseUser) -> UnoGame:
         """Создает новую игру в чате."""
@@ -62,7 +59,6 @@ class SessionManager(Generic[_H]):
         pm = PlayerManager(self._players)
         game = UnoGame(pm, self._event_handler, room_id, user)
         self._games.add(room_id, game)
-        self._players.add(user.id, game.owner)
         game.push_event(game.owner, GameEvents.SESSION_START)
         return game
 
