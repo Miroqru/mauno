@@ -105,7 +105,7 @@ class GameOwner(Filter):
             await _send(event, NO_JOIN_MESSAGE)
             return False
 
-        if context.player == context.game.owner:
+        if context.player != context.game.owner:
             await _send(
                 event,
                 "🔑 Выполнить это действие может только создатель комнаты.",
