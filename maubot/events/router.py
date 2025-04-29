@@ -130,7 +130,7 @@ async def twist_hand(event: Event, chan: MessageChannel) -> None:
 async def next_turn(event: Event, chan: MessageChannel) -> None:
     """Начала следующего хода."""
     await chan.clear()
-    cards = len(event.player.hand)
+    cards = len(event.game.player.hand)
     chan.add(
         f"\n🍰 <b>ход</b>: {event.game.player.name} "
         f"(🃏 {cards} {plural_form(cards, ('карту', 'карты', 'карт'))})"
