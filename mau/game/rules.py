@@ -21,18 +21,6 @@ class Rule:
         """Проверяет, установлен ли битовый флаг."""
         return (self.rules.rule_flags & self.index) != 0
 
-    def set(self) -> None:
-        """Устанавливает битовый флаг."""
-        self.rules.rule_flags |= self.index
-
-    def reset(self) -> None:
-        """Сбрасывает битовый флаг."""
-        self.rules.rule_flags &= ~self.index
-
-    def toggle(self) -> None:
-        """Переключает состояние битового флага."""
-        self.rules.rule_flags ^= self.index
-
 
 class GameRules:
     """битовые флаги игровых правил."""
@@ -59,3 +47,7 @@ class GameRules:
         """Возвращает итератор правил."""
         for rule in self.rules:
             yield (rule.name, (self.rule_flags & rule.index) != 0)
+
+    def toggle(self, rule: int) -> None:
+        """Переключает состояние битового флага."""
+        self.rule_flags ^= 1 << rule
