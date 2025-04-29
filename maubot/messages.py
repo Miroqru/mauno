@@ -6,16 +6,15 @@
 
 from datetime import datetime
 
-from mau import exceptions
 from mau.game.game import UnoGame
 from mau.game.player_manager import PlayerManager
 
-# TODO: Переместим
-# Если в данном чате ещё не создано ни одной комнаты
+_MEDALS = ("🥇", "🥈", "🥉")
 
 
-# Вспомогательные функции
-# =======================
+def place_medal(i: int) -> str | None:
+    """Возвращает медаль за место в рейтинге."""
+    return _MEDALS[i] if i < len(_MEDALS) else None
 
 
 def plural_form(n: int, v: tuple[str, str, str]) -> str:
@@ -43,18 +42,6 @@ def time_delta(seconds: int) -> str:
     if s != 0:
         res += f"{s} {plural_form(m, ('секунду', 'секунды', 'секунд'))}"
     return res
-
-
-_MEDALS = ("🥇", "🥈", "🥉")
-
-
-def place_medal(i: int) -> str | None:
-    """Возвращает медаль за место в рейтинге."""
-    return _MEDALS[i] if i < len(_MEDALS) else None
-
-
-# Динамические сообщения
-# ======================
 
 
 def game_rules_list(game: UnoGame) -> str:
@@ -124,18 +111,6 @@ def game_status(game: UnoGame) -> str:
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
         f"{len(game.deck.used_cards)} использовано.\n{shotgun_stats}"
     )
-
-
-def describe_error(exc: Exception) -> str:
-    """Возвращает сообщение об ошибке."""
-    if isinstance(exc, exceptions.LobbyClosedError):
-        return (
-            "🔒 К сожалению данная комната <b>закрыта</b>.\n"
-            "Вы можете попросить владельца комнаты открыть"
-            "комнату или дождаться окончания игра."
-        )
-
-    return f"👀 <b>Что-то пошло не по плану</b>...\n{exc}"
 
 
 def end_game_players(pm: PlayerManager) -> str:

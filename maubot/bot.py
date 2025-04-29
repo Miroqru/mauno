@@ -24,7 +24,6 @@ from maubot.context import get_context
 from maubot.events.journal import MessageJournal
 from maubot.events.router import er
 from maubot.handlers import ROUTERS
-from maubot.messages import describe_error
 
 # Константы
 # =========
@@ -87,7 +86,9 @@ async def catch_errors(event: ErrorEvent) -> None:
         logger.warning("No Message to send exception")
         return
 
-    await message.answer(describe_error(event.exception))
+    await message.answer(
+        f"👀 <b>Что-то пошло не по плану</b>...\n{event.exception}"
+    )
 
 
 # Главная функция запуска бота

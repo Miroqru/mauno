@@ -25,9 +25,15 @@ async def join_player(message: Message, game: UnoGame) -> None:
     if message.from_user is None:
         raise ValueError("User can`t be none")
 
-    game.join_player(
+    player = game.join_player(
         BaseUser(str(message.from_user.id), message.from_user.mention_html()),
     )
+    if player is None:
+        await message.answer(
+            "🔒 К сожалению данная комната <b>закрыта</b>.\n"
+            "Вы можете попросить владельца комнаты открыть"
+            "комнату или дождаться окончания игра."
+        )
 
 
 @router.message(Command("leave"), filters.ActivePlayer())
@@ -42,10 +48,13 @@ async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
     if not isinstance(query.message, Message):
         raise ValueError("Query message should be Message instance")
 
-    game.join_player(
+    player = game.join_player(
         BaseUser(str(query.from_user.id), query.from_user.mention_html())
     )
-    await query.answer("👋 Добро пожаловать в комнату")
+    if player is None:
+        await query.answer("🔒 К сожалению данная комната <b>закрыта</b>.")
+    else:
+        await query.answer("👋 Добро пожаловать в комнату")
 
 
 @router.callback_query(F.data == "take", filters.NowPlaying())
