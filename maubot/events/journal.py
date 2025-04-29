@@ -16,60 +16,6 @@ FuncType = Callable[..., Any] | Callable[..., Awaitable[Any]]
 T = TypeVar("T", bound=FuncType)
 
 
-class EventContext:
-    """Вспомогательный класс контекст событий."""
-
-    def __init__(self, event: Event, journal: "MessageJournal") -> None:
-        self.event = event
-        self.journal = journal
-        self._channel: MessageChannel = self.journal.get_channel(
-            self.event.game.room_id
-        )
-
-    # Сокращение для методов
-    # ======================
-
-    async def send_lobby(
-        self, message: str, reply_markup: InlineKeyboardMarkup | None = None
-    ) -> None:
-        """Отправляет сообщение-лобби о начале новой игры."""
-        return await self._channel.send_lobby(message, reply_markup)
-
-    async def send_personal(
-        self, text: str, reply_markup: InlineKeyboardMarkup | None = None
-    ) -> Message:
-        """Отправляет личное сообщение текущему пользователю."""
-        return await self._channel.send_to(
-            int(self.event.player.user_id), text, reply_markup=reply_markup
-        )
-
-    async def send(self) -> None:
-        """Отправляет журнал в чат.
-
-        Если до этого журнал не отправлялся, будет создано отправлено
-        новое сообщение с журналом.
-        Если же журнал привязан, то изменится текст сообщения.
-        По умолчанию журнал очищается при каждом новом ходе игрока.
-        """
-        await self._channel.send()
-
-    async def send_card(self, card: str) -> None:
-        """Отправляет карту как стикер."""
-        return await self._channel.send_card(card)
-
-    async def clear(self) -> None:
-        """Очищает буфер событий и сбрасывает клавиатуру."""
-        await self._channel.clear()
-
-    def set_markup(self, markup: InlineKeyboardMarkup | None) -> None:
-        """Устанавливает клавиатуру для игровых событий."""
-        self._channel.set_markup(markup)
-
-    def add(self, text: str) -> None:
-        """Добавляет новую запись в буфер сообщений."""
-        self._channel.add(text)
-
-
 class EventRouter:
     """Привязывает обработчики к конкретным событиям."""
 
@@ -80,14 +26,14 @@ class EventRouter:
         """Обрабатывает пришедшее событие."""
         logger.debug(event)
         handler = self._handlers.get(event.event_type)
-
         if handler is None:
             logger.warning("No handler on: {}", event)
-            return None
+            return
 
-        await handler(EventContext(event, journal))
+        channel = journal.get_channel(event.game.room_id)
+        await handler(event, channel)
 
-    def handler(self, event: GameEvents) -> Callable:
+    def event(self, event: GameEvents) -> Callable:
         """Декоратор для добавления новых обработчиков событий."""
 
         def wrapper(func: T) -> T:
@@ -130,6 +76,7 @@ class MessageChannel:
                 reply_markup=reply_markup,
             )
 
+    # TODO: Удаляем?
     async def send_to(
         self,
         chat_id: int,

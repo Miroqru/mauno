@@ -3,224 +3,217 @@
 from loguru import logger
 
 from mau.enums import GameEvents, GameState
+from mau.events import Event
 from maubot import keyboards, messages
 from maubot.config import sm, stickers
-from maubot.events.journal import EventContext, EventRouter
+from maubot.events.journal import EventRouter, MessageChannel
 from maubot.messages import plural_form
 
 er = EventRouter()
 
 
-# Обработчик сессий
-# =================
-
-
-@er.handler(event=GameEvents.SESSION_START)
-async def start_session(ctx: EventContext) -> None:
+@er.event(GameEvents.SESSION_START)
+async def start_session(event: Event, chan: MessageChannel) -> None:
     """Отправляет лобби, когда начинается новая игра в чате."""
     lobby_message = (
-        f"{messages.get_room_status(ctx.event.game)}\n\n"
-        f"🔥 {ctx.event.player.name}, Начинает новую игру!"
+        f"{messages.get_room_status(event.game)}\n\n"
+        f"🔥 {event.player.name}, Начинает новую игру!"
     )
-    await ctx.send_lobby(
+    await chan.send_lobby(
         message=lobby_message,
-        reply_markup=keyboards.get_room_markup(ctx.event.game),
+        reply_markup=keyboards.get_room_markup(event.game),
     )
 
 
-@er.handler(event=GameEvents.SESSION_END)
-async def end_session(ctx: EventContext) -> None:
+@er.event(GameEvents.SESSION_END)
+async def end_session(event: Event, chan: MessageChannel) -> None:
     """Очищает устаревший канал сообщений."""
-    ctx.journal.remove_channel(ctx.event.game.room_id)
+    sm._event_handler.remove_channel(event.game.room_id)
 
 
 # Обработка событий игры
 # ======================
 
 
-@er.handler(event=GameEvents.GAME_START)
-async def start_game(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_START)
+async def start_game(event: Event, chan: MessageChannel) -> None:
     """Оповещает о начале новой игры."""
-    await ctx.send_lobby(
-        message=messages.get_room_status(ctx.event.game),
+    await chan.send_lobby(
+        message=messages.get_room_status(event.game),
         reply_markup=None,
     )
-    await ctx.clear()
-    await ctx.send_card(stickers.normal[ctx.event.game.deck.top.to_str()])
-    ctx.add(messages.get_new_game_message(ctx.event.game))
-    await ctx.send()
+    await chan.clear()
+    await chan.send_card(stickers.normal[event.game.deck.top.to_str()])
+    chan.add(messages.get_new_game_message(event.game))
+    await chan.send()
 
 
-@er.handler(event=GameEvents.GAME_END)
-async def end_game(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_END)
+async def end_game(event: Event, chan: MessageChannel) -> None:
     """Завершает игру в чате."""
-    sm.remove(ctx.event.game.room_id)
-    ctx.add(messages.end_game_message(ctx.event.game))
-    ctx.set_markup(keyboards.NEW_GAME_MARKUP)
-    await ctx.send()
+    sm.remove(event.game.room_id)
+    chan.add(messages.end_game_message(event.game))
+    chan.set_markup(keyboards.NEW_GAME_MARKUP)
+    await chan.send()
 
 
-@er.handler(event=GameEvents.GAME_JOIN)
-async def join_player(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_JOIN)
+async def join_player(event: Event, chan: MessageChannel) -> None:
     """Оповещает что пользователь зашёл в игру."""
-    if not ctx.event.game.started:
+    if not event.game.started:
         lobby_message = (
-            f"{messages.get_room_status(ctx.event.game)}\n\n"
-            f"👋 {ctx.event.player.name} зашёл в комнату!"
+            f"{messages.get_room_status(event.game)}\n\n"
+            f"👋 {event.player.name} зашёл в комнату!"
         )
-        await ctx.send_lobby(
+        await chan.send_lobby(
             message=lobby_message,
-            reply_markup=keyboards.get_room_markup(ctx.event.game),
+            reply_markup=keyboards.get_room_markup(event.game),
         )
         return
 
-    ctx.add(f"🍰 Добро пожаловать в игру, {ctx.event.player.name}!")
-    await ctx.send()
+    chan.add(f"🍰 Добро пожаловать в игру, {event.player.name}!")
+    await chan.send()
 
 
-@er.handler(event=GameEvents.GAME_LEAVE)
-async def leave_player(ctx: EventContext) -> None:
-    """Оповещает что пользователь зашёл в игру."""
-    if ctx._channel.lobby_message is not None and not ctx.event.game.started:
+@er.event(GameEvents.GAME_LEAVE)
+async def leave_player(event: Event, chan: MessageChannel) -> None:
+    """Оповещает что пользователь вышел из игры."""
+    if chan.lobby_message is not None and not event.game.started:
         lobby_message = (
-            f"{messages.get_room_status(ctx.event.game)}\n\n"
-            f"👋 {ctx.event.player.name} покинул комнату!"
+            f"{messages.get_room_status(event.game)}\n\n"
+            f"👋 {event.player.name} покинул комнату!"
         )
-        await ctx.send_lobby(
+        await chan.send_lobby(
             message=lobby_message,
-            reply_markup=keyboards.get_room_markup(ctx.event.game),
+            reply_markup=keyboards.get_room_markup(event.game),
         )
         return
 
-    if ctx.event.data == "win":
-        ctx.add(f"👑 {ctx.event.player.name} закончил(а)!\n")
+    if event.data == "win":
+        chan.add(f"👑 {event.player.name} закончил(а)!\n")
     else:
-        ctx.add(f"👋 {ctx.event.player.name} покидает комнату.")
+        chan.add(f"👋 {event.player.name} покидает комнату.")
 
     # Это может бывать выход из игры до её начала
-    if not ctx.event.game.started:
-        ctx.set_markup(None)
-
-    await ctx.send()
+    if not event.game.started:
+        chan.set_markup(None)
 
 
-@er.handler(event=GameEvents.GAME_SELECT_COLOR)
-async def select_card_color(ctx: EventContext) -> None:
-    """Какой новый цвет был выбран."""
-    ctx.add(f"🎨 Я выбираю.. {ctx.event.data}!")
+@er.event(GameEvents.GAME_SELECT_COLOR)
+async def select_card_color(event: Event, chan: MessageChannel) -> None:
+    """Какой новый цвет был выбран для карты."""
+    chan.add(f"🎨 Я выбираю.. {event.data}!")
 
 
-@er.handler(event=GameEvents.GAME_SELECT_PLAYER)
-async def twist_hand(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_SELECT_PLAYER)
+async def twist_hand(event: Event, chan: MessageChannel) -> None:
     """Сообщает об обмене картами между пользователями."""
-    # FIXME: Не, это надо порешать
-    other_player = ctx.event.game.pm.get_or_none(ctx.event.data)
+    other_player = event.game.pm.get_or_none(event.data)
     if other_player is None:
-        ctx.add("🍺 Куда подевался второй игрок?")
+        chan.add("🍺 Куда подевался второй игрок?")
         return
 
     # Событие происходит после выполнения действия, потому так считаем карты
-    ctx.add(
-        f"🤝 {ctx.event.player.name} ({len(other_player.hand)} карт) "
-        f"и {other_player.name} ({len(ctx.event.player.hand)} карт) "
+    chan.add(
+        f"🤝 {event.player.name} ({len(other_player.hand)} карт) "
+        f"и {other_player.name} ({len(event.player.hand)} карт) "
         "обменялись картами.\n"
     )
 
 
-@er.handler(event=GameEvents.GAME_TURN)
-async def next_turn(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_TURN)
+async def next_turn(event: Event, chan: MessageChannel) -> None:
     """Начала следующего хода."""
-    await ctx.clear()
-    cards = len(ctx.event.player.hand)
-    ctx.add(
-        f"\n🍰 <b>ход</b>: {ctx.event.game.player.name} "
+    await chan.clear()
+    cards = len(event.player.hand)
+    chan.add(
+        f"\n🍰 <b>ход</b>: {event.game.player.name} "
         f"(🃏 {cards} {plural_form(cards, ('карту', 'карты', 'карт'))})"
     )
-    await ctx.send()
+    await chan.send()
 
 
-@er.handler(event=GameEvents.GAME_ROTATE)
-async def rotate_cards(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_ROTATE)
+async def rotate_cards(event: Event, chan: MessageChannel) -> None:
     """Все игрока обменялись картами, возвращает статистику."""
-    ctx.add("🌀 Обмениваемся <b>картами</b>!")
-    ctx.add(messages.get_room_players(ctx.event.game))
+    chan.add("🌀 Обмениваемся <b>картами</b>!")
+    chan.add(messages.get_room_players(event.game))
 
 
-@er.handler(event=GameEvents.GAME_STATE)
-async def set_game_state(ctx: EventContext) -> None:
+@er.event(GameEvents.GAME_STATE)
+async def set_game_state(event: Event, chan: MessageChannel) -> None:
     """Изменение игрового состояния."""
-    state = GameState(int(ctx.event.data))
+    state = GameState(int(event.data))
 
     if state == GameState.SHOTGUN and (
-        ctx.event.game.rules.shotgun.status
-        or ctx.event.game.rules.single_shotgun.status
+        event.game.rules.shotgun.status
+        or event.game.rules.single_shotgun.status
     ):
         current = (
-            ctx.event.game.shotgun.cur
-            if ctx.event.game.rules.single_shotgun.status
-            else ctx.event.player.shotgun.cur
+            event.game.shotgun.cur
+            if event.game.rules.single_shotgun.status
+            else event.player.shotgun.cur
         )
-        ctx.add(
-            f"🍷 беру {ctx.event.game.take_counter} карт.\n"
+        chan.add(
+            f"🍷 беру {event.game.take_counter} карт.\n"
             "💼 У нас для Вас есть <b>деловое предложение</b>!\n\n"
             f"Вы можете <b>взять свои карты</b> "
             "или же попробовать <b>выстрелить из револьвера</b>.\n"
             "Если вам повезёт, то карты будет брать уже следующий игрок.\n"
             f"🔫 Из револьвера стреляли {current} / 8 раз\n."
         )
-        ctx.set_markup(keyboards.SHOTGUN_KEYBOARD)
+        chan.set_markup(keyboards.SHOTGUN_KEYBOARD)
 
     elif state == GameState.TWIST_HAND:
-        ctx.add(f"✨ {ctx.event.player.name} Задумывается c кем обменяться.")
-        ctx.set_markup(keyboards.select_player_markup(ctx.event.game))
+        chan.add(f"✨ {event.player.name} Задумывается c кем обменяться.")
+        chan.set_markup(keyboards.select_player_markup(event.game))
 
     elif state == GameState.CHOOSE_COLOR:
-        ctx.add(f"✨ {ctx.event.player.name} Задумывается о выборе цвета..")
-        ctx.set_markup(keyboards.SELECT_COLOR)
+        chan.add(f"✨ {event.player.name} Задумывается о выборе цвета..")
+        chan.set_markup(keyboards.SELECT_COLOR)
     else:
         logger.warning("Unprocessed state {}", state)
         return
 
-    await ctx.send()
+    await chan.send()
 
 
 # Обработка действий игрока
 # =========================
 
 
-@er.handler(event=GameEvents.PLAYER_UNO)
-async def say_uno(ctx: EventContext) -> None:
+@er.event(GameEvents.PLAYER_UNO)
+async def say_uno(event: Event, chan: MessageChannel) -> None:
     """Оповещает что у игрока осталась одна карта."""
-    ctx.add("\n🌟 <b>UNO!</b>")
+    chan.add("\n🌟 <b>UNO!</b>")
 
 
-@er.handler(event=GameEvents.PLAYER_TAKE)
-async def player_take_cards(ctx: EventContext) -> None:
+@er.event(GameEvents.PLAYER_TAKE)
+async def player_take_cards(event: Event, chan: MessageChannel) -> None:
     """Оповещает что пользователь взял карты."""
-    # Костыль, не трогать позязя
-    if ctx._channel.lobby_message is None:
-        ctx.add(
-            f"🃏 {ctx.event.player.name} Берёт {ctx.event.data} "
-            f"{plural_form(int(ctx.event.data), ('карту', 'карты', 'карт'))}"
+    if chan.lobby_message is None:
+        chan.add(
+            f"🃏 {event.player.name} Берёт {event.data} "
+            f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
         )
-        await ctx.send()
+        await chan.send()
 
 
-@er.handler(event=GameEvents.PLAYER_BLUFF)
-async def player_bluffing(ctx: EventContext) -> None:
+@er.event(GameEvents.PLAYER_BLUFF)
+async def player_bluffing(event: Event, chan: MessageChannel) -> None:
     """Если изволите блефовать."""
-    if ctx.event.game.bluff_player is None:
-        ctx.add("🎩 <b>Никто не блефовал</b>!")
+    if event.game.bluff_player is None:
+        chan.add("🎩 <b>Никто не блефовал</b>!")
     else:
-        player, bluff_flag = ctx.event.game.bluff_player
+        player, bluff_flag = event.game.bluff_player
         if player is not None and bluff_flag:
-            ctx.add("🔎 <b>Замечен блеф</b>!")
+            chan.add("🔎 <b>Замечен блеф</b>!")
         else:
-            ctx.add(f"🎩 {player.name} <b>Честный игрок</b>!")
+            chan.add(f"🎩 {player.name} <b>Честный игрок</b>!")
 
 
-@er.handler(event=GameEvents.PLAYER_INTERVENED)
-async def on_intervention(ctx: EventContext) -> None:
+@er.event(GameEvents.PLAYER_INTERVENED)
+async def on_intervention(event: Event, chan: MessageChannel) -> None:
     """Если игрок вмешивается в игру и перехватывает ход."""
-    ctx.add(f"⚡ {ctx.event.player.name} <b>навёл суеты!</b>")
-    await ctx.send()
+    chan.add(f"⚡ {event.player.name} <b>навёл суеты!</b>")
+    await chan.send()
