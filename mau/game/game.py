@@ -10,7 +10,6 @@ from mau.deck.deck import Deck
 from mau.deck.presets import DeckGenerator
 from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
-from mau.exceptions import LobbyClosedError
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 from mau.game.rules import GameRules
@@ -112,7 +111,7 @@ class UnoGame:
         logger.warning(self.pm._cp)
         self.push_event(self.player, GameEvents.GAME_TURN)
 
-    def join_player(self, user: BaseUser) -> Player:
+    def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
         player = self.pm.get_or_none(user.id)
@@ -120,7 +119,7 @@ class UnoGame:
             return player
 
         if not self.open:
-            raise LobbyClosedError from None
+            return None
 
         player = Player(self, user.id, user.name)
         self.pm.add(player)

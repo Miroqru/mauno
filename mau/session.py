@@ -10,7 +10,6 @@ from loguru import logger
 
 from mau.enums import GameEvents
 from mau.events import BaseEventHandler, DebugEventHandler
-from mau.exceptions import NoGameInChatError
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
