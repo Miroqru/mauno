@@ -19,7 +19,7 @@ from mau.session import SessionManager
 from maubot import filters, keyboards
 from maubot.config import config
 from maubot.events.journal import MessageChannel
-from maubot.messages import HELP_MESSAGE, NO_ROOM_MESSAGE, get_room_status
+from maubot.messages import HELP_MESSAGE, game_status
 
 router = Router(name="Sessions")
 
@@ -52,7 +52,7 @@ async def create_game(
         else:
             channel.lobby_message = None
             await channel.send_lobby(
-                get_room_status(game),
+                game_status(game),
                 reply_markup=keyboards.get_room_markup(game),
             )
         return
@@ -66,6 +66,7 @@ async def create_game(
     )
 
 
+# TODO: Переименуем :)
 @router.message(Command("start"))
 async def start_gama(message: Message, game: UnoGame | None) -> None:
     """Запускает игру в комнате."""
@@ -74,7 +75,7 @@ async def start_gama(message: Message, game: UnoGame | None) -> None:
         return None
 
     if game is None:
-        await message.answer(NO_ROOM_MESSAGE)
+        raise NoGameInChatError
 
     elif game.started:
         await message.answer("👀 Игра уже началась ранее.")

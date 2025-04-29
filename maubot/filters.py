@@ -12,7 +12,13 @@ from aiogram.types import CallbackQuery, Message
 
 from maubot.config import sm
 from maubot.context import get_context
-from maubot.messages import NO_JOIN_MESSAGE, NO_ROOM_MESSAGE
+from maubot.messages import NO_ROOM_MESSAGE
+
+NO_JOIN_MESSAGE = (
+    "🍓 Для начала надо <b>зайти в комнату</b>.\n"
+    "🍰 Сделать это можно командой /join.\n"
+    "🔑 Если комната <b>закрыта</b> дождитесь окончания игры."
+)
 
 
 async def _send(event: CallbackQuery | Message, message: str) -> None:

@@ -24,7 +24,7 @@ from maubot.context import get_context
 from maubot.events.journal import MessageJournal
 from maubot.events.router import er
 from maubot.handlers import ROUTERS
-from maubot.messages import get_error_message
+from maubot.messages import describe_error
 
 # Константы
 # =========
@@ -83,8 +83,11 @@ async def catch_errors(event: ErrorEvent) -> None:
     else:
         message = None
 
-    if message is not None:
-        await message.answer(get_error_message(event.exception))
+    if message is None:
+        logger.warning("No Message to send exception")
+        return
+
+    await message.answer(describe_error(event.exception))
 
 
 # Главная функция запуска бота

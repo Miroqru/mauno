@@ -16,7 +16,7 @@ er = EventRouter()
 async def start_session(event: Event, chan: MessageChannel) -> None:
     """Отправляет лобби, когда начинается новая игра в чате."""
     lobby_message = (
-        f"{messages.get_room_status(event.game)}\n\n"
+        f"{messages.game_status(event.game)}\n\n"
         f"🔥 {event.player.name}, Начинает новую игру!"
     )
     await chan.send_lobby(
@@ -39,12 +39,17 @@ async def end_session(event: Event, chan: MessageChannel) -> None:
 async def start_game(event: Event, chan: MessageChannel) -> None:
     """Оповещает о начале новой игры."""
     await chan.send_lobby(
-        message=messages.get_room_status(event.game),
+        message=messages.game_status(event.game),
         reply_markup=None,
     )
     await chan.clear()
     await chan.send_card(stickers.normal[event.game.deck.top.to_str()])
-    chan.add(messages.get_new_game_message(event.game))
+    chan.add("🌳 Да начнётся <b>Новая игра!</b>!")
+    chan.add(f"✨ Игру начинает {event.game.player.name}.")
+    chan.add(
+        f"{messages.game_rules_list(event.game)}"
+        "/close если не хотите чтобы вашей игре помешали.\n"
+    )
     await chan.send()
 
 
@@ -52,7 +57,7 @@ async def start_game(event: Event, chan: MessageChannel) -> None:
 async def end_game(event: Event, chan: MessageChannel) -> None:
     """Завершает игру в чате."""
     sm.remove(event.game.room_id)
-    chan.add(messages.end_game_message(event.game))
+    chan.add(messages.end_game_players(event.game.pm))
     chan.set_markup(keyboards.NEW_GAME_MARKUP)
     await chan.send()
 
@@ -62,7 +67,7 @@ async def join_player(event: Event, chan: MessageChannel) -> None:
     """Оповещает что пользователь зашёл в игру."""
     if not event.game.started:
         lobby_message = (
-            f"{messages.get_room_status(event.game)}\n\n"
+            f"{messages.game_status(event.game)}\n\n"
             f"👋 {event.player.name} зашёл в комнату!"
         )
         await chan.send_lobby(
@@ -80,7 +85,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
     """Оповещает что пользователь вышел из игры."""
     if chan.lobby_message is not None and not event.game.started:
         lobby_message = (
-            f"{messages.get_room_status(event.game)}\n\n"
+            f"{messages.game_status(event.game)}\n\n"
             f"👋 {event.player.name} покинул комнату!"
         )
         await chan.send_lobby(
@@ -137,7 +142,7 @@ async def next_turn(event: Event, chan: MessageChannel) -> None:
 async def rotate_cards(event: Event, chan: MessageChannel) -> None:
     """Все игрока обменялись картами, возвращает сколько карт у игроков."""
     chan.add("🌀 Обмениваемся <b>картами</b>!")
-    chan.add(messages.get_room_players(event.game))
+    chan.add(messages.players_list(event.game.pm, event.game.reverse, False))
 
 
 @er.event(GameEvents.GAME_STATE)

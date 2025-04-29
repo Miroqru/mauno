@@ -8,7 +8,7 @@ from datetime import datetime
 
 from mau import exceptions
 from mau.game.game import UnoGame
-from maubot.config import config
+from mau.game.player_manager import PlayerManager
 
 # Когда пользователь пишет сообщение /help
 # Немного рассказывает про бота и как им пользоваться
@@ -31,16 +31,11 @@ HELP_MESSAGE = (
 
 # Игровые комнаты ------------------------------------------------------
 
+# TODO: Переместим
 # Если в данном чате ещё не создано ни одной комнаты
 NO_ROOM_MESSAGE = (
     "👀 В данном чате ещё <b>нет игровой комнаты</b>.\n"
     "🍰 Вы можете <b>создайте новую</b> при помощи команды /game."
-)
-
-NO_JOIN_MESSAGE = (
-    "🍓 Для начала надо <b>зайти в комнату</b>.\n"
-    "🍰 Сделать это можно командой /join.\n"
-    "🔑 Если комната <b>закрыта</b> дождитесь окончания игры."
 )
 
 
@@ -57,77 +52,67 @@ def plural_form(n: int, v: tuple[str, str, str]) -> str:
     return v[2 if (4 < n % 100 < 20) else (2, 0, 1, 1, 1, 2)[min(n % 10, 5)]]  # noqa: PLR2004
 
 
-def get_str_timedelta(seconds: int) -> str:
+def time_delta(seconds: int) -> str:
     """Возвращает строковое представление времени из количества секунд.
 
     Модификатор времени автоматически склоняется в зависимости от времени.
     """
-    m, s = divmod(seconds, 60)
-    if m == 0:
-        return f"{s} {plural_form(m, ('секунду', 'секунды', 'секунд'))}"
-    if s == 0:
-        return f"{m} {plural_form(m, ('минуту', 'минуты', 'минут'))}"
-    return (
-        f"{m} {plural_form(m, ('минуту', 'минуты', 'минут'))} и "
-        f"{s} {plural_form(m, ('секунду', 'секунды', 'секунд'))}"
-    )
+    h, r = divmod(seconds, 3600)
+    m, s = divmod(r, 60)
+    res = ""
+
+    if h != 0:
+        res += f"{m} {plural_form(m, ('час', 'часа', 'часов'))} "
+    if m != 0:
+        res += f"{m} {plural_form(m, ('минуту', 'минуты', 'минут'))} "
+    if s != 0:
+        res += f"{s} {plural_form(m, ('секунду', 'секунды', 'секунд'))}"
+    return res
+
+
+_MEDALS = ("🥇", "🥈", "🥉")
+
+
+def place_medal(i: int) -> str | None:
+    """Возвращает медаль за место в рейтинге."""
+    return _MEDALS[i] if i < len(_MEDALS) else None
 
 
 # Динамические сообщения
-#  =====================
+# ======================
 
 
-def get_room_rules(game: UnoGame) -> str:
+def game_rules_list(game: UnoGame) -> str:
     """Получает включенные игровые правила для текущей комнаты.
 
     Отображает список правил и общее количество включенных правил.
     Если ничего не выбрано, то вернёт пустую строку.
     """
     rule_list = ""
-    active_rules = 0
     for name, status in game.rules.iter_rules():
         if status:
-            active_rules += 1
-            rule_list += f"\n- {name}"
-
-    if active_rules == 0:
-        return ""
-    return f"🔥 Выбранные правила {active_rules}:{rule_list}"
+            rule_list += f"- {name}\n"
+    return f"🪄 Игровые правила\n:{rule_list}" if rule_list != "" else ""
 
 
-def get_all_room_players(game: UnoGame) -> str:
-    """Собирает список участников игры без описания карт и текущего игрока.
+def players_list(pm: PlayerManager, reverse: bool, shotgun: bool) -> str:
+    """Список игроков для текущей комнаты.
 
-    Используется в комнате до начала игры, поскольку тут не нужно знать
-    кто начал игру, сколько у кого карт и так далее.
-
-    Если игроков в комнате ещё нет, вернёт милое сообщение что в комнате
-    ещё пусто.
+    Отображает порядок хода, список всех игроков.
+    Активного игрока помечает жирным шрифтом.
+    Также указывает количество карт и выстрелов из револьвера.
     """
-    if len(game.pm) == 0:
-        return "✨ В комнате пока никого нету.\n"
-    players_list = f"✨ всего игроков {len(game.pm)}:\n"
-    for player in game.pm.iter():
-        players_list += f"- {player.name}\n"
-    return players_list
+    reverse_sim = "◀️" if reverse else "▶️"
+    res = f"✨ Игроки {reverse_sim}:\n"
+    for i, player in enumerate(pm.iter()):
+        shotgun_stat = f" {player.shotgun.cur} / 8 🔫" if shotgun else ""
+        name = f"<b>{player.name}</b>" if player == pm.current else player.name
+        res += f"- {name} 🃏{len(player.hand)} {shotgun_stat}\n"
+    return res
 
 
-def get_new_game_message(game: UnoGame) -> str:
-    """Сообщение о начале новой игры в комнате.
-
-    Показывает кто первым ходит, полный список игроков и выбранные
-    режимы игры.
-    """
-    return (
-        "🌳 Да начнётся <b>Новая игра!</b>!\n"
-        f"✨ И первым у нас ходит {game.player.name}\n"
-        f"{get_room_rules(game)}\n"
-        "/close если не хотите чтобы вашей игре помешали.\n"
-    )
-
-
-def get_room_status(game: UnoGame) -> str:
-    """Отображает статус текущей комнаты.
+def game_status(game: UnoGame) -> str:
+    """Возвращает статус текущей игры.
 
     Используется и при создании новой комнаты.
     Показывает список игроков и полезные команды.
@@ -138,11 +123,12 @@ def get_room_status(game: UnoGame) -> str:
     далее.
     """
     if not game.started:
+        room_players = ", ".join(pl.name for pl in game.pm.iter())
         return (
-            f"☕ <b>Игровая комната</b> 🪄 {game.owner.name}!\n"
-            f"{get_all_room_players(game)}\n"
-            "⚙️ Игровые <b>правила</b> позволяют сделать игру более весёлой.\n"
-            "✨ Время присоединиться к игре!"
+            f"☕ <b>Игровая комната</b> {game.owner.name}!\n"
+            f"✨ всего игроков {len(game.pm)}:\n{room_players}\n"
+            "🪄 Игровые <b>правила</b> позволяют сделать игру более весёлой.\n"
+            "🍉 Время присоединиться к игре!"
         )
 
     if game.rules.single_shotgun.status:
@@ -151,22 +137,21 @@ def get_room_status(game: UnoGame) -> str:
         shotgun_stats = ""
 
     now = datetime.now()
-    game_delta = get_str_timedelta(int((now - game.game_start).total_seconds()))
-    turn_delta = get_str_timedelta(int((now - game.turn_start).total_seconds()))
+    game_delta = time_delta(int((now - game.game_start).total_seconds()))
+    turn_delta = time_delta(int((now - game.turn_start).total_seconds()))
     return (
         f"☕ <b>Игровая комната</b> {game.owner.name}:\n"
         f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
-        f"🦝 <b>Сейчас ход</b> {game.player.name} "
-        f"(прошло {turn_delta})\n\n"
-        f"{get_room_players(game)}\n"
-        f"{get_room_rules(game)}\n"
-        f"⏳ <b>Игра идёт</b> {game_delta}\n"
+        f"🦝 <b>Ход</b> {game.player.name}, прошло {turn_delta}\n"
+        f"⏳ <b>Игра идёт</b> {game_delta}\n\n"
+        f"{players_list(game.pm, game.reverse, game.rules.shotgun.status)}\n"
+        f"{game_rules_list(game)}"
         f"📦 <b>карт</b> в колоде: {len(game.deck.cards)} доступно / "
         f"{len(game.deck.used_cards)} использовано.\n{shotgun_stats}"
     )
 
 
-def get_error_message(exc: Exception) -> str:
+def describe_error(exc: Exception) -> str:
     """Возвращает сообщение об ошибке."""
     if isinstance(exc, exceptions.NoGameInChatError):
         return NO_ROOM_MESSAGE
@@ -178,46 +163,18 @@ def get_error_message(exc: Exception) -> str:
             "комнату или дождаться окончания игра."
         )
 
-    return f"👀 Что-то пошло не по плану...\n\n{exc}"
+    return f"👀 <b>Что-то пошло не по плану</b>...\n{exc}"
 
 
-def end_game_message(game: UnoGame) -> str:
+def end_game_players(pm: PlayerManager) -> str:
     """Сообщение об окончании игры.
 
-    Отображает список победителей текущей комнаты и проигравших.
-    Ну и полезные команды, если будет нужно создать новую игру.
+    Содержит список победителей и проигравших.
     """
-    res = "✨ <b>Игра завершилась</b>!\n"
-    for i, winner in enumerate(game.pm.iter(game.pm.winners)):
-        res += f"{i + 1}. {winner.name}\n"
-    res += "\n👀 Проигравшие:\n"
-    for i, loser in enumerate(game.pm.iter(game.pm.losers)):
+    res = "🎉 <b>Игра завершилась</b>!\n"
+    for i, winner in enumerate(pm.iter(pm.winners)):
+        res += f"{place_medal(i) or f'{i + 1}'}. {winner.name}\n"
+    res += "\n🎀 Проигравшие:\n"
+    for i, loser in enumerate(pm.iter(pm.losers)):
         res += f"{i + 1}. {loser.name}\n"
     return res
-
-
-def get_room_players(game: UnoGame) -> str:
-    """Собирает список игроков для текущей комнаты.
-
-    Отображает порядок хода, список всех игроков.
-    Активного игрока помечает жирным шрифтом.
-    Также указывает количество карт и выстрелов из револьвера.
-    """
-    reverse_sim = "🔺" if game.reverse else "🔻"
-    players_list = f"✨ Игроки ({len(game.pm)}{reverse_sim}):\n"
-    for i, player in enumerate(game.pm.iter()):
-        if game.rules.shotgun.status:
-            shotgun_stat = f" {player.shotgun.cur} / 8 🔫"
-        else:
-            shotgun_stat = ""
-
-        # FIXME: как-то оптимизации бы
-        if player == game.pm.current:
-            players_list += (
-                f"- <b>{player.name}</b> 🃏{len(player.hand)} {shotgun_stat}\n"
-            )
-        else:
-            players_list += (
-                f"- {player.name} 🃏{len(player.hand)} {shotgun_stat}\n"
-            )
-    return players_list

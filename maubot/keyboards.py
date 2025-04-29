@@ -18,7 +18,7 @@ from mau.game.game import UnoGame
 from mau.game.player import Player
 from mau.game.rules import GameRules, Rule
 from maubot.config import config, stickers
-from maubot.messages import get_room_status
+from maubot.messages import game_status
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
 NO_GAME_QUERY = InlineQueryResultArticle(
@@ -116,7 +116,7 @@ def get_hand_cards(player: Player) -> Iterator[InlineQueryResultCachedSticker]:
             id=f"status:{i}",
             sticker_file_id=stickers.not_playable[cover_card.to_str()],
             input_message_content=InputTextMessageContent(
-                message_text=get_room_status(player.game)
+                message_text=game_status(player.game)
             ),
         )
 
