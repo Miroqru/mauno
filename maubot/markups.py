@@ -135,7 +135,7 @@ def select_player(pm: PlayerManager, skip_button: bool) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 # TODO: Ну когда там username
                 text=f"{pl.name} ({len(pl.hand)} 🃏)",
-                callback_data=f"select_player:{i}",
+                callback_data=f"select_player:{pl.user_id}",
             )
         ]
         for i, pl in pm.iter_others()

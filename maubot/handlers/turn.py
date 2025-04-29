@@ -86,13 +86,13 @@ async def choose_color_call(
 
 
 @router.callback_query(
-    F.data.regexp(r"select_player:(\d)").as_("index"), NowPlaying()
+    F.data.regexp(r"select_player:(\d+)").as_("user_id"), NowPlaying()
 )
 async def select_player_call(
-    query: CallbackQuery, game: UnoGame, player: Player, index: re.Match[str]
+    query: CallbackQuery, game: UnoGame, player: Player, user_id: re.Match[str]
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
-    other_player = game.pm.get(index.groups()[0])
+    other_player = game.pm.get(user_id.groups()[0])
     if game.state == GameState.TWIST_HAND:
         player.twist_hand(other_player)
 

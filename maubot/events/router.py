@@ -58,8 +58,8 @@ async def end_game(event: Event, chan: MessageChannel) -> None:
     """Завершает игру в чате."""
     chan.add(messages.end_game_players(event.game.pm))
     chan.set_markup(markups.NEW_GAME_MARKUP)
-    sm.remove(event.game.room_id)
     await chan.send()
+    sm.remove(event.game.room_id)
 
 
 @er.event(GameEvents.GAME_JOIN)
