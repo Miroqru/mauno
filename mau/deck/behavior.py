@@ -1,4 +1,21 @@
-"""Поведение карты."""
+"""Поведение карты.
+
+Предоставляет заготовленные поведения на действия для карты.
+
+Замена для типов карт:
+
+- UnoBehavior: Стандартное поведение всех карт Uno.
+- TurnBehavior: Пропуск хода для следующего игрока.
+- ReverseBehavior: Разворот порядка ходов.
+- TakeBehavior: Взятие карт для следующего игрока.
+- ColorBehavior: Выбор цвета для карты.
+- ColorTakeBehavior: Выбор цвета и взятие карт для следующего игрока.
+
+Особые поведения:
+
+- TwistBehavior: Обмен картами между двумя игроками.
+- RotateBehavior: Обмен картами между всеми игроками.
+"""
 
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
@@ -13,21 +30,47 @@ if TYPE_CHECKING:
 
 
 class BaseBehavior(ABC):
-    """Поведение карты."""
+    """базовое поведение карты.
+
+    К каждой карте можно привязать поведение, которое будет определять
+    её действия на некоторые игровые события.
+    Например при использовании карты они может пропустить игрока,
+    развернуть порядок ходов или увеличить счётчик взятия карт.
+
+    Определяет интерфейс поведения карты на игровые действия.
+    """
 
     @abstractmethod
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
-        """Активное действие карты во время её разыгрывания."""
+        """Активное действие карты во время её разыгрывания.
+
+        Вызывается, когда игрок кладёт кладёт верхнюю карту на верх
+        колоды.
+
+        Args:
+            card: Для какой карты было вызвано действие.
+            game: В какой игре происходит действие.
+
+        """
         pass
 
     @abstractmethod
     def prepare_used(self, card: "UnoCard") -> None:
-        """Подготовка карты к повторному использованию."""
+        """Подготовка карты к повторному использованию.
+
+        Args:
+            card: Для какой карты вызвано действие.
+
+        """
         pass
 
 
 class UnoBehavior(BaseBehavior):
-    """Стандартное поведение для карты Уно."""
+    """Базовое поведение для карт Уно.
+
+    По умолчанию записывает действия в журнал.
+    Наследники переопределяет базовое поведение.
+    """
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Записывает в журнал использование карты."""
@@ -39,10 +82,13 @@ class UnoBehavior(BaseBehavior):
 
 
 class TwistBehavior(UnoBehavior):
-    """Обмен руками с другим игроком."""
+    """Обмен картами с другим игроком."""
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
-        """переходит в состояния обмена руками с другим игроком."""
+        """переходит в состояния обмена картами с другим игроком.
+
+        Срабатывает если включено правило: `twist_hand`.
+        """
         if game.rules.twist_hand.status:
             game.set_state(GameState.TWIST_HAND)
 
@@ -51,17 +97,19 @@ class RotateBehavior(UnoBehavior):
     """Обмен картами между всеми игроками."""
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
-        """Обменивает карты между всеми игроками, если включено правило."""
+        """Обменивает карты между всеми игроками.
+
+        Срабатывает если включено правило: `rotate_cards`.
+        """
         if game.rules.rotate_cards.status:
             game.rotate_cards()
 
 
 class TurnBehavior(UnoBehavior):
-    """Пропуск игрока."""
+    """Пропуск следующего игрока."""
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Пропускает N игроков, где N - значение карты."""
-        logger.info("Skip {} players", card.value)
         game.skip_players(card.value)
 
 
@@ -71,7 +119,7 @@ class ReverseBehavior(UnoBehavior):
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Разворачивает порядок ходов в игре.
 
-        Если осталось 2 игрока, действует как карта пропуска хода.
+        Если осталось 2 игрока, действует как пропуск следующего игрока.
         """
         if len(game.pm) == 2:  # noqa
             game.skip_players()
@@ -81,7 +129,7 @@ class ReverseBehavior(UnoBehavior):
 
 
 class TakeBehavior(UnoBehavior):
-    """Взятие карт."""
+    """Взять карты для следующего игрока."""
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Увеличивает счётчик взятия карт на значение карты."""
@@ -95,10 +143,10 @@ class TakeBehavior(UnoBehavior):
 # ===========
 
 
-class WildBehavior(UnoBehavior):
+class BaseWildBehavior(UnoBehavior):
     """Поведение диких карт.
 
-    После использования их цвет возвращается к обычному.
+    После возвращения в колоду их цвет возвращается к чёрному.
     """
 
     def prepare_used(self, card: "UnoCard") -> None:
@@ -113,28 +161,40 @@ class WildBehavior(UnoBehavior):
         game.player.push_event(GameEvents.GAME_SELECT_COLOR, str(card.color))
 
 
-class ColorBehavior(WildBehavior):
-    """Выбор цвета для карты."""
+class ColorBehavior(BaseWildBehavior):
+    """Карта выбора цвета."""
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
-        """Выбирает новый цвет для карты."""
+        """Выбирает новый цвет для карты.
+
+        - При правиле `auto_choose_color` сам выбирает цвет.
+        - При правиле `random_color` выбирает случайный цвет.
+        - Иначе переходит в состояние выбора цвета.
+        """
         if game.rules.auto_choose_color.status:
             self._auto_select_color(card, game)
         elif not game.rules.random_color.status:
             game.set_state(GameState.CHOOSE_COLOR)
 
 
-class ColorTakeBehavior(WildBehavior):
+class ColorTakeBehavior(BaseWildBehavior):
     """Выбор цвета и взятие карт.
 
-    Представляет собой комбинацию из карты взятия и выбора цвета.
-    Использоваться можно только в случаях, когда нет других карт.
-    Выставляет флаг блефа.
-    Следующий игрок сможет проверить текущего игрока на честность.
+    Представляет собой комбинацию из поведения взятия и выбора цвета.
+    Использовать можно только в случаях, когда нет других карт.
+    Иначе выставляет флаг блефа в True.
+    Следующий игрок сможет проверить  игрока на честность.
     """
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
-        """Выбирает новый цвет для карты."""
+        """Выбирает новый цвет для карты и увеличивает счётчик взятия.
+
+        Устанавливает флаг блефа для текущего игрока.
+
+        - При правиле `auto_choose_color` сам выбирает цвет.
+        - При правиле `random_color` выбирает случайный цвет.
+        - Иначе переходит в состояние выбора цвета.
+        """
         if game.rules.auto_choose_color.status:
             self._auto_select_color(card, game)
         elif not game.rules.random_color.status:

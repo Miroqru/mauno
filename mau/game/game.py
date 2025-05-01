@@ -154,6 +154,7 @@ class UnoGame:
 
         В зависимости от направления игры пропускает несколько игроков.
         """
+        logger.info("Skip {} players", n)
         self.pm.next(n, self.reverse)
 
     def rotate_cards(self) -> None:
