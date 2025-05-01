@@ -6,6 +6,7 @@ from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    Message,
 )
 
 from mau.deck.presets import CARD_PRESETS, CardGroup, DeckGenerator, DeckPreset
@@ -69,6 +70,8 @@ async def get_deck_editor(query: CallbackQuery, game: UnoGame) -> None:
         game.deck_generator.preset_name,
         DeckPreset("Свой", "Время творить чудеса", []),
     )
+    if query.message is None:
+        raise ValueError("No callback message to answer")
     await query.message.answer(
         deck_editor_message(game.deck_generator, preset),
         reply_markup=get_presets(CARD_PRESETS, game.deck_generator.preset_name),
@@ -92,6 +95,8 @@ async def set_deck_preset(
         game.deck_generator.preset_name,
         DeckPreset("Свой", "Время творить чудеса", []),
     )
+    if not isinstance(query.message, Message):
+        raise ValueError("No callback message to edit_text")
     await query.message.edit_text(
         deck_editor_message(game.deck_generator, preset),
         reply_markup=get_presets(CARD_PRESETS, game.deck_generator.preset_name),

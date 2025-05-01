@@ -93,9 +93,13 @@ async def call_checkout(event: PreCheckoutQuery) -> None:
 @router.message(F.successful_payment)
 async def finish_payment(message: Message, bot: Bot) -> None:
     """Сообщает об успешно оплате."""
+    if message.from_user is None:
+        raise ValueError("user can`t be None")
+
     donut_info = _load_donuts(DONUT_PATH)
     user = donut_info.donuts.get(
-        message.from_user.id, Donut(message.from_user.mention_html(), 0)
+        message.from_user.id,
+        Donut(name=message.from_user.mention_html(), amount=0),
     )
     user.amount += 10
     donut_info.donuts[message.from_user.id] = user
