@@ -1,0 +1,120 @@
+
+# Project information
+# ===================
+
+site_name: Mau
+site_url: https://miroq.ru
+repo_url: https://github.com/miroqru/mauno
+repo_name: Mauno
+edit_uri: blob/main/docs/
+site_description: Play Mau with your friends in Telegram chats
+site_author: Milinuri Nirvalen
+copyright: 2024-2025 Salormoon
+
+
+# Documentation layout
+# ====================
+
+nav:
+  - Home: index.md
+  - Users:
+    - use/index.md
+    - commands: use/commands.md
+    - game: use/game.md
+    - install: use/install.md
+    - rules: use/rules.md
+  - Mau:
+    - mau/index.md
+    - enums: mau/enums.md
+    - events: mau/events.md
+    - storage: mau/storage.md
+    - session: mau/session.md
+    - deck:
+      - mau/deck/index.md
+      - behavior: mau/deck/behavior.md
+      - card: mau/deck/card.md
+      - deck: mau/deck/deck.md
+      - generator: mau/deck/generator.md
+      - presets: mau/deck/presets.md
+    - game:
+      - mau/game/index.md
+      - game: mau/game/game.md
+      - player_manager: mau/game/player_manager.md
+      - player: mau/game/player.md
+      - rules: mau/game/rules.md
+      - shotgun: mau/game/shotgun.md
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+    absolute_links: info
+
+
+# Theme settings
+# ==============
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: black
+    accent: teal
+  font:
+    text: Ubuntu
+    code: JetBrains Mono
+  language: ru
+  logo: assets/logo.png
+  features:
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - navigation.footer
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/miroqru
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/mili_qlaster
+  generator: false
+
+# Auto docstings settings
+# ======================
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+            parameter_headings: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            docstring_section_style: list
+            merge_init_into_class: true
+            show_if_no_docstring: true
+            show_overloads: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            separate_signature: true
+            group_by_category: true
+
+# Live preview
+# ============
+
+strict: true
+

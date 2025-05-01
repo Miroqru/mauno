@@ -1,0 +1,3 @@
+# Игрок
+
+::: mau.game.player

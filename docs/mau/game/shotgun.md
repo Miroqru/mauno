@@ -1,0 +1,3 @@
+# Револьвер
+
+::: mau.game.shotgun
