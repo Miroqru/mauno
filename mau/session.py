@@ -1,7 +1,6 @@
-"""Хранилище игровых сессий.
+"""Менеджер сессий.
 
-Занимается общей обработкой всех существующих сессий.
-Отвечает за создание новых игр и привязыванию их к чату.
+Предоставляет высокоуровневый класс для работы с игровыми сессиями.
 """
 
 from typing import Generic, TypeVar, cast
@@ -19,10 +18,22 @@ _H = TypeVar("_H", bound=BaseEventHandler)
 
 
 class SessionManager(Generic[_H]):
-    """Управляет всеми играми Uno.
+    """Менеджер сессий.
 
-    Каждая игра (сессия) привязывается к конкретному чату.
-    Предоставляет методы для создания и завершения сессий.
+    Высокоуровневый класс для управления сессиями и игроками.
+    Привязывается к хранилищам сессий и игрока.
+    Предоставляет высокоуровневые методы для создания и удаления игр.
+
+    Args:
+        game_storage: Хранилище для игр. По умолчания в оперативной памяти.
+            Каждая созданная игра связывается с идентификатором `room_id`.
+            Таким образом в одном чате может находиться только одна комната.
+        player_storage: Хранилище для игроков.
+            По умолчанию в оперативной памяти.
+            Каждый игрок может находиться только в одной игре.
+        event_handler: Обработчик событий. Поставляется в игры для обработку
+            всех происходящих событий.
+
     """
 
     __slots__ = ("_games", "_players", "_event_handler")
@@ -38,34 +49,46 @@ class SessionManager(Generic[_H]):
         self._event_handler = event_handler or cast(_H, DebugEventHandler())
 
     def set_handler(self, handler: _H) -> None:
-        """Устанавливает обработчик событий."""
+        """Устанавливает новый обработчик событий."""
         self._event_handler = handler
 
     def player(self, user_id: str) -> Player | None:
-        """Получает экземпляр игры, в которой находится игрок.
-
-        Если такой игры нет - выплюнет исключение.
-        """
+        """Возвращает игрока напрямую из хранилища по ID пользователя."""
         return self._players.get(user_id)
 
     def room(self, room_id: str) -> UnoGame | None:
-        """Возвращает игру по указанному ID комнаты."""
+        """Возвращает игру напрямую из хранилища по ID комнаты."""
         return self._games.get(room_id)
 
-    def create(self, room_id: str, user: BaseUser) -> UnoGame:
-        """Создает новую игру в чате."""
-        logger.info("User {} Create new game session in {}", user, room_id)
+    def create(self, room_id: str, owner: BaseUser) -> UnoGame:
+        """Создает новую игру.
+
+        Автоматически поставляет менеджер игроков и обработчик событий
+        для игры.
+        Добавляет созданную игру в хранилище игр.
+        Отправляет событие `SESSION_START` о начале новой сессии.
+
+        Теперь можно добавить игроков через экземпляр игры, а после
+        запустить игру.
+
+        Args:
+            room_id: к какой комнате будет привязана игра в хранилище.
+            owner: Владелец комнаты, становится первым игроком.
+
+        """
+        logger.info("User {} Create new game session in {}", owner, room_id)
         pm = PlayerManager(self._players)
-        game = UnoGame(pm, self._event_handler, room_id, user)
+        game = UnoGame(pm, self._event_handler, room_id, owner)
         self._games.add(room_id, game)
         game.push_event(game.owner, GameEvents.SESSION_START)
         return game
 
     def remove(self, room_id: str) -> None:
-        """Полностью завершает игру в конкретном чате.
+        """Полностью завершает игру в для указанной room ID.
 
-        Если вы хотите завершить текущий кон - воспользуйтесь методов
-        `UnoGame.end()`.
+        Должна выполняться после `game.end()`, поскольку очищает
+        хранилище игроков.
+        Удаляет игру из хранилища, отправляет событие `SESSION_END`.
         """
         logger.info("End session in room {}", room_id)
         game: UnoGame = self._games.remove(room_id)
