@@ -105,8 +105,6 @@ class UnoGame:
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player!")
-        if len(self.pm.current.hand) == 0:
-            self.leave_player(self.pm.current)
         self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
@@ -143,6 +141,10 @@ class UnoGame:
         if player == self.player:
             self.take_counter = 0
 
+            # Если игрок решил закончить чёрной картой
+            if self.state == GameState.CHOOSE_COLOR:
+                self.choose_color(CardColor(randint(0, 3)))
+
         player.on_leave()
         self.pm.remove(player)
         if self.started and len(self.pm) <= 1:
@@ -172,6 +174,9 @@ class UnoGame:
 
         if len(player.hand) == 1:
             self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
+
+        if len(self.pm.current.hand) == 0:
+            self.leave_player(self.pm.current)
 
         if not self.started:
             logger.info("Game ended -> stop process turn")
