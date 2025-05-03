@@ -1,6 +1,6 @@
 # Mau(bot)
 
-<img src="./logo.png" width="512"></img>
+<img src="./docs/assets/logo.png" width="512"></img>
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)

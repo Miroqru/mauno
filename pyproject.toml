@@ -17,7 +17,15 @@ dev = [
     "aiofiles>=24.1.0",
     "icecream>=2.1.4",
     "mypy>=1.15.0",
+    "nox>=2025.2.9",
+    "pytest>=8.3.5",
     "telethon>=1.39.0",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.12",
+    "mkdocstrings>=0.29.1",
+    "mkdocstrings-python>=1.16.10",
 ]
 
 # Ruff linter ----------------------------------------------------------

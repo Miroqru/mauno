@@ -80,3 +80,4 @@ images/*.json
 images/sticker_uploader.session
 images/**/
 .env
+site/

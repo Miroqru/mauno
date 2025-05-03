@@ -18,7 +18,7 @@ from telethon.tl.functions.messages import (
 from telethon.tl.types import InputStickerSetID
 from telethon.utils import pack_bot_file_id
 
-from mau.deck import Deck
+from mau.deck_generator import DeckGenerator
 
 # Функции для проверки
 # ====================
@@ -197,8 +197,7 @@ async def main() -> None:
         items = OPTIONS
     else:
         # Жёстко получаем все доступные карты к колоде
-        deck = Deck()
-        deck.fill_debug()
+        deck = DeckGenerator.from_preset("single").get_deck()
         items = [card.to_str() for card in deck.cards]
 
     # Только сохраняем
