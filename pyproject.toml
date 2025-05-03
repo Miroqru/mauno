@@ -1,18 +1,19 @@
 [project]
-name = "maubot"
+name = "mau"
 version = "2.0"
 description = "Play Uno with your friends in Telegram chats."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
 dependencies = [
-    "aiogram>=3.20.0",
     "loguru>=0.7.3",
-    "pydantic-settings>=2.9.1",
-    "tortoise-orm>=0.25.0",
 ]
 
 [dependency-groups]
+bot = [
+    "aiogram>=3.20.0",
+    "pydantic-settings>=2.9.1",
+]
 dev = [
     "aiofiles>=24.1.0",
     "icecream>=2.1.4",
@@ -44,3 +45,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+# Build system ---------------------------------------------------------
+
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
