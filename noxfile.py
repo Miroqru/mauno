@@ -5,6 +5,14 @@ import nox
 nox.options.reuse_existing_virtualenvs = True
 nox.options.default_venv_backend = "uv"
 
+
+@nox.session(tags=["docs", "full"])
+def build_docs(session: nox.Session) -> None:
+    """Собирает документацию к проекту."""
+    session.run("uv", "sync", "--active")
+    session.run("uv", "run", "mkdocs", "build")
+
+
 # Fast check
 # ==========
 
