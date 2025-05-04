@@ -16,8 +16,8 @@ copyright: 2024-2025 Salormoon
 # ====================
 
 nav:
+  - index.md
   - Telegram:
-    - use/index.md
     - use/commands.md
     - use/game.md
     - use/install.md
@@ -30,14 +30,12 @@ nav:
     - storage: mau/storage.md
     - session: mau/session.md
     - deck:
-      - mau/deck/index.md
       - behavior: mau/deck/behavior.md
       - card: mau/deck/card.md
       - deck: mau/deck/deck.md
       - generator: mau/deck/generator.md
       - presets: mau/deck/presets.md
     - game:
-      - mau/game/index.md
       - game: mau/game/game.md
       - player_manager: mau/game/player_manager.md
       - player: mau/game/player.md

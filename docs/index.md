@@ -1,8 +1,8 @@
 # Mau(bot)
 
-<img src="../assets/logo.png" width="256"></img>
+<img src="./assets/logo.png" width="256"></img>
 
-[![License](https://img.shields.io/badge/License-AGPL%20v3-red?style=flat&labelColor=%23B38B74&color=%23FF595F)](./LICENSE)
+![License](https://img.shields.io/badge/License-AGPL%20v3-red?style=flat&labelColor=%23B38B74&color=%23FF595F)
 ![Mau version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fcodeberg.org%2FSalormoon%2Fmauno%2Fraw%2Fbranch%2Fmain%2Fpyproject.toml&query=project.version&prefix=v&style=flat&label=Mau&labelColor=%23B38B74&color=%2373FFAD)
 ![Python version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fcodeberg.org%2FSalormoon%2Fmauno%2Fraw%2Fbranch%2Fmain%2Fpyproject.toml&query=project.requires-python&style=flat&logo=python&logoColor=%23B38B74&label=python&labelColor=%23805959&color=%232185A6)
 ![Docs](https://img.shields.io/badge/docs-miroq-%2300cc99?style=flat&labelColor=%23805959&color=%2330BFB3&link=https%3A%2F%2Fmau.miroq.ru%2Fdocs%2F)
@@ -28,9 +28,9 @@ Mauno поможет вам весело провести время.
 
 ## Начало
 
-- [Документация Mau](../mau/index.md).
-- [Начало игры](game.md).
-- [Команды бота](commands.md).
-- [Игровые правила](rules.md).
-- [Локальная установка](install.md).
-- [Поддержка проекта](maintenance.md).
+- [Начало игры](use/game.md).
+- [Команды бота](use/commands.md).
+- [Игровые правила](use/rules.md).
+- [Локальная установка](use/install.md).
+- [Поддержка проекта](use/maintenance.md).
+- [Документация Mau](./mau/index.md).
