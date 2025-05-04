@@ -16,13 +16,13 @@ copyright: 2024-2025 Salormoon
 # ====================
 
 nav:
-  - Home: index.md
-  - Users:
+  - Telegram:
     - use/index.md
-    - commands: use/commands.md
-    - game: use/game.md
-    - install: use/install.md
-    - rules: use/rules.md
+    - use/commands.md
+    - use/game.md
+    - use/install.md
+    - use/rules.md
+    - use/maintenance.md
   - Mau:
     - mau/index.md
     - enums: mau/enums.md
@@ -117,4 +117,3 @@ plugins:
 # ============
 
 strict: true
-
