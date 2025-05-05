@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
 
-# TODO: Отдельно добавить имя игрока, кроме упомянашки
 @dataclass(frozen=True, slots=True)
 class BaseUser:
     """Абстрактное представление пользователя.
@@ -28,6 +27,7 @@ class BaseUser:
 
     id: str
     name: str
+    username: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,17 +45,25 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    def __init__(self, game: "UnoGame", user_id: str, user_name: str) -> None:
+    def __init__(
+        self, game: "UnoGame", user_id: str, user_name: str, user_mention: str
+    ) -> None:
         self.hand: list[UnoCard] = []
         self.game: UnoGame = game
         self.user_id = user_id
         self._user_name = user_name
+        self._user_mention = user_mention
         self.shotgun = Shotgun()
 
     @property
     def name(self) -> str:
-        """Возвращает имя игрока с упоминанием пользователя ядл бота."""
+        """Возвращает строковое имя игрока."""
         return self._user_name
+
+    @property
+    def mention(self) -> str:
+        """Возвращает упоминание игрока для отправки уведомления."""
+        return self._user_mention
 
     @property
     def can_play(self) -> bool:

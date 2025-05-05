@@ -61,7 +61,11 @@ async def create_game(
 
     game = sm.create(
         str(message.chat.id),
-        BaseUser(str(message.from_user.id), message.from_user.mention_html()),
+        BaseUser(
+            str(message.from_user.id),
+            message.from_user.first_name,
+            message.from_user.mention_html(),
+        ),
     )
 
 
@@ -123,7 +127,7 @@ async def kick_player(
     if kick_player is not None:
         channel.add(
             f"🧹 {game.owner.name} выгнал "
-            f"{kick_player.name} из игры за плохое поведение.\n"
+            f"{kick_player.mention} из игры за плохое поведение.\n"
         )
         game.leave_player(kick_player)
 
@@ -137,7 +141,7 @@ async def skip_player(
     game.player.take_cards()
     skip_player = game.player
     channel.add(
-        f"☕ {skip_player.name} потерял свои ку.. карты.\n"
+        f"☕ {skip_player.mention} потерял свои ку.. карты.\n"
         "Мы их нашли и дали игроку ещё немного карт от нас.\n"
     )
     # Иногда может быть такое, что пропускается чёрная карта
@@ -162,7 +166,11 @@ async def create_game_call(
 
     game = sm.create(
         str(query.message.chat.id),
-        BaseUser(str(query.from_user.id), query.from_user.mention_html()),
+        BaseUser(
+            str(query.from_user.id),
+            query.from_user.first_name,
+            query.from_user.mention_html(),
+        ),
     )
     await query.answer("Понеслась!")
 

@@ -68,12 +68,12 @@ class PlayerManager:
 
     def remove(self, player: Player) -> None:
         """Удаляет игрока из списка игроков."""
-        player.on_leave()
         if len(player.hand) == 0:
             self.winners.append(player.user_id)
         else:
             self.losers.append(player.user_id)
         self._players.remove(player.user_id)
+        player.on_leave()
 
     def remove_players(self) -> None:
         """Удаляет всех игроков из хранилища, связанных с текущей игрой."""

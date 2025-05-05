@@ -45,7 +45,7 @@ async def start_game(event: Event, chan: MessageChannel) -> None:
     await chan.clear()
     await chan.send_card(stickers.normal[event.game.deck.top.to_str()])
     chan.add("🌳 Да начнётся <b>Новая игра!</b>!")
-    chan.add(f"✨ Игру начинает {event.game.player.name}.")
+    chan.add(f"✨ Игру начинает {event.game.player.mention}.")
     chan.add(
         f"{messages.game_rules_list(event.game)}"
         "/close если не хотите чтобы вашей игре помешали.\n"
@@ -68,7 +68,7 @@ async def join_player(event: Event, chan: MessageChannel) -> None:
     if not event.game.started:
         lobby_message = (
             f"{messages.game_status(event.game)}\n\n"
-            f"👋 {event.player.name} зашёл в комнату!"
+            f"👋 {event.player.mention} зашёл в комнату!"
         )
         await chan.send_lobby(
             message=lobby_message,
@@ -76,7 +76,7 @@ async def join_player(event: Event, chan: MessageChannel) -> None:
         )
         return
 
-    chan.add(f"🍰 Добро пожаловать в игру, {event.player.name}!")
+    chan.add(f"🍰 Добро пожаловать в игру, {event.player.mention}!")
     await chan.send()
 
 
@@ -86,7 +86,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
     if chan.lobby_message is not None and not event.game.started:
         lobby_message = (
             f"{messages.game_status(event.game)}\n\n"
-            f"👋 {event.player.name} покинул комнату!"
+            f"👋 {event.player.mention} покидает комнату!"
         )
         await chan.send_lobby(
             message=lobby_message,
@@ -95,9 +95,9 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
         return
 
     if event.data == "win":
-        chan.add(f"👑 {event.player.name} закончил(а)!\n")
+        chan.add("👑 закончил(а)!\n")
     else:
-        chan.add(f"👋 {event.player.name} покидает комнату.")
+        chan.add(f"👋 {event.player.mention} покидает нас.")
 
     # Это может бывать выход из игры до её начала
     if not event.game.started:
@@ -121,7 +121,7 @@ async def twist_hand(event: Event, chan: MessageChannel) -> None:
     # Событие происходит после выполнения действия, потому так считаем карты
     chan.add(
         f"🤝 {event.player.name} ({len(other_player.hand)} карт) "
-        f"и {other_player.name} ({len(event.player.hand)} карт) "
+        f"и {other_player.mention} ({len(event.player.hand)} карт) "
         "обменялись картами.\n"
     )
 
@@ -132,7 +132,7 @@ async def next_turn(event: Event, chan: MessageChannel) -> None:
     await chan.clear()
     cards = len(event.game.player.hand)
     chan.add(
-        f"\n🍰 <b>ход</b>: {event.game.player.name} "
+        f"\n🍰 <b>ход</b>: {event.game.player.mention} "
         f"(🃏 {cards} {plural_form(cards, ('карту', 'карты', 'карт'))})"
     )
     await chan.send()
@@ -206,7 +206,7 @@ async def player_take_cards(event: Event, chan: MessageChannel) -> None:
         )
     else:
         chan.add(
-            f"🃏 {event.player.name} Берёт {event.data} "
+            f"🃏 {event.player.mention} Берёт {event.data} "
             f"{plural_form(int(event.data), ('карту', 'карты', 'карт'))}"
         )
 
@@ -224,11 +224,11 @@ async def player_bluffing(event: Event, chan: MessageChannel) -> None:
     if player is not None and bluff_flag:
         chan.add("🔎 <b>Замечен блеф</b>!")
     else:
-        chan.add(f"🎩 {player.name} <b>Честный игрок</b>!")
+        chan.add(f"🎩 {player.mention} <b>Честный игрок</b>!")
 
 
 @er.event(GameEvents.PLAYER_INTERVENED)
 async def on_intervention(event: Event, chan: MessageChannel) -> None:
     """Когда игрок вмешивается в игру и перехватывает ход."""
-    chan.add(f"⚡ {event.player.name} <b>навёл суеты!</b>")
+    chan.add(f"⚡ {event.player.mention} <b>навёл суеты!</b>")
     await chan.send()

@@ -68,7 +68,11 @@ def players_list(pm: PlayerManager, reverse: bool, shotgun: bool) -> str:
     res = f"✨ Игроки {reverse_sim}:\n"
     for i, player in enumerate(pm.iter()):
         shotgun_stat = f" {player.shotgun.cur} / 8 🔫" if shotgun else ""
-        name = f"<b>{player.name}</b>" if player == pm.current else player.name
+        name = (
+            f"<b>{player.mention}</b>"
+            if player == pm.current
+            else player.mention
+        )
         res += f"- {name} 🃏{len(player.hand)} {shotgun_stat}\n"
     return res
 
@@ -104,7 +108,7 @@ def game_status(game: UnoGame) -> str:
     return (
         f"☕ <b>Игровая комната</b> {game.owner.name}:\n"
         f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
-        f"🦝 <b>Ход</b> {game.player.name}, прошло {turn_delta}\n"
+        f"🦝 <b>Ход</b> {game.player.mention}, прошло {turn_delta}\n"
         f"⏳ <b>Игра идёт</b> {game_delta}\n\n"
         f"{players_list(game.pm, game.reverse, game.rules.shotgun.status)}\n"
         f"{game_rules_list(game)}"

@@ -26,7 +26,11 @@ async def join_player(message: Message, game: UnoGame) -> None:
         raise ValueError("User can`t be none")
 
     player = game.join_player(
-        BaseUser(str(message.from_user.id), message.from_user.mention_html()),
+        BaseUser(
+            str(message.from_user.id),
+            message.from_user.first_name,
+            message.from_user.mention_html(),
+        ),
     )
     if player is None:
         await message.answer(
@@ -49,7 +53,11 @@ async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
         raise ValueError("Query message should be Message instance")
 
     player = game.join_player(
-        BaseUser(str(query.from_user.id), query.from_user.mention_html())
+        BaseUser(
+            str(query.from_user.id),
+            query.from_user.first_name,
+            query.from_user.mention_html(),
+        ),
     )
     if player is None:
         await query.answer("🔒 К сожалению данная комната <b>закрыта</b>.")
@@ -66,7 +74,7 @@ async def take_cards_call(
         channel.add("🃏 Вы решили что будет проще <b>взять карты</b>.")
     else:
         game.pm.set_cp(player)
-        channel.add(f"🃏 {player.name} решил <b>взять карты</b>.")
+        channel.add(f"🃏 {player.mention} решил <b>взять карты</b>.")
 
     player.take_cards()
 
@@ -77,7 +85,7 @@ async def take_cards_call(
     ):
         game.next_turn()
     else:
-        channel.add(f"☕ {game.player.name} <b>продолжает</b>.")
+        channel.add(f"☕ {game.player.mention} <b>продолжает</b>.")
         await channel.send()
 
 
@@ -103,5 +111,5 @@ async def shotgun_call(
         if game.player == player:
             channel.add("😴 На этом игра для вас <b>закончилась</b>.\n")
         else:
-            channel.add(f"😴 {player.name} попал под пулю..\n")
+            channel.add(f"😴 {player.mention} попал под пулю..\n")
         game.leave_player(player)

@@ -38,7 +38,7 @@ class UnoGame:
         self.deck = Deck()
         self.event_handler: BaseEventHandler = event_handler
 
-        self.owner = Player(self, owner.id, owner.name)
+        self.owner = Player(self, owner.id, owner.name, owner.username)
         self.pm.add(self.owner)
 
         # TODO: Может стоит хранить не всего игрока?
@@ -121,7 +121,7 @@ class UnoGame:
         if not self.open:
             return None
 
-        player = Player(self, user.id, user.name)
+        player = Player(self, user.id, user.name, user.username)
         self.pm.add(player)
         self.push_event(player, GameEvents.GAME_JOIN)
         if self.started:
