@@ -145,7 +145,6 @@ class UnoGame:
             if self.state == GameState.CHOOSE_COLOR:
                 self.choose_color(CardColor(randint(0, 3)))
 
-        player.on_leave()
         self.pm.remove(player)
         if self.started and len(self.pm) <= 1:
             self.end()
@@ -183,11 +182,11 @@ class UnoGame:
             return
 
         if self.state in (GameState.NEXT, GameState.TAKE):
-            if self.rules.random_color.status:
-                self.choose_color(CardColor(randint(0, 3)))
             # TODO: Вынести в паттерн поведения
             if self.deck.top.cost == 1 and self.rules.side_effect.status:
                 logger.info("Player continue turn")
+            elif self.rules.random_color.status:
+                self.choose_color(CardColor(randint(0, 3)))
             else:
                 self.next_turn()
 
