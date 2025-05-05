@@ -68,6 +68,7 @@ class PlayerManager:
 
     def remove(self, player: Player) -> None:
         """Удаляет игрока из списка игроков."""
+        player.on_leave()
         if len(player.hand) == 0:
             self.winners.append(player.user_id)
         else:
@@ -92,9 +93,8 @@ class PlayerManager:
 
     def end(self) -> None:
         """Подготавливает к завершению игры."""
-        for player in self.iter(self._players):
-            player.on_leave()
-            self.losers.append(player.user_id)
+        self.losers.extend(self._players)
+        self._players = []
 
     def next(self, n: int = 1, reverse: bool = False) -> None:
         """Перемещает курсор игрока дальше."""
