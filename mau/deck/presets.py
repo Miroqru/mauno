@@ -97,6 +97,23 @@ CARD_PRESETS: dict[str, DeckPreset] = {
             CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 6),
         ),
     ),
+    "casino": DeckPreset(
+        name="🎰 Казино",
+        desc="Нет слов, одни эмоции.",
+        groups=(
+            CardGroup(CardType.NUMBER, 0, ALL_COLORS, 4),
+            CardGroup(CardType.NUMBER, 1, ALL_COLORS, 4),
+            CardGroup(CardType.NUMBER, 2, ALL_COLORS, 4),
+            CardGroup(CardType.NUMBER, 3, ALL_COLORS, 4),
+            CardGroup(CardType.NUMBER, 4, ALL_COLORS, 4),
+            CardGroup(CardType.NUMBER, 5, ALL_COLORS, 4),
+            CardGroup(CardType.REVERSE, 1, ALL_COLORS, 6),
+            CardGroup(CardType.TURN, 1, ALL_COLORS, 6),
+            CardGroup(CardType.TAKE, 2, ALL_COLORS, 6),
+            CardGroup(CardType.TAKE_FOUR, 4, [CardColor.BLACK], 8),
+            CardGroup(CardType.CHOOSE_COLOR, 0, [CardColor.BLACK], 8),
+        ),
+    ),
     "single": DeckPreset(
         name="🗑️ Отладочные",
         desc="По одной карте для каждого типа.",
