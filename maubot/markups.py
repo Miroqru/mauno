@@ -99,8 +99,9 @@ def _to_sticker(id: str, sticker: str, message: str) -> InlineSticker:
 
 def hand_query(player: Player) -> Sequence[InlineSticker]:
     """Возвращает основную клавиатуру с игровыми действиями."""
-    res = []
-    if player.game.state == GameState.TAKE:
+    if not player.can_play:
+        res = []
+    elif player.game.state == GameState.TAKE:
         res = [_to_sticker("next", stickers.options.next_turn, "👀 Пропускаю")]
     elif player == player.game.player:
         res = [_to_sticker("take", stickers.options.draw, "👀 Беру карту")]
@@ -159,16 +160,16 @@ def lobby_markup(game: UnoGame) -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="🪄 Правила", callback_data="room_rules"),
             InlineKeyboardButton(text="🃏 Колода", callback_data="deck_edit"),
+        ],
+        [
             InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
-        ]
+        ],
     ]
     if len(game.pm) >= config.min_players:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="🎮 Начать игру", callback_data="start_game"
-                )
-            ]
+        buttons[0].append(
+            InlineKeyboardButton(
+                text="🎮 Начать игру", callback_data="start_game"
+            )
         )
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
