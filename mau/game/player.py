@@ -193,6 +193,7 @@ class Player:
             self.game.bluff_player[0].take_cards()
         self.game.next_turn()
 
+    # TODO: Я чувствую тут нужна оптимизация немного
     def call_take_cards(self) -> None:
         """Действия игрока при взятии карты.
 
@@ -204,6 +205,7 @@ class Player:
         - Брать карты сейчас.
         - Выстрелить, чтобы взял следующий игрок.
         """
+        origin_counter = self.game.take_counter
         if (
             self.game.rules.take_until_cover.status
             and self.game.take_counter == 0
@@ -222,14 +224,11 @@ class Player:
             return
 
         logger.info("{} take cards", self)
-        take_counter = self.game.take_counter
         self.take_cards()
 
-        # Если пользователь выбрал взять карты, то он пропускает свой ход
-        if (
-            self.game.deck.top.card_type in (CardType.TAKE, CardType.TAKE_FOUR)
-            and take_counter
-        ):
+        # Если у игры с самого начала был счётчик карт
+        # Вероятно игрок берёт от карты +2/+4
+        if origin_counter:
             self.game.next_turn()
 
     def __str__(self) -> str:
