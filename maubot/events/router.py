@@ -176,6 +176,9 @@ async def update_game_state(event: Event, chan: MessageChannel) -> None:
         chan.add("✨ Какой бы выбрать цвет ...")
         chan.set_markup(markups.SELECT_COLOR)
 
+    elif state == GameState.TAKE:
+        chan.set_markup(chan.default_markup)
+
     else:
         logger.warning("Unprocessed state {}", state)
         return

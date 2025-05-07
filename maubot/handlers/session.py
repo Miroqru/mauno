@@ -130,6 +130,7 @@ async def kick_player(
             f"{kick_player.mention} из игры за плохое поведение.\n"
         )
         game.leave_player(kick_player)
+        await channel.send()
 
 
 @router.message(Command("skip"), filters.GameOwner())
