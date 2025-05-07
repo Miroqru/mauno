@@ -121,8 +121,8 @@ async def twist_hand(event: Event, chan: MessageChannel) -> None:
 
     # Событие происходит после выполнения действия, потому так считаем карты
     chan.add(
-        f"🤝 {event.player.name} ({len(other_player.hand)} карт) "
-        f"и {other_player.mention} ({len(event.player.hand)} карт) "
+        f"🤝 {event.player.name} ({len(other_player.hand)} 🃏) "
+        f"и {other_player.mention} ({len(event.player.hand)} 🃏) "
         "обменялись картами.\n"
     )
 

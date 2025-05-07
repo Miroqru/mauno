@@ -81,6 +81,7 @@ class UnoBehavior(BaseBehavior):
         logger.debug("Prepare card {} in game", card)
 
 
+# TODO: просто присваивать поведение вместо режима
 class TwistBehavior(UnoBehavior):
     """Обмен картами с другим игроком."""
 
@@ -89,7 +90,7 @@ class TwistBehavior(UnoBehavior):
 
         Срабатывает если включено правило: `twist_hand`.
         """
-        if game.rules.twist_hand.status:
+        if game.rules.twist_hand.status and len(game.player.hand) > 0:
             game.set_state(GameState.TWIST_HAND)
 
 
@@ -101,7 +102,7 @@ class RotateBehavior(UnoBehavior):
 
         Срабатывает если включено правило: `rotate_cards`.
         """
-        if game.rules.rotate_cards.status:
+        if game.rules.rotate_cards.status and len(game.player.hand) > 0:
             game.rotate_cards()
 
 
