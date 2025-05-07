@@ -137,13 +137,12 @@ class UnoGame:
                 self.end()
         else:
             self.push_event(player, GameEvents.GAME_LEAVE, "lose")
+            if player == self.player:
+                self.take_counter = 0
 
-        if player == self.player:
-            self.take_counter = 0
-
-            # Если игрок решил закончить чёрной картой
-            if self.state == GameState.CHOOSE_COLOR:
-                self.choose_color(CardColor(randint(0, 3)))
+        # Если игрок решил закончить чёрной картой
+        if self.state == GameState.CHOOSE_COLOR:
+            self.choose_color(CardColor(randint(0, 3)))
 
         self.pm.remove(player)
         if self.started and len(self.pm) <= 1:
