@@ -7,10 +7,8 @@ from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
-# from mau.card import TakeCard, TakeFourCard
-from mau.enums import CardType, GameState
-
-# from mau.exceptions import AlreadyJoinedError
+from mau.deck.behavior import ColorTakeBehavior, TakeBehavior
+from mau.enums import GameState
 from mau.game.game import UnoGame
 from mau.game.player import BaseUser, Player
 from maubot import filters
@@ -82,7 +80,7 @@ async def take_cards_call(
     # Если пользователь сам взял карты, то не нужно пропускать ход
     # TODO: Отвязаться от типов карт
     if (
-        game.deck.top.card_type in (CardType.TAKE, CardType.TAKE_FOUR)
+        isinstance(game.deck.top.behavior, TakeBehavior | ColorTakeBehavior)
         and take_counter
     ):
         game.next_turn()

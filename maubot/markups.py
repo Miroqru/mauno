@@ -13,7 +13,8 @@ from aiogram.types import InlineQueryResultArticle as InlineArticle
 from aiogram.types import InlineQueryResultCachedSticker as InlineSticker
 from aiogram.types import InputTextMessageContent as InputText
 
-from mau.enums import CardType, GameState
+from mau.deck.behavior import ColorTakeBehavior
+from mau.enums import GameState
 from mau.game.game import UnoGame
 from mau.game.player import Player
 from mau.game.player_manager import PlayerManager
@@ -158,7 +159,10 @@ def turn_markup(game: UnoGame) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🃏 взять", callback_data="take")
         )
 
-    if game.deck.top.card_type == CardType.TAKE_FOUR and game.take_counter:
+    if (
+        isinstance(game.deck.top.behavior, ColorTakeBehavior)
+        and game.take_counter
+    ):
         inline_keyboard[0].append(
             InlineKeyboardButton(text="🍷 блефуешь", callback_data="bluff")
         )

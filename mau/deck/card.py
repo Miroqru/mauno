@@ -3,7 +3,7 @@
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Self
 
-from mau.deck.behavior import UnoBehavior
+from mau.deck.behavior import BaseWildBehavior, UnoBehavior
 from mau.enums import CardColor, CardType
 
 if TYPE_CHECKING:
@@ -27,6 +27,7 @@ class UnoCard:
         behavior: UnoBehavior,
     ) -> None:
         self.color: CardColor = color
+        # TODO: Прощай, тип карты
         self.card_type: CardType = card_type
         self.value: int = value
         self.cost: int = cost
@@ -41,7 +42,7 @@ class UnoCard:
         Как только карты кончатся - вы победили.
         """
         return (
-            other_card.card_type in (CardType.CHOOSE_COLOR, CardType.TAKE_FOUR)
+            isinstance(other_card.behavior, BaseWildBehavior)
             or self.color == other_card.color
             or (
                 self.card_type == other_card.card_type
@@ -103,8 +104,7 @@ class UnoCard:
         return (
             (
                 self.color == other.color
-                or other.card_type
-                in (CardType.CHOOSE_COLOR, CardType.TAKE_FOUR)
+                or isinstance(other.behavior, BaseWildBehavior)
             )
             and self.card_type == other.card_type
             and self.value == other.value

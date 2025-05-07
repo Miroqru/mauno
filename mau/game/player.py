@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Self
 
 from loguru import logger
 
-from mau.enums import CardType, GameEvents, GameState
+from mau.deck.behavior import ColorTakeBehavior, TakeBehavior
+from mau.enums import GameEvents, GameState
 from mau.events import Event
 from mau.game.shotgun import Shotgun
 
@@ -114,7 +115,7 @@ class Player:
         # Если сейчас не ход игрока, то активных карт нету
         # Это для глупенького веб клиента будет полезно
         if (
-            top.card_type == CardType.TAKE_FOUR
+            isinstance(top.behavior, ColorTakeBehavior)
             and self.game.take_counter
             or self.game.state
             not in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
@@ -138,9 +139,9 @@ class Player:
                 continue
 
             if (
-                top.card_type == CardType.TAKE
+                isinstance(top.behavior, TakeBehavior)
                 and self.game.take_counter
-                and card.card_type != CardType.TAKE
+                and isinstance(card.behavior, TakeBehavior)
             ):
                 uncover.append(card)
                 continue
