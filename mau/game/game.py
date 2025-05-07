@@ -163,12 +163,17 @@ class UnoGame:
         self.push_event(self.player, GameEvents.GAME_ROTATE)
 
     def process_turn(self, card: UnoCard, player: Player) -> None:
-        """Обрабатываем текущий ход."""
+        """Обрабатываем текущий ход.
+
+        Сначала применяется действие карты.
+        А уже после она ложится на верх колоды.
+        """
         logger.info("Playing card {}", card)
+        card(self)
+
         self.deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
-        card(self)
 
         if len(player.hand) == 1:
             self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
