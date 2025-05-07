@@ -65,7 +65,7 @@ async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
         await query.answer("👋 Добро пожаловать в комнату")
 
 
-@router.callback_query(F.data == "take", filters.NowPlaying())
+@router.callback_query(F.data == "shot_take", filters.NowPlaying())
 async def take_cards_call(
     query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
 ) -> None:
@@ -76,12 +76,14 @@ async def take_cards_call(
         game.pm.set_cp(player)
         channel.add(f"🃏 {player.mention} решил <b>взять карты</b>.")
 
+    take_counter = game.take_counter
     player.take_cards()
 
     # Если пользователь сам взял карты, то не нужно пропускать ход
+    # TODO: Отвязаться от типов карт
     if (
         game.deck.top.card_type in (CardType.TAKE, CardType.TAKE_FOUR)
-        and game.take_counter
+        and take_counter
     ):
         game.next_turn()
     else:
@@ -95,7 +97,6 @@ async def shotgun_call(
 ) -> None:
     """Игрок выбирает взять карты."""
     res = player.shot()
-    channel.set_markup(channel.default_markup)
     if not res:
         game.take_counter = round(game.take_counter * 1.5)
         channel.add(

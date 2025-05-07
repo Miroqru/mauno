@@ -236,6 +236,7 @@ class Player:
 
         # Если у игры с самого начала был счётчик карт
         # Вероятно игрок берёт от карты +2/+4
+        logger.debug(origin_counter)
         if origin_counter:
             self.game.next_turn()
 

@@ -89,10 +89,10 @@ def game_status(game: UnoGame) -> str:
     далее.
     """
     if not game.started:
-        room_players = ", ".join(pl.name for pl in game.pm.iter())
+        room_players = ", ".join(pl.mention for pl in game.pm.iter())
         return (
-            f"☕ <b>Игровая комната</b> {game.owner.name}!\n"
-            f"✨ всего игроков {len(game.pm)}:\n{room_players}\n"
+            f"☕ <b>Игровая комната</b> {game.owner.mention}!\n"
+            f"✨ всего игроков {len(game.pm)}:\n{room_players}\n\n"
             "🪄 Игровые <b>правила</b> позволяют сделать игру более весёлой.\n"
             "🍉 Время присоединиться к игре!"
         )

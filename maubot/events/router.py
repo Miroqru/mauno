@@ -43,6 +43,7 @@ async def start_game(event: Event, chan: MessageChannel) -> None:
         reply_markup=None,
     )
     await chan.clear()
+    chan.set_markup(markups.turn_markup(event.game))
     await chan.send_card(stickers.normal[event.game.deck.top.to_str()])
     chan.add("🌳 Да начнётся <b>Новая игра!</b>!")
     chan.add(f"✨ Игру начинает {event.game.player.mention}.")
@@ -130,6 +131,7 @@ async def twist_hand(event: Event, chan: MessageChannel) -> None:
 async def next_turn(event: Event, chan: MessageChannel) -> None:
     """Начала следующего хода."""
     await chan.clear()
+    chan.set_markup(markups.turn_markup(event.game))
     cards = len(event.game.player.hand)
     chan.add(
         f"\n🍰 <b>ход</b>: {event.game.player.mention} "
@@ -177,7 +179,7 @@ async def update_game_state(event: Event, chan: MessageChannel) -> None:
         chan.set_markup(markups.SELECT_COLOR)
 
     elif state == GameState.TAKE:
-        chan.set_markup(chan.default_markup)
+        chan.set_markup(markups.turn_markup(event.game))
 
     else:
         logger.warning("Unprocessed state {}", state)

@@ -6,12 +6,7 @@
 import re
 
 from aiogram import F, Router
-from aiogram.types import (
-    CallbackQuery,
-    ChosenInlineResult,
-    InlineQuery,
-)
-from loguru import logger
+from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 
 from mau.deck.generator import card_from_str
 from mau.enums import CardColor, GameState
@@ -21,6 +16,7 @@ from maubot import markups
 from maubot.filters import NowPlaying
 
 router = Router(name="Turn")
+
 
 # Обработчики
 # ===========
@@ -50,27 +46,30 @@ async def process_card_handler(
     result: ChosenInlineResult, game: UnoGame, player: Player
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
-    logger.info("Process result {} in game {}", result, game)
-    if result.result_id in ("status", "nogame") or re.match(
-        r"status:\d", result.result_id
-    ):
-        return None
-
-    if player != game.player:
-        game.pm.set_cp(player)
-
-    elif result.result_id == "next":
-        game.next_turn()
-
-    elif result.result_id == "take":
-        player.call_take_cards()
-
-    elif result.result_id == "bluff":
-        player.call_bluff()
-
     card = card_from_str(result.result_id)
     if card is not None:
         game.process_turn(card, player)
+
+
+# TODO: Вернуть методы на место
+
+
+@router.callback_query(F.data == "next", NowPlaying())
+async def call_next(query: CallbackQuery, game: UnoGame) -> None:
+    """Передаёт ход следующему игроку."""
+    game.next_turn()
+
+
+@router.callback_query(F.data == "take", NowPlaying())
+async def call_take(query: CallbackQuery, player: Player) -> None:
+    """Берёт карты."""
+    player.call_take_cards()
+
+
+@router.callback_query(F.data == "bluff", NowPlaying())
+async def call_bluff(query: CallbackQuery, player: Player) -> None:
+    """Проверка игрока на честность."""
+    player.call_bluff()
 
 
 @router.callback_query(

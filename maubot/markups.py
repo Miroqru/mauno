@@ -3,7 +3,7 @@
 В тои числе клавиатура для Inline Query.
 """
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -37,7 +37,7 @@ NO_GAME_QUERY = InlineArticle(
 SHOTGUN_MARKUP = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Взять 🃏", callback_data="take"),
+            InlineKeyboardButton(text="Взять 🃏", callback_data="shot_take"),
             InlineKeyboardButton(text="🔫 Выстрелить", callback_data="shot"),
         ]
     ]
@@ -66,12 +66,8 @@ NEW_GAME_MARKUP = InlineKeyboardMarkup(
 )
 
 
-# Собираем Inline query с колодой пользователя
-# ============================================
-
-
-def _hand_cards(player: Player) -> Iterator[InlineSticker]:
-    """Возвращает карты пользователя из руки."""
+def hand_query(player: Player) -> Iterator[InlineSticker]:
+    """Возвращает основную клавиатуру с игровыми действиями."""
     player_cards = player.cover_cards()
     for i, cover_card in enumerate(player_cards.cover):
         yield InlineSticker(
@@ -87,41 +83,6 @@ def _hand_cards(player: Player) -> Iterator[InlineSticker]:
                 message_text=game_status(player.game)
             ),
         )
-
-
-def _to_sticker(id: str, sticker: str, message: str) -> InlineSticker:
-    return InlineSticker(
-        id=id,
-        sticker_file_id=sticker,
-        input_message_content=InputText(message_text=message),
-    )
-
-
-def hand_query(player: Player) -> Sequence[InlineSticker]:
-    """Возвращает основную клавиатуру с игровыми действиями."""
-    if not player.can_play:
-        res = []
-    elif player.game.state == GameState.TAKE:
-        res = [_to_sticker("next", stickers.options.next_turn, "👀 Пропускаю")]
-    elif player == player.game.player:
-        res = [_to_sticker("take", stickers.options.draw, "👀 Беру карту")]
-    else:
-        res = []
-
-    if (
-        player.game.deck.top.card_type == CardType.TAKE_FOUR
-        and player.game.take_counter
-    ):
-        res.append(
-            _to_sticker(
-                "bluff",
-                stickers.options.bluff,
-                "🍷 Ты блефуешь, показывай карты!",
-            )
-        )
-
-    res.extend(_hand_cards(player))
-    return res
 
 
 # Inline клавиатура
@@ -174,3 +135,32 @@ def lobby_markup(game: UnoGame) -> InlineKeyboardMarkup:
         )
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def turn_markup(game: UnoGame) -> InlineKeyboardMarkup:
+    """Клавиатура для хода."""
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text="🎮 Разыграть 🃏",
+                switch_inline_query_current_chat="",
+            )
+        ]
+    ]
+
+    if game.state == GameState.TAKE:
+        inline_keyboard[0].append(
+            InlineKeyboardButton(text="🍓 завершить", callback_data="next")
+        )
+
+    else:
+        inline_keyboard[0].append(
+            InlineKeyboardButton(text="🃏 взять", callback_data="take")
+        )
+
+    if game.deck.top.card_type == CardType.TAKE_FOUR and game.take_counter:
+        inline_keyboard[0].append(
+            InlineKeyboardButton(text="🍷 блефуешь", callback_data="bluff")
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

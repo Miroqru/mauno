@@ -27,27 +27,11 @@ class Config(BaseSettings):
     min_players: int = Field()
 
 
-class OptionStickersID(BaseModel):
-    """Стикеры для специальных действий во время игры.
-
-    - bluff: обвинить другого игрока во лжи, когда он разыграл +4
-    - draw: Взять карту из колоды.
-    - info: Посмотреть текущий статус игры.
-    - next_turn: Передать ход следующему игроку / пропустить.
-    """
-
-    bluff: str
-    draw: str
-    info: str
-    next_turn: str
-
-
 class StickerSet(BaseModel):
     """Перечень всех стикеров, используемых во время игры."""
 
     normal: dict[str, str]
     not_playable: dict[str, str]
-    options: OptionStickersID
 
 
 # Настройки бота по умолчанию

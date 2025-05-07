@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any, TypeVar
 
 from aiogram import Bot
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardMarkup, Message
 from loguru import logger
 
 from mau.enums import GameEvents
@@ -46,16 +46,13 @@ class EventRouter:
 class MessageChannel:
     """Канал сообщений, привязанный к конкретному чату."""
 
-    def __init__(
-        self, room_id: str, bot: Bot, default_markup: InlineKeyboardMarkup
-    ) -> None:
+    def __init__(self, room_id: str, bot: Bot) -> None:
         self.room_id = room_id
         self.lobby_message: Message | None = None
         self.room_message: Message | None = None
         self.message_queue: deque[str] = deque(maxlen=5)
         self.bot = bot
-        self.default_markup = default_markup
-        self.markup: InlineKeyboardMarkup | None = self.default_markup
+        self.markup: InlineKeyboardMarkup | None = None
 
     async def send_lobby(
         self, message: str, reply_markup: InlineKeyboardMarkup | None = None
@@ -122,7 +119,7 @@ class MessageChannel:
 
     async def clear(self) -> None:
         """Очищает буфер событий и сбрасывает клавиатуру."""
-        self.markup = self.default_markup
+        self.markup = None
         self.lobby_message = None
         if self.room_message is not None:
             await self.room_message.delete()
@@ -144,16 +141,6 @@ class MessageJournal(BaseEventHandler):
         self.channels: dict[str, MessageChannel] = {}
         self._loop = asyncio.get_running_loop()
         self.bot: Bot = bot
-        self.default_markup = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="🎮 Разыграть 🃏",
-                        switch_inline_query_current_chat="",
-                    )
-                ]
-            ]
-        )
         self.router = router
 
     def push(self, event: Event) -> None:
@@ -165,7 +152,7 @@ class MessageJournal(BaseEventHandler):
         """Получает/создаёт канал сообщений для чата."""
         channel = self.channels.get(room_id)
         if channel is None:
-            channel = MessageChannel(room_id, self.bot, self.default_markup)
+            channel = MessageChannel(room_id, self.bot)
             self.channels[room_id] = channel
 
         return channel
