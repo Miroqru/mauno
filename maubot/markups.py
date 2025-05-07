@@ -46,7 +46,7 @@ SHOTGUN_MARKUP = InlineKeyboardMarkup(
 SELECT_COLOR = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="❤️", callback_data="color:0"),
+            InlineKeyboardButton(text="🩷", callback_data="color:0"),
             InlineKeyboardButton(text="💛", callback_data="color:1"),
             InlineKeyboardButton(text="💚", callback_data="color:2"),
             InlineKeyboardButton(text="💙", callback_data="color:3"),
@@ -105,6 +105,8 @@ def hand_query(player: Player) -> Sequence[InlineSticker]:
         res = [_to_sticker("next", stickers.options.next_turn, "👀 Пропускаю")]
     elif player == player.game.player:
         res = [_to_sticker("take", stickers.options.draw, "👀 Беру карту")]
+    else:
+        res = []
 
     if (
         player.game.deck.top.card_type == CardType.TAKE_FOUR
