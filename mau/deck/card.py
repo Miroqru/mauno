@@ -11,7 +11,7 @@ from mau.enums import CardColor
 if TYPE_CHECKING:
     from mau.game.game import UnoGame
 
-CARD_REGEX = re.compile(r"(\d):(\d):(\d+):([a-z+]+)")
+CARD_REGEX = re.compile(r"(\d)_(\d)_(\d+)_([a-z+]+)")
 CARD_BEHAVIOR = {
     "number": behavior.NumberBehavior,
     "turn": behavior.TurnBehavior,
@@ -62,7 +62,7 @@ class UnoCard:
     def pack(self) -> str:
         """запаковывает карту в строку."""
         return (
-            f"{self.color.value}:{self.value}:{self.cost}:{self.behavior.name}"
+            f"{self.color.value}_{self.value}_{self.cost}_{self.behavior.name}"
         )
 
     def can_cover(self, other_card: Self) -> bool:
