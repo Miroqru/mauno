@@ -67,6 +67,13 @@ class BaseBehavior(ABC):
         """
         pass
 
+    def __eq__(self, other: object) -> bool:
+        """Сравнивает поведения по их типу."""
+        if not isinstance(other, BaseBehavior):
+            raise NotImplementedError
+
+        return self.name == other.name
+
 
 class NumberBehavior(BaseBehavior):
     """Базовое поведение для карт Уно.

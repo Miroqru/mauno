@@ -11,7 +11,7 @@ from mau.enums import CardColor
 if TYPE_CHECKING:
     from mau.game.game import UnoGame
 
-CARD_REGEX = re.compile(r"(\d):(\d):(\d):([a-z+]+)")
+CARD_REGEX = re.compile(r"(\d):(\d):(\d+):([a-z+]+)")
 CARD_BEHAVIOR = {
     "number": behavior.NumberBehavior,
     "turn": behavior.TurnBehavior,
@@ -108,6 +108,12 @@ class UnoCard:
         """Подготавливает карту к повторному использованию в колоде."""
         self.behavior.prepare_used(self)
 
+    def __repr__(self) -> str:
+        """Представление карты для отладки."""
+        return (
+            f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
+        )
+
     def __call__(self, game: "UnoGame") -> None:
         """Синтаксический сахар для вызова действия карты.
 
@@ -122,10 +128,7 @@ class UnoCard:
             return NotImplemented
 
         return (
-            (
-                self.color == other.color
-                or isinstance(other.behavior, BaseWildBehavior)
-            )
+            self.color == other.color
             and self.behavior == other.behavior
             and self.value == other.value
         )
