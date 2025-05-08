@@ -173,10 +173,10 @@ class UnoGame:
 
         self.deck.put_top(card)
         player.hand.remove(card)
-        self.push_event(player, GameEvents.PLAYER_PUSH, card.to_str())
+        self.push_event(player, GameEvents.PLAYER_PUSH, card.pack())
 
         if len(player.hand) == 1:
-            self.push_event(player, GameEvents.PLAYER_UNO, card.to_str())
+            self.push_event(player, GameEvents.PLAYER_UNO)
 
         if len(self.pm.current.hand) == 0:
             self.leave_player(self.pm.current)

@@ -1,13 +1,25 @@
 """Карта Uno."""
 
+import re
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Self
 
-from mau.deck.behavior import BaseWildBehavior, UnoBehavior
-from mau.enums import CardColor, CardType
+from mau.deck import behavior
+from mau.deck.behavior import BaseWildBehavior, NumberBehavior
+from mau.enums import CardColor
 
 if TYPE_CHECKING:
     from mau.game.game import UnoGame
+
+CARD_REGEX = re.compile(r"(\d):(\d):(\d):([a-z+]+)")
+CARD_BEHAVIOR = {
+    "number": behavior.NumberBehavior,
+    "turn": behavior.TurnBehavior,
+    "reverse": behavior.ReverseBehavior,
+    "take": behavior.TakeBehavior,
+    "wild+color": behavior.WildColorBehavior,
+    "wild+take": behavior.WildTakeBehavior,
+}
 
 
 class UnoCard:
@@ -16,22 +28,42 @@ class UnoCard:
     Предоставляет общий функционал для всех карт.
     """
 
-    __slots__ = ("color", "card_type", "value", "cost", "behavior")
+    __slots__ = ("color", "value", "cost", "behavior")
 
     def __init__(
-        self,
-        color: CardColor,
-        card_type: CardType,
-        value: int,
-        cost: int,
-        behavior: UnoBehavior,
+        self, color: CardColor, value: int, cost: int, behavior: NumberBehavior
     ) -> None:
         self.color: CardColor = color
-        # TODO: Прощай, тип карты
-        self.card_type: CardType = card_type
         self.value: int = value
         self.cost: int = cost
         self.behavior = behavior
+
+    @classmethod
+    def unpack(cls, card_str: str) -> Self | None:
+        """Превращает упакованную строку карты в её экземпляр.
+
+        Обратное действие для получения экземпляра карты из строки.
+        Используется уже при обработке отправленного стикеров.
+        """
+        card_match = CARD_REGEX.match(card_str)
+        if card_match is None:
+            return None
+
+        color, value, cost, card_behavior = card_match.groups()
+        card_behavior = CARD_BEHAVIOR[card_behavior]
+
+        return cls(
+            color=CardColor(int(color)),
+            value=int(value),
+            cost=card_behavior.cost or int(value),
+            behavior=card_behavior(),
+        )
+
+    def pack(self) -> str:
+        """запаковывает карту в строку."""
+        return (
+            f"{self.color.value}:{self.value}:{self.cost}:{self.behavior.name}"
+        )
 
     def can_cover(self, other_card: Self) -> bool:
         """Проверяет что другая карта может покрыть текущую.
@@ -45,7 +77,7 @@ class UnoCard:
             isinstance(other_card.behavior, BaseWildBehavior)
             or self.color == other_card.color
             or (
-                self.card_type == other_card.card_type
+                self.behavior == other_card.behavior
                 and self.value == other_card.value
             )
         )
@@ -76,10 +108,6 @@ class UnoCard:
         """Подготавливает карту к повторному использованию в колоде."""
         self.behavior.prepare_used(self)
 
-    def to_str(self) -> str:
-        """запаковывает карту в строку."""
-        return f"{self.card_type.value}{self.color.value}{self.value}"
-
     def __call__(self, game: "UnoGame") -> None:
         """Синтаксический сахар для вызова действия карты.
 
@@ -87,14 +115,6 @@ class UnoCard:
         Является сокращением для метода use_card.
         """
         return self.use(game)
-
-    def __str__(self) -> str:
-        """Представление карты в строковом виде."""
-        return f"{self.color} {self.card_type} {self.value}"
-
-    def __repr__(self) -> str:
-        """Представление карты при отладке."""
-        return self.__str__()
 
     def __eq__(self, other: object) -> bool:
         """Проверяет соответствие двух карт."""
@@ -106,7 +126,7 @@ class UnoCard:
                 self.color == other.color
                 or isinstance(other.behavior, BaseWildBehavior)
             )
-            and self.card_type == other.card_type
+            and self.behavior == other.behavior
             and self.value == other.value
         )
 

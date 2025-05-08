@@ -9,8 +9,8 @@ from random import shuffle
 
 from loguru import logger
 
+from mau.deck.behavior import BaseWildBehavior
 from mau.deck.card import UnoCard
-from mau.enums import CardColor
 
 
 class Deck:
@@ -54,7 +54,7 @@ class Deck:
     def _get_top_card(self) -> UnoCard:
         """Устанавливает подходящую верную карту колоды."""
         for i, card in enumerate(self.cards):
-            if card.color != CardColor.BLACK:
+            if not isinstance(card.behavior, BaseWildBehavior):
                 return self.cards.pop(i)
         raise ValueError("No suitable card for deck top")
 

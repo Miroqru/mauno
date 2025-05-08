@@ -4,12 +4,12 @@
 
 Замена для типов карт:
 
-- UnoBehavior: Стандартное поведение всех карт Uno.
+- NumberBehavior: Стандартное поведение всех карт Uno.
 - TurnBehavior: Пропуск хода для следующего игрока.
 - ReverseBehavior: Разворот порядка ходов.
 - TakeBehavior: Взятие карт для следующего игрока.
-- ColorBehavior: Выбор цвета для карты.
-- ColorTakeBehavior: Выбор цвета и взятие карт для следующего игрока.
+- WildColorBehavior: Выбор цвета для карты.
+- WildTakeBehavior: Выбор цвета и взятие карт для следующего игрока.
 
 Особые поведения:
 
@@ -40,6 +40,9 @@ class BaseBehavior(ABC):
     Определяет интерфейс поведения карты на игровые действия.
     """
 
+    name = "base"
+    cost = 0
+
     @abstractmethod
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Активное действие карты во время её разыгрывания.
@@ -65,12 +68,14 @@ class BaseBehavior(ABC):
         pass
 
 
-class UnoBehavior(BaseBehavior):
+class NumberBehavior(BaseBehavior):
     """Базовое поведение для карт Уно.
 
     По умолчанию записывает действия в журнал.
     Наследники переопределяет базовое поведение.
     """
+
+    name = "number"
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Записывает в журнал использование карты."""
@@ -82,8 +87,10 @@ class UnoBehavior(BaseBehavior):
 
 
 # TODO: просто присваивать поведение вместо режима
-class TwistBehavior(UnoBehavior):
+class TwistBehavior(NumberBehavior):
     """Обмен картами с другим игроком."""
+
+    name = "twist"
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """переходит в состояния обмена картами с другим игроком.
@@ -94,8 +101,10 @@ class TwistBehavior(UnoBehavior):
             game.set_state(GameState.TWIST_HAND)
 
 
-class RotateBehavior(UnoBehavior):
+class RotateBehavior(NumberBehavior):
     """Обмен картами между всеми игроками."""
+
+    name = "rotate"
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Обменивает карты между всеми игроками.
@@ -106,16 +115,22 @@ class RotateBehavior(UnoBehavior):
             game.rotate_cards()
 
 
-class TurnBehavior(UnoBehavior):
+class TurnBehavior(NumberBehavior):
     """Пропуск следующего игрока."""
+
+    name = "turn"
+    cost = 20
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Пропускает N игроков, где N - значение карты."""
         game.skip_players(card.value)
 
 
-class ReverseBehavior(UnoBehavior):
+class ReverseBehavior(NumberBehavior):
     """Разворот порядка ходов."""
+
+    name = "reverse"
+    cost = 20
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Разворачивает порядок ходов в игре.
@@ -129,8 +144,11 @@ class ReverseBehavior(UnoBehavior):
             logger.info("Reverse flag now {}", game.reverse)
 
 
-class TakeBehavior(UnoBehavior):
+class TakeBehavior(NumberBehavior):
     """Взять карты для следующего игрока."""
+
+    name = "take"
+    cost = 20
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Увеличивает счётчик взятия карт на значение карты."""
@@ -144,11 +162,14 @@ class TakeBehavior(UnoBehavior):
 # ===========
 
 
-class BaseWildBehavior(UnoBehavior):
+class BaseWildBehavior(NumberBehavior):
     """Поведение диких карт.
 
     После возвращения в колоду их цвет возвращается к чёрному.
     """
+
+    name = "wild"
+    cost = 50
 
     def prepare_used(self, card: "UnoCard") -> None:
         """Возвращает цвет карты в норму."""
@@ -157,13 +178,15 @@ class BaseWildBehavior(UnoBehavior):
 
     def _auto_select_color(self, card: "UnoCard", game: "UnoGame") -> None:
         logger.debug("Auto choose color for card")
-        color_index = (game.deck.top.color + (1 if game.reverse else -1)) % 4
+        color_index = (game.deck.top.color + (1 if game.reverse else -1)) % 6
         card.color = CardColor(color_index)
         game.player.push_event(GameEvents.GAME_SELECT_COLOR, str(card.color))
 
 
-class ColorBehavior(BaseWildBehavior):
+class WildColorBehavior(BaseWildBehavior):
     """Карта выбора цвета."""
+
+    name = "wild+color"
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Выбирает новый цвет для карты.
@@ -178,7 +201,7 @@ class ColorBehavior(BaseWildBehavior):
             game.set_state(GameState.CHOOSE_COLOR)
 
 
-class ColorTakeBehavior(BaseWildBehavior):
+class WildTakeBehavior(BaseWildBehavior):
     """Выбор цвета и взятие карт.
 
     Представляет собой комбинацию из поведения взятия и выбора цвета.
@@ -186,6 +209,8 @@ class ColorTakeBehavior(BaseWildBehavior):
     Иначе выставляет флаг блефа в True.
     Следующий игрок сможет проверить  игрока на честность.
     """
+
+    name = "wild+take"
 
     def use(self, card: "UnoCard", game: "UnoGame") -> None:
         """Выбирает новый цвет для карты и увеличивает счётчик взятия.
