@@ -23,6 +23,13 @@ class Config(BaseSettings):
     telegram_token: SecretStr = Field()
     min_players: int = Field()
 
+    use_hook: bool
+    server_host: str
+    server_port: int
+    hook_url: str
+    hook_root: str
+    hook_secret: str
+
 
 class StickerSet(BaseModel):
     """Перечень всех стикеров, используемых во время игры."""

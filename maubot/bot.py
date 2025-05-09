@@ -17,6 +17,11 @@ from aiogram.types import (
     Update,
 )
 from aiogram.utils.token import TokenValidationError
+from aiogram.webhook.aiohttp_server import (
+    SimpleRequestHandler,
+    setup_application,
+)
+from aiohttp import web
 from loguru import logger
 
 from maubot.config import config, default, sm
@@ -29,7 +34,6 @@ from maubot.handlers import ROUTERS
 # =========
 
 dp = Dispatcher(sm=sm)
-
 
 # Настраиваем формат отображения логов loguru
 # Обратите внимание что в проекте помимо loguru используется logging
@@ -91,8 +95,25 @@ async def catch_errors(event: ErrorEvent) -> None:
     )
 
 
+@dp.startup()
+async def on_startup(bot: Bot) -> None:
+    """Настройка webhook при запуске."""
+    await bot.set_webhook(
+        f"{config.hook_url}{config.hook_root}", secret_token=config.hook_secret
+    )
+
+
 # Главная функция запуска бота
 # ============================
+
+
+async def run_hook(bot: Bot) -> None:
+    """Запускает работу Webhook."""
+    app = web.Application()
+    rh = SimpleRequestHandler(dp, bot, secret_token=config.hook_secret)
+    setup_application(app, dp, bot=bot)
+    rh.register(app, path=config.hook_root)
+    web.run_app(app, host=config.server_host, port=config.server_port)
 
 
 async def main() -> None:
@@ -121,4 +142,7 @@ async def main() -> None:
     sm.set_handler(MessageJournal(bot, er))
 
     logger.success("Start polling!")
-    await dp.start_polling(bot)
+    if config.use_hook:
+        await run_hook(bot)
+    else:
+        await dp.start_polling(bot)
