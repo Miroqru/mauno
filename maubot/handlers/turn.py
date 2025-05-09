@@ -8,7 +8,7 @@ import re
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 
-from mau.deck.generator import card_from_str
+from mau.deck.card import UnoCard
 from mau.enums import CardColor, GameState
 from mau.game.game import UnoGame
 from mau.game.player import Player
@@ -46,7 +46,7 @@ async def process_card_handler(
     result: ChosenInlineResult, game: UnoGame, player: Player
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
-    card = card_from_str(result.result_id)
+    card = UnoCard.unpack(result.result_id)
     if card is not None:
         game.process_turn(card, player)
 

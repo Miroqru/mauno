@@ -10,15 +10,15 @@ from aiogram.types import (
     InlineKeyboardMarkup,
 )
 from aiogram.types import InlineQueryResultArticle as InlineArticle
-from aiogram.types import InlineQueryResultCachedSticker as InlineSticker
+from aiogram.types import InlineQueryResultPhoto as InlinePhoto
 from aiogram.types import InputTextMessageContent as InputText
 
-from mau.deck.behavior import ColorTakeBehavior
-from mau.enums import GameState
+from mau.deck.behavior import WildTakeBehavior
+from mau.enums import CardColor, GameState
 from mau.game.game import UnoGame
 from mau.game.player import Player
 from mau.game.player_manager import PlayerManager
-from maubot.config import config, stickers
+from maubot.config import config
 from maubot.messages import game_status
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
@@ -47,10 +47,18 @@ SHOTGUN_MARKUP = InlineKeyboardMarkup(
 SELECT_COLOR = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="🩷", callback_data="color:0"),
-            InlineKeyboardButton(text="💛", callback_data="color:1"),
-            InlineKeyboardButton(text="💚", callback_data="color:2"),
-            InlineKeyboardButton(text="💙", callback_data="color:3"),
+            InlineKeyboardButton(
+                text="❤️", callback_data=f"color:{CardColor.RED}"
+            ),
+            InlineKeyboardButton(
+                text="💛", callback_data=f"color:{CardColor.YELLOW}"
+            ),
+            InlineKeyboardButton(
+                text="💚", callback_data=f"color:{CardColor.GREEN}"
+            ),
+            InlineKeyboardButton(
+                text="💙", callback_data=f"color:{CardColor.CYAN}"
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -67,22 +75,30 @@ NEW_GAME_MARKUP = InlineKeyboardMarkup(
 )
 
 
-def hand_query(player: Player) -> Iterator[InlineSticker]:
+def hand_query(player: Player) -> Iterator[InlinePhoto]:
     """Возвращает основную клавиатуру с игровыми действиями."""
     player_cards = player.cover_cards()
-    for i, cover_card in enumerate(player_cards.cover):
-        yield InlineSticker(
-            id=f"{cover_card.to_str()}:{i}",
-            sticker_file_id=stickers.normal[cover_card.to_str()],
+    for i, card in enumerate(player_cards.cover):
+        yield InlinePhoto(
+            id=f"{card.pack()}:{i}",
+            photo_url=f"https://mau.miroq.ru/card/{card.pack()}/false",
+            thumbnail_url=f"https://mau.miroq.ru/card/{card.pack()}/false",
+            photo_width=64,
+            photo_height=128,
+            description=card.pack(),
         )
 
-    for i, cover_card in enumerate(player_cards.uncover):
-        yield InlineSticker(
+    for i, card in enumerate(player_cards.uncover):
+        yield InlinePhoto(
             id=f"status:{i}",
-            sticker_file_id=stickers.not_playable[cover_card.to_str()],
+            photo_url=f"https://mau.miroq.ru/card/{card.pack()}/true",
+            thumbnail_url=f"https://mau.miroq.ru/card/{card.pack()}/true",
             input_message_content=InputText(
-                message_text=game_status(player.game)
+                message_text=game_status(player.game),
             ),
+            photo_width=64,
+            photo_height=128,
+            description=card.pack(),
         )
 
 
@@ -160,7 +176,7 @@ def turn_markup(game: UnoGame) -> InlineKeyboardMarkup:
         )
 
     if (
-        isinstance(game.deck.top.behavior, ColorTakeBehavior)
+        isinstance(game.deck.top.behavior, WildTakeBehavior)
         and game.take_counter
     ):
         inline_keyboard[0].append(

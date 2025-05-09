@@ -2,10 +2,10 @@
 
 from loguru import logger
 
-from mau.enums import GameEvents, GameState
+from mau.enums import CardColor, GameEvents, GameState
 from mau.events import Event
 from maubot import markups, messages
-from maubot.config import sm, stickers
+from maubot.config import sm
 from maubot.events.journal import EventRouter, MessageChannel
 from maubot.messages import plural_form
 
@@ -44,7 +44,7 @@ async def start_game(event: Event, chan: MessageChannel) -> None:
     )
     await chan.clear()
     chan.set_markup(markups.turn_markup(event.game))
-    await chan.send_card(stickers.normal[event.game.deck.top.to_str()])
+    await chan.send_card(event.game.deck.top)
     chan.add("🌳 Да начнётся <b>Новая игра!</b>!")
     chan.add(f"✨ Игру начинает {event.game.player.mention}.")
     chan.add(
@@ -108,7 +108,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
 @er.event(GameEvents.GAME_SELECT_COLOR)
 async def select_card_color(event: Event, chan: MessageChannel) -> None:
     """Какой новый цвет был выбран для карты."""
-    chan.add(f"🎨 Я выбираю {event.data}!")
+    chan.add(f"🎨 Я выбираю {CardColor(int(event.data)).emoji}!")
 
 
 @er.event(GameEvents.GAME_SELECT_PLAYER)

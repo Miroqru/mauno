@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+from mau.deck.card import UnoCard
 from mau.game.game import UnoGame
 from mau.game.player_manager import PlayerManager
 
@@ -77,6 +78,10 @@ def players_list(pm: PlayerManager, reverse: bool, shotgun: bool) -> str:
     return res
 
 
+def _card_info(card: UnoCard) -> str:
+    return f"{card.color.emoji} {card.value} {card.behavior.name}"
+
+
 def game_status(game: UnoGame) -> str:
     """Возвращает статус текущей игры.
 
@@ -107,7 +112,7 @@ def game_status(game: UnoGame) -> str:
     turn_delta = time_delta(int((now - game.turn_start).total_seconds()))
     return (
         f"☕ <b>Игровая комната</b> {game.owner.name}:\n"
-        f"🃏 <b>Последняя карта</b>: {game.deck.top}\n"
+        f"🃏 <b>Последняя карта</b>: {_card_info(game.deck.top)}\n"
         f"🦝 <b>Ход</b> {game.player.mention}, прошло {turn_delta}\n"
         f"⏳ <b>Игра идёт</b> {game_delta}\n\n"
         f"{players_list(game.pm, game.reverse, game.rules.shotgun.status)}\n"

@@ -40,9 +40,9 @@ def get_deck_info(groups: list[CardGroup]) -> str:
     """Собирает сообщение с выбранными правилами генератора колоды."""
     res = ""
     for group in groups:
-        colors = "".join(str(color) for color in group.colors)
+        colors = "".join(color.emoji for color in group.colors)
         res += (
-            f"\n{colors} <code>{group.card_type.name}</code> "
+            f"\n{colors} <code>{group.behavior.name}</code> "
             f"{group.value} / x{group.count}"
         )
     return res
