@@ -3,10 +3,12 @@
 Здесь определены функции для запуска бота и регистрации всех обработчиков.
 """
 
+import asyncio
 import sys
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.types import (
     CallbackQuery,
@@ -95,28 +97,28 @@ async def catch_errors(event: ErrorEvent) -> None:
     )
 
 
-@dp.startup()
 async def on_startup(bot: Bot) -> None:
     """Настройка webhook при запуске."""
+    logger.info("Set hook to: {}", config.hook_url)
     await bot.set_webhook(
         f"{config.hook_url}{config.hook_root}", secret_token=config.hook_secret
     )
 
 
-# Главная функция запуска бота
-# ============================
+# Запуск бота
+# ===========
 
 
-async def run_hook(bot: Bot) -> None:
+def create_app(bot: Bot) -> web.Application:
     """Запускает работу Webhook."""
     app = web.Application()
     rh = SimpleRequestHandler(dp, bot, secret_token=config.hook_secret)
     setup_application(app, dp, bot=bot)
     rh.register(app, path=config.hook_root)
-    web.run_app(app, host=config.server_host, port=config.server_port)
+    return app
 
 
-async def main() -> None:
+def main() -> None:
     """Запускает бота.
 
     Настраивает журнал действий.
@@ -143,6 +145,8 @@ async def main() -> None:
 
     logger.success("Start polling!")
     if config.use_hook:
-        await run_hook(bot)
+        dp.startup.register(on_startup)
+        app = create_app(bot)
+        uvicorn.run(app, host=config.server_host, port=config.server_port)
     else:
-        await dp.start_polling(bot)
+        asyncio.run(dp.start_polling(bot))

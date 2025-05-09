@@ -140,12 +140,15 @@ class MessageJournal(BaseEventHandler):
 
     def __init__(self, bot: Bot, router: EventRouter) -> None:
         self.channels: dict[str, MessageChannel] = {}
-        self._loop = asyncio.get_running_loop()
+        self._loop: asyncio.AbstractEventLoop | None = None
         self.bot: Bot = bot
         self.router = router
 
     def push(self, event: Event) -> None:
         """Обрабатывает входящие события."""
+        if self._loop is None:
+            self._loop = asyncio.get_running_loop()
+
         logger.debug(event)
         self._loop.create_task(self.router.process(event, self))
 

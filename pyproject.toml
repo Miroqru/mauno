@@ -13,6 +13,7 @@ dependencies = [
 bot = [
     "aiogram>=3.20.0",
     "pydantic-settings>=2.9.1",
+    "uvicorn>=0.34.2",
 ]
 dev = [
     "aiofiles>=24.1.0",
