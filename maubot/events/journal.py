@@ -115,7 +115,7 @@ class MessageChannel:
         """Отправляет карту как стикер."""
         await self.bot.send_photo(
             chat_id=self.room_id,
-            photo=f"https://mau.miroq.ru/card/{card.pack()}/false",
+            photo=f"https://mau.miroq.ru/card/{card.pack()}/true",
         )
 
     async def clear(self) -> None:
