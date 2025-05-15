@@ -103,6 +103,7 @@ async def leave_player(event: Event, chan: MessageChannel) -> None:
     # Это может бывать выход из игры до её начала
     if not event.game.started:
         chan.set_markup(None)
+    await chan.send()
 
 
 @er.event(GameEvents.GAME_SELECT_COLOR)
