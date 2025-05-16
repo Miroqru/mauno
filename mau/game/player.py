@@ -102,6 +102,22 @@ class Player:
         ):
             self.game.next_turn()
 
+    def _check_cover(self, card: "UnoCard") -> bool:
+        if (
+            self.game.rules.intervention.status
+            and card != self.game.deck.top
+            and self != self.game.player
+        ):
+            return False
+
+        if (
+            isinstance(self.game.deck.top.behavior, TakeBehavior)
+            and self.game.take_counter > 0
+        ) and not isinstance(card.behavior, TakeBehavior | WildTakeBehavior):
+            return False
+
+        return True
+
     def cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
 
@@ -117,36 +133,16 @@ class Player:
         if (
             isinstance(top.behavior, WildTakeBehavior)
             and self.game.take_counter
-            or self.game.state
-            not in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
-            or not self.can_play
-        ):
+        ) or not self.can_play:
             return SortedCards([], self.hand)
 
         cover = []
         uncover = []
         for card, can_cover in top.iter_covering(self.hand):
-            if (
-                self.game.rules.intervention.status
-                and card != top
-                and self != self.game.player
-            ):
+            if can_cover and self._check_cover(card):
+                cover.append(card)
+            else:
                 uncover.append(card)
-                continue
-
-            if not can_cover:
-                uncover.append(card)
-                continue
-
-            if (
-                isinstance(top.behavior, TakeBehavior)
-                and self.game.take_counter
-                and isinstance(card.behavior, TakeBehavior)
-            ):
-                uncover.append(card)
-                continue
-
-            cover.append(card)
 
         return SortedCards(
             cover=sorted(cover, key=lambda c: c.cost, reverse=True),
@@ -215,10 +211,8 @@ class Player:
         - Выстрелить, чтобы взял следующий игрок.
         """
         origin_counter = self.game.take_counter
-        if (
-            self.game.rules.take_until_cover.status
-            and self.game.take_counter == 0
-        ):
+
+        if self.game.rules.take_until_cover.status and origin_counter == 0:
             self.game.take_counter = self.game.deck.count_until_cover()
 
         if (
