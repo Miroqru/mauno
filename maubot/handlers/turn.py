@@ -72,9 +72,7 @@ async def call_bluff(query: CallbackQuery, player: Player) -> None:
     player.call_bluff()
 
 
-@router.callback_query(
-    F.data.regexp(r"color:([0-3])").as_("color"), NowPlaying()
-)
+@router.callback_query(F.data.regexp(r"color:(\d)").as_("color"), NowPlaying())
 async def choose_color_call(
     query: CallbackQuery, game: UnoGame, color: re.Match[str]
 ) -> None:
