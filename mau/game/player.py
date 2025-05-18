@@ -131,9 +131,14 @@ class Player:
         # Если сейчас не ход игрока, то активных карт нету
         # Это для глупенького веб клиента будет полезно
         if (
-            isinstance(top.behavior, WildTakeBehavior)
-            and self.game.take_counter
-        ) or not self.can_play:
+            (
+                isinstance(top.behavior, WildTakeBehavior)
+                and self.game.take_counter
+            )
+            or not self.can_play
+            and self.game.state
+            in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
+        ):
             return SortedCards([], self.hand)
 
         cover = []

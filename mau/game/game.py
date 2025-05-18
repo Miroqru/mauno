@@ -65,9 +65,7 @@ class UnoGame:
         if player is None:
             return False
 
-        return (
-            self.player == player or self.rules.intervention.status
-        ) and self.state in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
+        return self.player == player or self.rules.intervention.status
 
     def push_event(
         self, from_player: Player, event_type: GameEvents, data: str = ""
