@@ -81,8 +81,8 @@ def hand_query(player: Player) -> Iterator[InlinePhoto]:
     for i, card in enumerate(player_cards.cover):
         yield InlinePhoto(
             id=f"{card.pack()}:{i}",
-            photo_url=f"https://mau.miroq.ru/card/{card.pack()}/true",
-            thumbnail_url=f"https://mau.miroq.ru/card/{card.pack()}/true",
+            photo_url=f"https://mau.miroq.ru/card/next/{card.pack()}/cover",
+            thumbnail_url=f"https://mau.miroq.ru/card/next/{card.pack()}/cover",
             photo_width=64,
             photo_height=128,
             description=card.pack(),
@@ -91,8 +91,8 @@ def hand_query(player: Player) -> Iterator[InlinePhoto]:
     for i, card in enumerate(player_cards.uncover):
         yield InlinePhoto(
             id=f"status:{i}",
-            photo_url=f"https://mau.miroq.ru/card/{card.pack()}/false",
-            thumbnail_url=f"https://mau.miroq.ru/card/{card.pack()}/false",
+            photo_url=f"https://mau.miroq.ru/card/next/{card.pack()}/uncover",
+            thumbnail_url=f"https://mau.miroq.ru/card/next/{card.pack()}/uncover",
             input_message_content=InputText(
                 message_text=game_status(player.game),
             ),
