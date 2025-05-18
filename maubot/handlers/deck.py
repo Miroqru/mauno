@@ -10,7 +10,7 @@ from aiogram.types import (
 )
 
 from mau.deck.presets import CARD_PRESETS, CardGroup, DeckGenerator, DeckPreset
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from maubot.filters import GameOwner
 
 router = Router(name="Deck editor")
@@ -63,7 +63,7 @@ def deck_editor_message(deck: DeckGenerator, preset: DeckPreset) -> str:
 
 
 @router.callback_query(F.data == "deck_edit", GameOwner())
-async def get_deck_editor(query: CallbackQuery, game: UnoGame) -> None:
+async def get_deck_editor(query: CallbackQuery, game: MauGame) -> None:
     """Получает сообщение редактора колоды с готовыми шаблонами."""
     await query.answer()
     preset = CARD_PRESETS.get(
@@ -86,7 +86,7 @@ class PresetCallback(CallbackData, prefix="preset"):
 
 @router.callback_query(PresetCallback.filter(), GameOwner())
 async def set_deck_preset(
-    query: CallbackQuery, game: UnoGame, callback_data: PresetCallback
+    query: CallbackQuery, game: MauGame, callback_data: PresetCallback
 ) -> None:
     """Выбирает один из заготовленных шаблонов колоды для игры."""
     await query.answer()

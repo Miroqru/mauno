@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery, Message
 
 from mau.deck.behavior import TakeBehavior, WildTakeBehavior
 from mau.enums import GameState
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from maubot import filters
 from maubot.events.journal import MessageChannel
@@ -18,7 +18,7 @@ router = Router(name="Player")
 
 
 @router.message(Command("join"), filters.ActiveGame())
-async def join_player(message: Message, game: UnoGame) -> None:
+async def join_player(message: Message, game: MauGame) -> None:
     """Подключает пользователя к игре."""
     if message.from_user is None:
         raise ValueError("User can`t be none")
@@ -45,7 +45,7 @@ async def leave_player(message: Message, player: Player) -> None:
 
 
 @router.callback_query(F.data == "join", filters.ActiveGame())
-async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
+async def join_callback(query: CallbackQuery, game: MauGame) -> None:
     """Добавляет игрока в текущую комнату."""
     if not isinstance(query.message, Message):
         raise ValueError("Query message should be Message instance")
@@ -65,7 +65,7 @@ async def join_callback(query: CallbackQuery, game: UnoGame) -> None:
 
 @router.callback_query(F.data == "shot_take", filters.NowPlaying())
 async def take_cards_call(
-    query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
+    query: CallbackQuery, game: MauGame, player: Player, channel: MessageChannel
 ) -> None:
     """Игрок выбирает взять карты."""
     if game.player == player:
@@ -91,7 +91,7 @@ async def take_cards_call(
 
 @router.callback_query(F.data == "shot", filters.NowPlaying())
 async def shotgun_call(
-    query: CallbackQuery, game: UnoGame, player: Player, channel: MessageChannel
+    query: CallbackQuery, game: MauGame, player: Player, channel: MessageChannel
 ) -> None:
     """Игрок выбирает взять карты."""
     res = player.shot()

@@ -12,7 +12,7 @@ from aiogram.types import (
     Message,
 )
 
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import Player
 from mau.session import SessionManager
 
@@ -25,7 +25,7 @@ class GameContext:
     Содержит экземпляр активной игры, а также игрока.
     """
 
-    game: UnoGame | None
+    game: MauGame | None
     player: Player | None
 
 

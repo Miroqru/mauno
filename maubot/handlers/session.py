@@ -12,7 +12,7 @@ from aiogram.filters import Command
 from aiogram.types import CallbackQuery, Message
 
 from mau.enums import CardColor
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import BaseUser
 from mau.session import SessionManager
 from maubot import filters, markups
@@ -36,7 +36,7 @@ NOT_ENOUGH_PLAYERS = (
 async def create_game(
     message: Message,
     sm: SessionManager,
-    game: UnoGame | None,
+    game: MauGame | None,
     channel: MessageChannel,
 ) -> None:
     """Создаёт новую комнату."""
@@ -70,7 +70,7 @@ async def create_game(
 
 
 @router.message(Command("start_game"), filters.ActiveGame())
-async def start_gama(message: Message, game: UnoGame) -> None:
+async def start_gama(message: Message, game: MauGame) -> None:
     """Запускает игру в комнате."""
     if message.chat.type == "private":
         return None
@@ -86,13 +86,13 @@ async def start_gama(message: Message, game: UnoGame) -> None:
 
 
 @router.message(Command("stop"), filters.GameOwner())
-async def stop_gama(message: Message, game: UnoGame) -> None:
+async def stop_gama(message: Message, game: MauGame) -> None:
     """Принудительно завершает текущую игру."""
     game.end()
 
 
 @router.message(Command("open"), filters.GameOwner())
-async def open_gama(message: Message, game: UnoGame) -> None:
+async def open_gama(message: Message, game: MauGame) -> None:
     """Открывает игровую комнату для всех участников чата."""
     game.open = True
     await message.answer(
@@ -101,7 +101,7 @@ async def open_gama(message: Message, game: UnoGame) -> None:
 
 
 @router.message(Command("close"), filters.GameOwner())
-async def close_gama(message: Message, game: UnoGame) -> None:
+async def close_gama(message: Message, game: MauGame) -> None:
     """Закрывает игровую комнату для всех участников чата."""
     game.open = False
     await message.answer(
@@ -111,7 +111,7 @@ async def close_gama(message: Message, game: UnoGame) -> None:
 
 @router.message(Command("kick"), filters.GameOwner())
 async def kick_player(
-    message: Message, game: UnoGame, channel: MessageChannel
+    message: Message, game: MauGame, channel: MessageChannel
 ) -> None:
     """Выкидывает участника из комнаты."""
     if (
@@ -135,7 +135,7 @@ async def kick_player(
 
 @router.message(Command("skip"), filters.GameOwner())
 async def skip_player(
-    message: Message, game: UnoGame, channel: MessageChannel
+    message: Message, game: MauGame, channel: MessageChannel
 ) -> None:
     """пропускает участника за долгое бездействие."""
     game.take_counter += 1
@@ -155,7 +155,7 @@ async def skip_player(
 
 @router.callback_query(F.data == "new_game")
 async def create_game_call(
-    query: CallbackQuery, sm: SessionManager, game: UnoGame | None
+    query: CallbackQuery, sm: SessionManager, game: MauGame | None
 ) -> None:
     """Создаёт новую комнату."""
     if query.message is None or query.from_user is None:
@@ -177,7 +177,7 @@ async def create_game_call(
 
 
 @router.callback_query(F.data == "start_game", filters.ActiveGame())
-async def start_game_call(query: CallbackQuery, game: UnoGame) -> None:
+async def start_game_call(query: CallbackQuery, game: MauGame) -> None:
     """Запускает игру в комнате."""
     if not isinstance(query.message, Message):
         raise ValueError("Query.message is not a Message")

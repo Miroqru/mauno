@@ -5,7 +5,7 @@ from random import randint
 
 from loguru import logger
 
-from mau.deck.card import UnoCard
+from mau.deck.card import MauCard
 from mau.deck.deck import Deck
 from mau.deck.presets import DeckGenerator
 from mau.enums import CardColor, GameEvents, GameState
@@ -16,8 +16,8 @@ from mau.game.rules import GameRules
 from mau.game.shotgun import Shotgun
 
 
-class UnoGame:
-    """Представляет каждую игру Uno.
+class MauGame:
+    """Представляет каждую игру Mau.
 
     Каждая отдельная игра привязывается к конкретному чату.
     Предоставляет методы для обработки карт и очерёдности ходов.
@@ -162,7 +162,7 @@ class UnoGame:
         self.pm.rotate_cards(self.reverse)
         self.push_event(self.player, GameEvents.GAME_ROTATE)
 
-    def process_turn(self, card: UnoCard, player: Player) -> None:
+    def process_turn(self, card: MauCard, player: Player) -> None:
         """Обрабатываем текущий ход.
 
         Сначала применяется действие карты.
@@ -176,7 +176,7 @@ class UnoGame:
         self.push_event(player, GameEvents.PLAYER_PUSH, card.pack())
 
         if len(player.hand) == 1:
-            self.push_event(player, GameEvents.PLAYER_UNO)
+            self.push_event(player, GameEvents.PLAYER_MAU)
 
         if len(self.pm.current.hand) == 0:
             self.leave_player(self.pm.current)

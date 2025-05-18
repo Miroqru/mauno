@@ -9,7 +9,7 @@ from loguru import logger
 
 from mau.enums import GameEvents
 from mau.events import BaseEventHandler, DebugEventHandler
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 from mau.storage import BaseStorage, MemoryStorage
@@ -44,7 +44,7 @@ class SessionManager(Generic[_H]):
         player_storage: BaseStorage | None = None,
         event_handler: _H | None = None,
     ) -> None:
-        self._games: BaseStorage[UnoGame] = game_storage or MemoryStorage()
+        self._games: BaseStorage[MauGame] = game_storage or MemoryStorage()
         self._players: BaseStorage[Player] = player_storage or MemoryStorage()
         self._event_handler = event_handler or cast(_H, DebugEventHandler())
 
@@ -56,11 +56,11 @@ class SessionManager(Generic[_H]):
         """Возвращает игрока напрямую из хранилища по ID пользователя."""
         return self._players.get(user_id)
 
-    def room(self, room_id: str) -> UnoGame | None:
+    def room(self, room_id: str) -> MauGame | None:
         """Возвращает игру напрямую из хранилища по ID комнаты."""
         return self._games.get(room_id)
 
-    def create(self, room_id: str, owner: BaseUser) -> UnoGame:
+    def create(self, room_id: str, owner: BaseUser) -> MauGame:
         """Создает новую игру.
 
         Автоматически поставляет менеджер игроков и обработчик событий
@@ -78,7 +78,7 @@ class SessionManager(Generic[_H]):
         """
         logger.info("User {} Create new game session in {}", owner, room_id)
         pm = PlayerManager(self._players)
-        game = UnoGame(pm, self._event_handler, room_id, owner)
+        game = MauGame(pm, self._event_handler, room_id, owner)
         self._games.add(room_id, game)
         game.push_event(game.owner, GameEvents.SESSION_START)
         return game
@@ -91,6 +91,6 @@ class SessionManager(Generic[_H]):
         Удаляет игру из хранилища, отправляет событие `SESSION_END`.
         """
         logger.info("End session in room {}", room_id)
-        game: UnoGame = self._games.remove(room_id)
+        game: MauGame = self._games.remove(room_id)
         game.pm.remove_players()
         game.push_event(game.owner, GameEvents.SESSION_END)

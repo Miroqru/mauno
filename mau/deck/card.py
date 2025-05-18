@@ -1,4 +1,4 @@
-"""Карта Uno."""
+"""Игровые карты Mau."""
 
 import re
 from collections.abc import Iterable, Iterator
@@ -9,7 +9,7 @@ from mau.deck.behavior import BaseWildBehavior, NumberBehavior
 from mau.enums import CardColor
 
 if TYPE_CHECKING:
-    from mau.game.game import UnoGame
+    from mau.game.game import MauGame
 
 CARD_REGEX = re.compile(r"(\d)_(\d)_(\d+)_([a-z+]+)")
 CARD_BEHAVIOR = {
@@ -22,8 +22,8 @@ CARD_BEHAVIOR = {
 }
 
 
-class UnoCard:
-    """Описание каждой карты Uno.
+class MauCard:
+    """Описание каждой карты Mau.
 
     Предоставляет общий функционал для всех карт.
     """
@@ -100,7 +100,7 @@ class UnoCard:
         """
         yield from ((card, self.can_cover(card)) for card in hand)
 
-    def use(self, game: "UnoGame") -> None:
+    def use(self, game: "MauGame") -> None:
         """Выполняет активное действие карты во время её разыгрывания."""
         self.behavior.use(self, game)
 
@@ -114,7 +114,7 @@ class UnoCard:
             f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
         )
 
-    def __call__(self, game: "UnoGame") -> None:
+    def __call__(self, game: "MauGame") -> None:
         """Синтаксический сахар для вызова действия карты.
 
         Позволяет использовать способность этой карты.
@@ -124,7 +124,7 @@ class UnoCard:
 
     def __eq__(self, other: object) -> bool:
         """Проверяет соответствие двух карт."""
-        if not isinstance(other, UnoCard):
+        if not isinstance(other, MauCard):
             return NotImplemented
 
         return (
@@ -135,7 +135,7 @@ class UnoCard:
 
     def __lt__(self, other_card: object) -> bool:
         """Проверяет что данная карта меньшей стоимости чем прочая."""
-        if not isinstance(other_card, UnoCard):
+        if not isinstance(other_card, MauCard):
             return NotImplemented
 
         return (

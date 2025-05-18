@@ -73,11 +73,5 @@ target/
 chart/charts
 
 # Database file
-uno.sqlite*
-data/
-
-images/*.json
-images/sticker_uploader.session
-images/**/
 .env
 site/

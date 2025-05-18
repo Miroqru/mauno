@@ -11,8 +11,8 @@ from mau.events import Event
 from mau.game.shotgun import Shotgun
 
 if TYPE_CHECKING:
-    from mau.deck.card import UnoCard
-    from mau.game.game import UnoGame
+    from mau.deck.card import MauCard
+    from mau.game.game import MauGame
 
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
@@ -35,22 +35,22 @@ class BaseUser:
 class SortedCards:
     """Распределяет карты на: покрывающие и не покрывающие."""
 
-    cover: list["UnoCard"]
-    uncover: list["UnoCard"]
+    cover: list["MauCard"]
+    uncover: list["MauCard"]
 
 
 class Player:
-    """Игрок для сессии Uno.
+    """Игрок для сессии Mau.
 
     Каждый игрок привязывается к конкретной игровой сессии.
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
     def __init__(
-        self, game: "UnoGame", user_id: str, user_name: str, user_mention: str
+        self, game: "MauGame", user_id: str, user_name: str, user_mention: str
     ) -> None:
-        self.hand: list[UnoCard] = []
-        self.game: UnoGame = game
+        self.hand: list[MauCard] = []
+        self.game: MauGame = game
         self.user_id = user_id
         self._user_name = user_name
         self._user_mention = user_mention
@@ -102,7 +102,7 @@ class Player:
         ):
             self.game.next_turn()
 
-    def _check_cover(self, card: "UnoCard") -> bool:
+    def _check_cover(self, card: "MauCard") -> bool:
         if (
             self.game.rules.intervention.status
             and card != self.game.deck.top

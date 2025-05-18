@@ -8,9 +8,9 @@ import re
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, ChosenInlineResult, InlineQuery
 
-from mau.deck.card import UnoCard
+from mau.deck.card import MauCard
 from mau.enums import CardColor, GameState
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import Player
 from maubot import markups
 from maubot.filters import NowPlaying
@@ -24,7 +24,7 @@ router = Router(name="Turn")
 
 @router.inline_query()
 async def inline_handler(
-    query: InlineQuery, game: UnoGame | None, player: Player | None
+    query: InlineQuery, game: MauGame | None, player: Player | None
 ) -> None:
     """Обработчик inline запросов. Предоставляет клавиатуру со всеми картами."""
     if game is None or player is None or query.from_user is None:
@@ -43,10 +43,10 @@ async def inline_handler(
 
 @router.chosen_inline_result(NowPlaying())
 async def process_card_handler(
-    result: ChosenInlineResult, game: UnoGame, player: Player
+    result: ChosenInlineResult, game: MauGame, player: Player
 ) -> None:
     """Обрабатывает все выбранные события от бота."""
-    card = UnoCard.unpack(result.result_id)
+    card = MauCard.unpack(result.result_id)
     if card is not None:
         game.process_turn(card, player)
 
@@ -55,7 +55,7 @@ async def process_card_handler(
 
 
 @router.callback_query(F.data == "next", NowPlaying())
-async def call_next(query: CallbackQuery, game: UnoGame) -> None:
+async def call_next(query: CallbackQuery, game: MauGame) -> None:
     """Передаёт ход следующему игроку."""
     game.next_turn()
 
@@ -74,7 +74,7 @@ async def call_bluff(query: CallbackQuery, player: Player) -> None:
 
 @router.callback_query(F.data.regexp(r"color:(\d)").as_("color"), NowPlaying())
 async def choose_color_call(
-    query: CallbackQuery, game: UnoGame, color: re.Match[str]
+    query: CallbackQuery, game: MauGame, color: re.Match[str]
 ) -> None:
     """Игрок выбирает цвет по нажатию на кнопку."""
     card_color = CardColor(int(color.groups()[0]))
@@ -86,7 +86,7 @@ async def choose_color_call(
     F.data.regexp(r"select_player:(\d+)").as_("user_id"), NowPlaying()
 )
 async def select_player_call(
-    query: CallbackQuery, game: UnoGame, player: Player, user_id: re.Match[str]
+    query: CallbackQuery, game: MauGame, player: Player, user_id: re.Match[str]
 ) -> None:
     """Действие при выборе игрока для обмена картами."""
     other_player = game.pm.get(user_id.groups()[0])

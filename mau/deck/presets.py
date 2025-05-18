@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Self
 
 from mau.deck import behavior
-from mau.deck.card import UnoCard
+from mau.deck.card import MauCard
 from mau.deck.deck import Deck
 from mau.enums import CardColor
 
@@ -29,14 +29,14 @@ class CardGroup:
     colors: Iterable[CardColor]
     count: int
 
-    def cards(self) -> Iterator[UnoCard]:
+    def cards(self) -> Iterator[MauCard]:
         """Преобразует группу карт в итератор экземпляров карт.
 
         Если было указано по 3 карты всех цветов, то он вернёт 12 карт.
         """
         for count in range(self.count):
             for color in self.colors:
-                yield UnoCard(
+                yield MauCard(
                     color,
                     self.value,
                     self.behavior.cost or self.value,
@@ -166,7 +166,7 @@ class DeckGenerator:
         self.groups: list[CardGroup] = groups or []
         self.preset_name = preset_name
 
-    def _cards(self) -> Iterator[UnoCard]:
+    def _cards(self) -> Iterator[MauCard]:
         """Получает полный список карт для всего шаблона со всех групп."""
         for group in self.groups:
             yield from group.cards()

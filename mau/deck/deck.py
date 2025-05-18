@@ -10,7 +10,7 @@ from random import shuffle
 from loguru import logger
 
 from mau.deck.behavior import BaseWildBehavior
-from mau.deck.card import UnoCard
+from mau.deck.card import MauCard
 
 
 class Deck:
@@ -24,13 +24,13 @@ class Deck:
 
     __slots__ = ("cards", "used_cards", "_top")
 
-    def __init__(self, cards: list[UnoCard] | None = None) -> None:
-        self.cards: list[UnoCard] = cards or []
-        self.used_cards: list[UnoCard] = []
-        self._top: UnoCard | None = None
+    def __init__(self, cards: list[MauCard] | None = None) -> None:
+        self.cards: list[MauCard] = cards or []
+        self.used_cards: list[MauCard] = []
+        self._top: MauCard | None = None
 
     @property
-    def top(self) -> UnoCard:
+    def top(self) -> MauCard:
         """Возвращает верхнюю карту из колоды."""
         if self._top is None:
             self._top = self._get_top_card()
@@ -51,14 +51,14 @@ class Deck:
         self.used_cards = []
         self._top = None
 
-    def _get_top_card(self) -> UnoCard:
+    def _get_top_card(self) -> MauCard:
         """Устанавливает подходящую верную карту колоды."""
         for i, card in enumerate(self.cards):
             if not isinstance(card.behavior, BaseWildBehavior):
                 return self.cards.pop(i)
         raise ValueError("No suitable card for deck top")
 
-    def take(self, count: int = 1) -> Iterator[UnoCard]:
+    def take(self, count: int = 1) -> Iterator[MauCard]:
         """Берёт несколько карт из колоды.
 
         Используется чтобы дать участнику несколько карт.
@@ -87,12 +87,12 @@ class Deck:
         self.used_cards = []
         self.shuffle()
 
-    def put(self, card: UnoCard) -> None:
+    def put(self, card: MauCard) -> None:
         """Возвращает использованную карту в колоду."""
         card.prepare_used()
         self.used_cards.append(card)
 
-    def put_top(self, card: UnoCard) -> None:
+    def put_top(self, card: MauCard) -> None:
         """Ложит карту на вершину стопки."""
         if self._top is None:
             self._top = card

@@ -10,7 +10,7 @@ from aiogram.types import (
     Message,
 )
 
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.rules import GameRules
 from maubot.filters import ActivePlayer
 
@@ -40,13 +40,13 @@ def rules_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
 
 
 @router.message(Command("rules"), ActivePlayer())
-async def send_rules_list(message: Message, game: UnoGame) -> None:
+async def send_rules_list(message: Message, game: MauGame) -> None:
     """Отображает настройки для текущей комнаты."""
     await message.answer(ROOM_SETTINGS, reply_markup=rules_markup(game.rules))
 
 
 @router.callback_query(F.data == "room_rules", ActivePlayer())
-async def get_rules_call(query: CallbackQuery, game: UnoGame) -> None:
+async def get_rules_call(query: CallbackQuery, game: MauGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
         await query.message.answer(
@@ -63,7 +63,7 @@ class RulesCallback(CallbackData, prefix="rule"):
 
 @router.callback_query(RulesCallback.filter(), ActivePlayer())
 async def edit_room_rules_call(
-    query: CallbackQuery, callback_data: RulesCallback, game: UnoGame
+    query: CallbackQuery, callback_data: RulesCallback, game: MauGame
 ) -> None:
     """Изменяет настройки для текущей комнаты."""
     game.rules.toggle(callback_data.index)

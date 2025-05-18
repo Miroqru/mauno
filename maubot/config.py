@@ -14,7 +14,7 @@ from maubot.events.journal import MessageJournal
 
 
 class Config(BaseSettings):
-    """Общие настройки для Telegram бота, касающиеся Uno.
+    """Общие настройки для Telegram бота, касающиеся Mau.
 
     - telegram_token: Токен для работы Telegram бота.
     - min_players: Минимальное количество игроков для начала игры.

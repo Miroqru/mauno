@@ -9,7 +9,7 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, Message
 from loguru import logger
 
-from mau.deck.card import UnoCard
+from mau.deck.card import MauCard
 from mau.enums import GameEvents
 from mau.events import BaseEventHandler, Event
 
@@ -111,7 +111,7 @@ class MessageChannel:
                 reply_markup=self.markup,
             )
 
-    async def send_card(self, card: UnoCard) -> None:
+    async def send_card(self, card: MauCard) -> None:
         """Отправляет карту как стикер."""
         await self.bot.send_photo(
             chat_id=self.room_id,

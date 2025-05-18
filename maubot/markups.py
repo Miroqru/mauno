@@ -15,7 +15,7 @@ from aiogram.types import InputTextMessageContent as InputText
 
 from mau.deck.behavior import WildTakeBehavior
 from mau.enums import CardColor, GameState
-from mau.game.game import UnoGame
+from mau.game.game import MauGame
 from mau.game.player import Player
 from mau.game.player_manager import PlayerManager
 from maubot.config import config
@@ -129,7 +129,7 @@ def select_player(pm: PlayerManager, skip_button: bool) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=res)
 
 
-def lobby_markup(game: UnoGame) -> InlineKeyboardMarkup:
+def lobby_markup(game: MauGame) -> InlineKeyboardMarkup:
     """Вспомогательная клавиатура для управления комнатой.
 
     Позволяет начать игру и присоединиться к ней.
@@ -154,7 +154,7 @@ def lobby_markup(game: UnoGame) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def turn_markup(game: UnoGame) -> InlineKeyboardMarkup:
+def turn_markup(game: MauGame) -> InlineKeyboardMarkup:
     """Клавиатура для хода."""
     inline_keyboard = [
         [

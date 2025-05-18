@@ -1,3 +1,3 @@
-# Uno карта
+# Mau карта
 
 ::: mau.deck.card

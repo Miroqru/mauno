@@ -6,8 +6,8 @@
 
 from datetime import datetime
 
-from mau.deck.card import UnoCard
-from mau.game.game import UnoGame
+from mau.deck.card import MauCard
+from mau.game.game import MauGame
 from mau.game.player_manager import PlayerManager
 
 _MEDALS = ("🥇", "🥈", "🥉")
@@ -45,7 +45,7 @@ def time_delta(seconds: int) -> str:
     return res
 
 
-def game_rules_list(game: UnoGame) -> str:
+def game_rules_list(game: MauGame) -> str:
     """Получает включенные игровые правила для текущей комнаты.
 
     Отображает список правил и общее количество включенных правил.
@@ -78,11 +78,11 @@ def players_list(pm: PlayerManager, reverse: bool, shotgun: bool) -> str:
     return res
 
 
-def _card_info(card: UnoCard) -> str:
+def _card_info(card: MauCard) -> str:
     return f"{card.color.emoji} {card.value} {card.behavior.name}"
 
 
-def game_status(game: UnoGame) -> str:
+def game_status(game: MauGame) -> str:
     """Возвращает статус текущей игры.
 
     Используется и при создании новой комнаты.

@@ -61,7 +61,7 @@ class GameEvents(IntEnum):
 
     **Игрок**:
 
-    - `player_uno`: Сообщить всем что у игрока осталась одна карта.
+    - `player_mau`: Когда у игрока остаётся только одна карта.
     - `player_bluff`: Проверка на честность предыдущего игрока.
     - `player_take`: Взятие карт из колоды, также вместо револьвера.
     - `player_push`: Игрок использует карту.
@@ -81,7 +81,7 @@ class GameEvents(IntEnum):
     GAME_ROTATE = 27
     GAME_STATE = 28
 
-    PLAYER_UNO = 30
+    PLAYER_MAU = 30
     PLAYER_BLUFF = 31
     PLAYER_TAKE = 32
     PLAYER_PUSH = 33

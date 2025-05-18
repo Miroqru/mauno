@@ -12,7 +12,7 @@ from loguru import logger
 from mau.enums import GameEvents
 
 if TYPE_CHECKING:
-    from mau.game.game import UnoGame
+    from mau.game.game import MauGame
     from mau.game.player import Player
 
 
@@ -31,7 +31,7 @@ class Event:
     Созданные игрой события отправляются в обработчик.
     """
 
-    game: "UnoGame"
+    game: "MauGame"
     player: "Player"
     event_type: GameEvents
     data: str

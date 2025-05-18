@@ -193,10 +193,10 @@ async def update_game_state(event: Event, chan: MessageChannel) -> None:
 # =========================
 
 
-@er.event(GameEvents.PLAYER_UNO)
-async def say_uno(event: Event, chan: MessageChannel) -> None:
+@er.event(GameEvents.PLAYER_MAU)
+async def say_mau(event: Event, chan: MessageChannel) -> None:
     """Оповещает что у игрока осталась одна карта в руке."""
-    chan.add("\n🌟 <b>UNO!</b>")
+    chan.add("\n😺 <b>Mau!</b>")
 
 
 @er.event(GameEvents.PLAYER_TAKE)
