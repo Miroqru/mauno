@@ -44,30 +44,6 @@ SHOTGUN_MARKUP = InlineKeyboardMarkup(
     ]
 )
 
-SELECT_COLOR = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="❤️", callback_data=f"color:{CardColor.RED}"
-            ),
-            InlineKeyboardButton(
-                text="💛", callback_data=f"color:{CardColor.YELLOW}"
-            ),
-            InlineKeyboardButton(
-                text="💚", callback_data=f"color:{CardColor.GREEN}"
-            ),
-            InlineKeyboardButton(
-                text="💙", callback_data=f"color:{CardColor.CYAN}"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="🃏 Ваши карты", switch_inline_query_current_chat=""
-            )
-        ],
-    ]
-)
-
 NEW_GAME_MARKUP = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="🍪 Новая игра", callback_data="new_game")]
@@ -181,6 +157,22 @@ def turn_markup(game: MauGame) -> InlineKeyboardMarkup:
     ):
         inline_keyboard[0].append(
             InlineKeyboardButton(text="🍷 блефуешь", callback_data="bluff")
+        )
+
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
+
+def color_markup(game: MauGame) -> InlineKeyboardMarkup:
+    """Собирает клавиатуру для выбора цвета."""
+    inline_keyboard: list[list[InlineKeyboardButton]] = []
+    for i in range(7):
+        if i == CardColor.BLACK:
+            continue
+        if i % 4 == 0:
+            inline_keyboard.append([])
+        color = CardColor(i)
+        inline_keyboard[-1].append(
+            InlineKeyboardButton(text=color.emoji, callback_data=f"color:{i}")
         )
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

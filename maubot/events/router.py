@@ -177,7 +177,7 @@ async def update_game_state(event: Event, chan: MessageChannel) -> None:
 
     elif state == GameState.CHOOSE_COLOR:
         chan.add("✨ Какой бы выбрать цвет ...")
-        chan.set_markup(markups.SELECT_COLOR)
+        chan.set_markup(markups.color_markup(event.game))
 
     elif state == GameState.TAKE:
         chan.set_markup(markups.turn_markup(event.game))
