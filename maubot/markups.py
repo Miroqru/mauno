@@ -142,20 +142,20 @@ def turn_markup(game: MauGame) -> InlineKeyboardMarkup:
     ]
 
     if game.state == GameState.TAKE:
-        inline_keyboard[0].append(
-            InlineKeyboardButton(text="🍓 завершить", callback_data="next")
+        inline_keyboard.append(
+            [InlineKeyboardButton(text="🍓 завершить", callback_data="next")]
         )
 
     else:
-        inline_keyboard[0].append(
-            InlineKeyboardButton(text="🃏 взять", callback_data="take")
+        inline_keyboard.append(
+            [InlineKeyboardButton(text="🃏 взять", callback_data="take")]
         )
 
     if (
         isinstance(game.deck.top.behavior, WildTakeBehavior)
         and game.take_counter
     ):
-        inline_keyboard[0].append(
+        inline_keyboard[-1].append(
             InlineKeyboardButton(text="🍷 блефуешь", callback_data="bluff")
         )
 
@@ -174,5 +174,13 @@ def color_markup(game: MauGame) -> InlineKeyboardMarkup:
         inline_keyboard[-1].append(
             InlineKeyboardButton(text=color.emoji, callback_data=f"color:{i}")
         )
+
+    inline_keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="🃏 Ваши карты", switch_inline_query_current_chat=""
+            )
+        ]
+    )
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
