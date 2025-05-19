@@ -60,7 +60,7 @@ class DeckPreset:
 # Пресеты колод
 # =============
 
-ALL_COLORS = (CardColor.RED, CardColor.YELLOW, CardColor.GREEN, CardColor.BLUE)
+ALL_COLORS = (CardColor.RED, CardColor.YELLOW, CardColor.GREEN, CardColor.CYAN)
 
 _NUMBER = behavior.NumberBehavior()
 _REVERSE = behavior.ReverseBehavior()
