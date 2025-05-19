@@ -11,6 +11,19 @@ from loguru import logger
 
 from mau.deck.behavior import BaseWildBehavior
 from mau.deck.card import MauCard
+from mau.enums import CardColor
+
+
+def deck_colors(cards: list[MauCard]) -> list[CardColor]:
+    """Возвращает все использованные цвета в колоде, исключая дикие карты."""
+    res = []
+    for card in cards:
+        if isinstance(card.behavior, BaseWildBehavior):
+            continue
+
+        if card.color not in res:
+            res.append(card.color)
+    return sorted(res)
 
 
 class Deck:
@@ -22,12 +35,20 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = ("cards", "used_cards", "_top")
+    __slots__ = ("cards", "used_cards", "_top", "_colors")
 
     def __init__(self, cards: list[MauCard] | None = None) -> None:
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
+        self._colors: list[CardColor] | None = None
+
+    @property
+    def colors(self) -> list[CardColor]:
+        """Получает список всех используемых цветов в колоде."""
+        if self._colors is None:
+            self._colors = deck_colors(self.cards)
+        return self._colors
 
     @property
     def top(self) -> MauCard:

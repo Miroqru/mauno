@@ -14,7 +14,7 @@ from aiogram.types import InlineQueryResultPhoto as InlinePhoto
 from aiogram.types import InputTextMessageContent as InputText
 
 from mau.deck.behavior import WildTakeBehavior
-from mau.enums import CardColor, GameState
+from mau.enums import GameState
 from mau.game.game import MauGame
 from mau.game.player import Player
 from mau.game.player_manager import PlayerManager
@@ -165,14 +165,11 @@ def turn_markup(game: MauGame) -> InlineKeyboardMarkup:
 def color_markup(game: MauGame) -> InlineKeyboardMarkup:
     """Собирает клавиатуру для выбора цвета."""
     inline_keyboard: list[list[InlineKeyboardButton]] = []
-    for i in range(7):
-        if i == CardColor.BLACK:
-            continue
-        if i % 4 == 0:
+    for c in game.deck.colors:
+        if c.value % 4 == 0:
             inline_keyboard.append([])
-        color = CardColor(i)
         inline_keyboard[-1].append(
-            InlineKeyboardButton(text=color.emoji, callback_data=f"color:{i}")
+            InlineKeyboardButton(text=c.emoji, callback_data=f"color:{c.value}")
         )
 
     inline_keyboard.append(
