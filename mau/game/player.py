@@ -78,6 +78,10 @@ class Player:
                 return True
         return False
 
+    def count_cost(self) -> int:
+        """Считает полную ценность руки пользователя."""
+        return sum(c.cost for c in self.hand)
+
     def push_event(self, event_type: GameEvents, data: str = "") -> None:
         """Отправляет событие в журнал.
 
