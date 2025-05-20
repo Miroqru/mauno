@@ -21,6 +21,7 @@ nav:
     - use/commands.md
     - use/game.md
     - use/install.md
+    - use/card_generator.md
     - use/rules.md
     - use/maintenance.md
   - Mau:
@@ -33,7 +34,6 @@ nav:
       - behavior: mau/deck/behavior.md
       - card: mau/deck/card.md
       - deck: mau/deck/deck.md
-      - generator: mau/deck/generator.md
       - presets: mau/deck/presets.md
     - game:
       - game: mau/game/game.md
