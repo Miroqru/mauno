@@ -59,7 +59,7 @@ async def create_game(
     if message.from_user is None:
         raise ValueError("None User tries create new game")
 
-    game = sm.create(
+    sm.create(
         str(message.chat.id),
         BaseUser(
             str(message.from_user.id),

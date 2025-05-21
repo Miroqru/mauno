@@ -63,6 +63,8 @@ class DeckPreset:
 ALL_COLORS = (CardColor.RED, CardColor.YELLOW, CardColor.GREEN, CardColor.CYAN)
 
 _NUMBER = behavior.NumberBehavior()
+_TWIST = behavior.TwistBehavior()
+_ROTATE = behavior.RotateBehavior()
 _REVERSE = behavior.ReverseBehavior()
 _TURN = behavior.TurnBehavior()
 _TAKE = behavior.TakeBehavior()
@@ -76,9 +78,9 @@ CARD_PRESETS: dict[str, DeckPreset] = {
         name="🎻 Классика",
         desc="Стандартная колода Уно",
         groups=(
-            CardGroup(_NUMBER, 0, ALL_COLORS, 1),
+            CardGroup(_ROTATE, 0, ALL_COLORS, 1),
             CardGroup(_NUMBER, 1, ALL_COLORS, 2),
-            CardGroup(_NUMBER, 2, ALL_COLORS, 2),
+            CardGroup(_TWIST, 2, ALL_COLORS, 2),
             CardGroup(_NUMBER, 3, ALL_COLORS, 2),
             CardGroup(_NUMBER, 4, ALL_COLORS, 2),
             CardGroup(_NUMBER, 5, ALL_COLORS, 2),
@@ -97,9 +99,9 @@ CARD_PRESETS: dict[str, DeckPreset] = {
         name="🐍 Дикие карты",
         desc="Меньше цифр, больше действий.",
         groups=(
-            CardGroup(_NUMBER, 0, ALL_COLORS, 4),
+            CardGroup(_ROTATE, 0, ALL_COLORS, 4),
             CardGroup(_NUMBER, 1, ALL_COLORS, 4),
-            CardGroup(_NUMBER, 2, ALL_COLORS, 4),
+            CardGroup(_TWIST, 2, ALL_COLORS, 4),
             CardGroup(_NUMBER, 3, ALL_COLORS, 4),
             CardGroup(_NUMBER, 4, ALL_COLORS, 4),
             CardGroup(_NUMBER, 5, ALL_COLORS, 4),
@@ -114,9 +116,9 @@ CARD_PRESETS: dict[str, DeckPreset] = {
         name="🎰 Казино",
         desc="Нет слов, одни эмоции.",
         groups=(
-            CardGroup(_NUMBER, 0, ALL_COLORS, 4),
+            CardGroup(_ROTATE, 0, ALL_COLORS, 4),
             CardGroup(_NUMBER, 1, ALL_COLORS, 4),
-            CardGroup(_NUMBER, 2, ALL_COLORS, 4),
+            CardGroup(_TWIST, 2, ALL_COLORS, 4),
             CardGroup(_NUMBER, 3, ALL_COLORS, 4),
             CardGroup(_NUMBER, 4, ALL_COLORS, 4),
             CardGroup(_NUMBER, 5, ALL_COLORS, 4),
@@ -131,9 +133,9 @@ CARD_PRESETS: dict[str, DeckPreset] = {
         name="🗑️ Отладочные",
         desc="По одной карте для каждого типа.",
         groups=(
-            CardGroup(_NUMBER, 0, ALL_COLORS, 1),
+            CardGroup(_ROTATE, 0, ALL_COLORS, 1),
             CardGroup(_NUMBER, 1, ALL_COLORS, 1),
-            CardGroup(_NUMBER, 2, ALL_COLORS, 1),
+            CardGroup(_TWIST, 2, ALL_COLORS, 1),
             CardGroup(_NUMBER, 3, ALL_COLORS, 1),
             CardGroup(_NUMBER, 4, ALL_COLORS, 1),
             CardGroup(_NUMBER, 5, ALL_COLORS, 1),

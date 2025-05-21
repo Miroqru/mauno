@@ -43,6 +43,7 @@ class GameRules:
         self.one_winner = Rule(self, 11, "👑 Один победитель")
         self.auto_skip = Rule(self, 12, "💸 Авто пропуск")
         self.deferred_take = Rule(self, 13, "⏳ Отложенное взятие")
+        self.random_cards = Rule(self, 14, "🎰 Случайные карты")
 
     def iter_rules(self) -> Iterator[tuple[str, bool]]:
         """Возвращает итератор правил."""

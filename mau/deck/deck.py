@@ -9,9 +9,12 @@ from random import shuffle
 
 from loguru import logger
 
+from mau.deck import behavior
 from mau.deck.behavior import BaseWildBehavior
 from mau.deck.card import MauCard
 from mau.enums import CardColor
+
+from random import randint, choice
 
 
 def deck_colors(cards: list[MauCard]) -> list[CardColor]:
@@ -24,6 +27,38 @@ def deck_colors(cards: list[MauCard]) -> list[CardColor]:
         if card.color not in res:
             res.append(card.color)
     return sorted(res)
+
+
+_BEHAVIORS = [
+    behavior.NumberBehavior(),
+    behavior.ReverseBehavior(),
+    behavior.TurnBehavior(),
+    behavior.TakeBehavior(),
+    behavior.WildTakeBehavior(),
+    behavior.WildColorBehavior(),
+    behavior.TwistBehavior(),
+    behavior.RotateBehavior(),
+]
+
+_COLORS = [
+    CardColor(0),
+    CardColor(1),
+    CardColor(2),
+    CardColor(3),
+    CardColor(4),
+    CardColor(5),
+    CardColor(6),
+    CardColor(7),
+]
+
+
+def random_card() -> MauCard:
+    """Отдаёт случайную карту."""
+    value = randint(0, 9)
+    behavior = choice(_BEHAVIORS)
+    cost = behavior.cost or value
+
+    return MauCard(CardColor(randint(0, 7)), value, cost, behavior)
 
 
 class Deck:
@@ -120,4 +155,47 @@ class Deck:
             return
 
         self.put(self._top)
+        self._top = card
+
+
+class RandomDeck(Deck):
+    """Колода случайных карт."""
+
+    __slots__ = ("cards", "used_cards", "_top", "_colors")
+
+    def __init__(self) -> None:
+        super().__init__([])
+
+    @property
+    def colors(self) -> list[CardColor]:
+        """Получает список всех используемых цветов в колоде."""
+        return _COLORS
+
+    def _get_top_card(self) -> MauCard:
+        """Устанавливает подходящую верную карту колоды."""
+        while True:
+            card = random_card()
+            if not isinstance(card.behavior, BaseWildBehavior):
+                return card
+
+    def take(self, count: int = 1) -> Iterator[MauCard]:
+        """Берёт несколько карт из колоды.
+
+        Используется чтобы дать участнику несколько карт.
+        """
+        for i in range(count):
+            card = random_card()
+            logger.debug("Take {} / {} card: {}", i, count, card)
+            yield card
+
+    def count_until_cover(self) -> int:
+        """Получает количество кард в колоде до покрывающей верную."""
+        return 1
+
+    def put(self, card: MauCard) -> None:
+        """Возвращает использованную карту в колоду."""
+        logger.debug("Put {}", card)
+
+    def put_top(self, card: MauCard) -> None:
+        """Ложит карту на вершину стопки."""
         self._top = card

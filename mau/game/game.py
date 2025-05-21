@@ -6,7 +6,7 @@ from random import randint
 from loguru import logger
 
 from mau.deck.card import MauCard
-from mau.deck.deck import Deck
+from mau.deck.deck import Deck, RandomDeck
 from mau.deck.presets import DeckGenerator
 from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
@@ -79,7 +79,10 @@ class MauGame:
     def start(self) -> None:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
-        self.deck = self.deck_generator.deck
+        if self.rules.random_cards.status:
+            self.deck = RandomDeck()
+        else:
+            self.deck = self.deck_generator.deck
         self.deck.shuffle()
         self.pm.start()
 

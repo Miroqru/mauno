@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 CARD_REGEX = re.compile(r"(\d)_(\d)_(\d+)_([a-z+]+)")
 CARD_BEHAVIOR = {
+    "rotate": behavior.RotateBehavior,
+    "twist": behavior.TwistBehavior,
     "number": behavior.NumberBehavior,
     "turn": behavior.TurnBehavior,
     "reverse": behavior.ReverseBehavior,
