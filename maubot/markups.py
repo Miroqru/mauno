@@ -18,7 +18,6 @@ from mau.enums import GameState
 from mau.game.game import MauGame
 from mau.game.player import Player
 from mau.game.player_manager import PlayerManager
-from maubot.config import config
 from maubot.messages import game_status
 
 # Когда кто-то пробует использовать inline режим бота без активной комнаты
@@ -120,7 +119,7 @@ def lobby_markup(game: MauGame) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="☕ Зайти", callback_data="join"),
         ],
     ]
-    if len(game.pm) >= config.min_players:
+    if len(game.pm) >= game.min_players:
         buttons[0].append(
             InlineKeyboardButton(
                 text="🎮 Начать игру", callback_data="start_game"

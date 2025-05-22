@@ -34,6 +34,8 @@ class MauGame:
         self.rules = GameRules()
         self.deck_generator = DeckGenerator.from_preset("classic")
 
+        self.min_players = 2
+        self.max_players = 6
         self.pm = player_manager
         self.deck = Deck()
         self.event_handler: BaseEventHandler = event_handler
@@ -121,7 +123,7 @@ class MauGame:
         if player is not None:
             return player
 
-        if not self.open:
+        if not self.open or len(self.pm) >= self.max_players:
             return None
 
         player = Player(self, user.id, user.name, user.username)

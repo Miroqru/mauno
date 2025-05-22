@@ -17,11 +17,17 @@ class Config(BaseSettings):
     """Общие настройки для Telegram бота, касающиеся Mau.
 
     - telegram_token: Токен для работы Telegram бота.
-    - min_players: Минимальное количество игроков для начала игры.
+
+    Настройки хука:
+    - use_hook: Использовать webhook или long polling.
+    - server_host: IP сервера дяя хука. (По умолчанию локальный)
+    - server_port: На каком порту работает локальный сервер.
+    - hook_root: Ссылка на сервер хука для telegram.
+    - hook_root: API ручка для хука.
+    - hook_secret: Дополнительный секрет для проверки событий хука.
     """
 
     telegram_token: SecretStr = Field()
-    min_players: int = Field()
 
     use_hook: bool
     server_host: str

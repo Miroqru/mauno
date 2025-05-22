@@ -16,20 +16,21 @@ from mau.game.game import MauGame
 from mau.game.player import BaseUser
 from mau.session import SessionManager
 from maubot import filters, markups
-from maubot.config import config
 from maubot.events.journal import MessageChannel
 from maubot.messages import game_status
 
 router = Router(name="Sessions")
 
+
 # Когда недостаточно игроков для продолжения/начала игры
-NOT_ENOUGH_PLAYERS = (
-    f"🌳 <b>Недостаточно игроков</b> (минимум {config.min_players}) для "
-    "игры.\n"
-    "Если игра ещё <b>не началась</b> воспользуйтесь командой "
-    "/join чтобы зайти в комнату.\n"
-    "🍰 Или создайте новую комнату при помощи /game."
-)
+def _not_enough_message(min_players: int) -> str:
+    return (
+        f"🌳 <b>Недостаточно игроков</b> (минимум {min_players}) для "
+        "игры.\n"
+        "Если игра ещё <b>не началась</b> воспользуйтесь командой "
+        "/join чтобы зайти в комнату.\n"
+        "🍰 Или создайте новую комнату при помощи /game."
+    )
 
 
 @router.message(Command("game"))
@@ -59,6 +60,7 @@ async def create_game(
     if message.from_user is None:
         raise ValueError("None User tries create new game")
 
+    # TODO: Указывать какую игру создавать
     sm.create(
         str(message.chat.id),
         BaseUser(
@@ -78,8 +80,8 @@ async def start_gama(message: Message, game: MauGame) -> None:
     elif game.started:
         await message.answer("👀 Игра уже началась ранее.")
 
-    elif len(game.pm) < config.min_players:
-        await message.answer(NOT_ENOUGH_PLAYERS)
+    elif len(game.pm) < game.min_players:
+        await message.answer(_not_enough_message(game.min_players))
 
     else:
         game.start()
@@ -89,6 +91,11 @@ async def start_gama(message: Message, game: MauGame) -> None:
 async def stop_gama(message: Message, game: MauGame) -> None:
     """Принудительно завершает текущую игру."""
     game.end()
+    if message.from_user is None:
+        raise ValueError("User can`t be none to stop game")
+
+    mention = message.from_user.mention_html()
+    await message.answer(f"⚡ {mention} завершает игру.")
 
 
 @router.message(Command("open"), filters.GameOwner())
