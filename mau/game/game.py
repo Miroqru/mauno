@@ -175,8 +175,8 @@ class MauGame:
         """
         logger.info("Playing card {}", card)
         card(self)
-
-        self.deck.put_top(card)
+        # TODO: Как-то смущает меня такой ход
+        self.deck.put_top(card, self)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.pack())
 

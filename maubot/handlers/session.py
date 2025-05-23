@@ -154,7 +154,7 @@ async def skip_player(
     )
     # Иногда может быть такое, что пропускается чёрная карта
     # Тогда ей нужно дать какой-нибудь цвет
-    if game.deck.top.color == CardColor.BLACK:
+    if game.deck.top.color == game.deck.wild_color:
         game.choose_color(CardColor(random.randint(0, 3)))
     else:
         game.next_turn()

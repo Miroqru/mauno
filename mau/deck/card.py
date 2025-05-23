@@ -106,9 +106,9 @@ class MauCard:
         """Выполняет активное действие карты во время её разыгрывания."""
         self.behavior.use(self, game)
 
-    def prepare_used(self) -> None:
+    def prepare_used(self, game: "MauGame") -> None:
         """Подготавливает карту к повторному использованию в колоде."""
-        self.behavior.prepare_used(self)
+        self.behavior.prepare_used(self, game)
 
     def __repr__(self) -> str:
         """Представление карты для отладки."""

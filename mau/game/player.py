@@ -174,6 +174,7 @@ class Player:
         """Действия игрока при выходе из игры."""
         logger.debug("{} Leave from game", self._user_name)
         for card in self.hand:
+            card.prepare_used(self.game)
             self.game.deck.put(card)
         self.hand = []
 

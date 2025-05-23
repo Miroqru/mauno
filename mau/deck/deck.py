@@ -5,7 +5,8 @@
 """
 
 from collections.abc import Iterator
-from random import shuffle
+from random import choice, randint, shuffle
+from typing import TYPE_CHECKING
 
 from loguru import logger
 
@@ -14,7 +15,8 @@ from mau.deck.behavior import BaseWildBehavior
 from mau.deck.card import MauCard
 from mau.enums import CardColor
 
-from random import randint, choice
+if TYPE_CHECKING:
+    from mau.game.game import MauGame
 
 
 def deck_colors(cards: list[MauCard]) -> list[CardColor]:
@@ -29,6 +31,7 @@ def deck_colors(cards: list[MauCard]) -> list[CardColor]:
     return sorted(res)
 
 
+# TODO: Плохо выглядит, устранить
 _BEHAVIORS = [
     behavior.NumberBehavior(),
     behavior.ReverseBehavior(),
@@ -70,13 +73,14 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = ("cards", "used_cards", "_top", "_colors")
+    __slots__ = ("cards", "used_cards", "_top", "_colors", "_wild_color")
 
     def __init__(self, cards: list[MauCard] | None = None) -> None:
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
         self._colors: list[CardColor] | None = None
+        self._wild_color: CardColor | None = None
 
     @property
     def colors(self) -> list[CardColor]:
@@ -86,11 +90,22 @@ class Deck:
         return self._colors
 
     @property
+    def wild_color(self) -> CardColor:
+        """Получает дикий цвет для колоды."""
+        if self._wild_color is None:
+            self._wild_color = self._get_wild_color()
+        return self._wild_color
+
+    @property
     def top(self) -> MauCard:
         """Возвращает верхнюю карту из колоды."""
         if self._top is None:
             self._top = self._get_top_card()
         return self._top
+
+    def _get_wild_color(self) -> CardColor:
+        """Устанавливает основной цвет для диких карт."""
+        return CardColor.BLACK
 
     def shuffle(self) -> None:
         """Перемешивает доступные карты в колоде.
@@ -143,17 +158,18 @@ class Deck:
         self.used_cards = []
         self.shuffle()
 
+    # TODO: Или сюда лучше игру пробросить
     def put(self, card: MauCard) -> None:
         """Возвращает использованную карту в колоду."""
-        card.prepare_used()
         self.used_cards.append(card)
 
-    def put_top(self, card: MauCard) -> None:
+    def put_top(self, card: MauCard, game: "MauGame") -> None:
         """Ложит карту на вершину стопки."""
         if self._top is None:
             self._top = card
             return
 
+        self._top.prepare_used(game)
         self.put(self._top)
         self._top = card
 
@@ -196,6 +212,6 @@ class RandomDeck(Deck):
         """Возвращает использованную карту в колоду."""
         logger.debug("Put {}", card)
 
-    def put_top(self, card: MauCard) -> None:
+    def put_top(self, card: MauCard, game: "MauGame") -> None:
         """Ложит карту на вершину стопки."""
         self._top = card
