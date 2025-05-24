@@ -12,7 +12,7 @@ from aiogram.types import (
 
 from mau.game.game import MauGame
 from mau.game.rules import GameRules
-from maubot.filters import ActivePlayer
+from maubot.filters import GameOwner
 
 router = Router(name="Game rules")
 
@@ -39,13 +39,13 @@ def rules_markup(game_rules: GameRules) -> InlineKeyboardMarkup:
     )
 
 
-@router.message(Command("rules"), ActivePlayer())
+@router.message(Command("rules"), GameOwner())
 async def send_rules_list(message: Message, game: MauGame) -> None:
     """Отображает настройки для текущей комнаты."""
     await message.answer(ROOM_SETTINGS, reply_markup=rules_markup(game.rules))
 
 
-@router.callback_query(F.data == "room_rules", ActivePlayer())
+@router.callback_query(F.data == "room_rules", GameOwner())
 async def get_rules_call(query: CallbackQuery, game: MauGame) -> None:
     """Отображает настройки для текущей комнаты."""
     if isinstance(query.message, Message):
@@ -61,7 +61,7 @@ class RulesCallback(CallbackData, prefix="rule"):
     index: int
 
 
-@router.callback_query(RulesCallback.filter(), ActivePlayer())
+@router.callback_query(RulesCallback.filter(), GameOwner())
 async def edit_room_rules_call(
     query: CallbackQuery, callback_data: RulesCallback, game: MauGame
 ) -> None:
