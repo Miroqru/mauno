@@ -88,7 +88,7 @@ class MauGame:
         self.deck.shuffle()
         self.pm.start()
 
-        if self.rules.single_shotgun.status:
+        if self.rules.shotgun.status:
             self.shotgun.reset()
 
         self.started = True

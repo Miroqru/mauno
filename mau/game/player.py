@@ -8,7 +8,6 @@ from loguru import logger
 from mau.deck.behavior import TakeBehavior, WildTakeBehavior
 from mau.enums import GameEvents, GameState
 from mau.events import Event
-from mau.game.shotgun import Shotgun
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
@@ -54,7 +53,6 @@ class Player:
         self.user_id = user_id
         self._user_name = user_name
         self._user_mention = user_mention
-        self.shotgun = Shotgun()
 
     @property
     def name(self) -> str:
@@ -165,7 +163,6 @@ class Player:
     # TODO: Режим отладки
     def on_join(self) -> None:
         """Берёт начальный набор карт для игры."""
-        self.shotgun.reset()
         logger.debug("{} Draw first hand for player", self._user_name)
         self.hand = list(self.game.deck.take(7))
         self.push_event(GameEvents.PLAYER_TAKE, "7")
@@ -189,12 +186,13 @@ class Player:
 
     def shot(self) -> bool:
         """Выстрелить из револьвера."""
-        if self.game.rules.single_shotgun.status:
-            res = self.game.shotgun.shot()
-            if res:
-                self.game.shotgun.reset()
-            return res
-        return self.shotgun.shot()
+        if not self.game.rules.shotgun.status:
+            return False
+
+        res = self.game.shotgun.shot()
+        if res:
+            self.game.shotgun.reset()
+        return res
 
     def call_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.
@@ -231,10 +229,7 @@ class Player:
 
         if (
             self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
-            and (
-                self.game.rules.shotgun.status
-                or self.game.rules.single_shotgun.status
-            )
+            and (self.game.rules.shotgun.status)
             and self.game.state != GameState.SHOTGUN
         ):
             self.game.set_state(GameState.SHOTGUN)

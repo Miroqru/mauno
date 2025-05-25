@@ -29,21 +29,19 @@ class GameRules:
         self.rule_flags = 0
         self.rules: list[Rule] = []
 
-        self.twist_hand = Rule(self, 0, "🤝 Обмен руками")
-        self.rotate_cards = Rule(self, 1, "🧭 Обмен телами.")
-        self.take_until_cover = Rule(self, 2, "🍷 Беру до последнего.")
-        self.single_shotgun = Rule(self, 3, "🎲 Общий револьвер.")
-        self.shotgun = Rule(self, 4, "🔫 Рулетка.")
-        self.auto_choose_color = Rule(self, 5, "🃏 самоцвет")
-        self.choose_random_color = Rule(self, 6, "🎨 Случайный цвет")
-        self.random_color = Rule(self, 7, "🎨 Какой цвет дальше?")
-        self.side_effect = Rule(self, 8, "🌀 Побочный выброс")
-        self.intervention = Rule(self, 9, "😈 Вмешательство 🔧")
+        self.twist_hand = Rule(self, 0, "🤝 Обмен картами")
+        self.rotate_cards = Rule(self, 1, "🌀 Круговой обмен")
+        self.one_winner = Rule(self, 2, "👑 Один победитель")
+        self.auto_skip = Rule(self, 3, "💸 Авто пропуск")
+        self.take_until_cover = Rule(self, 4, "🍷 Беру до последнего")
+        self.shotgun = Rule(self, 5, "🔫 Револьвер")
+        self.deferred_take = Rule(self, 6, "⏳ Отложенное взятие")
+        self.auto_choose_color = Rule(self, 7, "🌷 самоцвет")
+        self.random_color = Rule(self, 8, "🎲 Какой цвет")
+        self.side_effect = Rule(self, 9, "💎 Побочный выброс")
         self.twist_hand_pass = Rule(self, 10, "👋 Без обмена")
-        self.one_winner = Rule(self, 11, "👑 Один победитель")
-        self.auto_skip = Rule(self, 12, "💸 Авто пропуск")
-        self.deferred_take = Rule(self, 13, "⏳ Отложенное взятие")
-        self.random_cards = Rule(self, 14, "🎰 Случайные карты")
+        self.random_cards = Rule(self, 11, "🎰 Случайные карты")
+        self.intervention = Rule(self, 12, "😈 Вмешательство 🔧")
 
     def iter_rules(self) -> Iterator[tuple[str, bool]]:
         """Возвращает итератор правил."""
