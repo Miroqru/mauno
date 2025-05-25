@@ -6,36 +6,36 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install the project
-      run: uv sync --locked --all-extras
+      - name: Install the project
+        run: uv sync --locked --all-extras
 
-    - name: Lint project with ruff
-      run: uvx ruff check --output-format github
+      - name: Lint project with ruff
+        run: uvx ruff check --output-format github
 
   mypy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install uv
-      uses: astral-sh/setup-uv@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install the project
-      run: uv sync --locked --all-groups
+      - name: Install the project
+        run: uv sync --locked --all-groups
 
-    - name: Type check telegram bot
-      run: uv run mypy -p maubot
+      - name: Type check telegram bot
+        run: uv run mypy -p mau

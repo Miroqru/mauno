@@ -1,21 +1,13 @@
 [project]
 name = "mau"
 version = "2.3"
-description = "Play Mau with your friends in Telegram chats!"
+description = "Mau card game engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
-dependencies = [
-    "loguru>=0.7.3"
-]
+dependencies = ["loguru>=0.7.3"]
 
 [dependency-groups]
-bot = [
-    "aiogram>=3.20.0",
-    "fastapi>=0.115.12",
-    "pydantic-settings>=2.9.1",
-    "uvicorn>=0.34.2",
-]
 dev = [
     "icecream>=2.1.4",
     "mypy>=1.15.0",

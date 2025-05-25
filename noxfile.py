@@ -28,7 +28,7 @@ def ruff_lint_cur(session: nox.Session) -> None:
 def type_check_cur(session: nox.Session) -> None:
     """Проверка статической типизации при помощи mypy."""
     session.run("uv", "sync", "--active")
-    session.run("mypy", "-p", "maubot")
+    session.run("mypy", "-p", "mau")
 
 
 # Full check
@@ -46,4 +46,4 @@ def ruff_lint(session: nox.Session) -> None:
 def type_check(session: nox.Session) -> None:
     """Проверка статической типизации при помощи mypy."""
     session.run("uv", "sync", "--active")
-    session.run("mypy", "-p", "maubot")
+    session.run("mypy", "-p", "mau")
