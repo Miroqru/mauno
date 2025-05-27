@@ -6,7 +6,6 @@
 
 from collections.abc import Iterator
 from random import choice, randint, shuffle
-from typing import TYPE_CHECKING
 
 from loguru import logger
 
@@ -14,9 +13,6 @@ from mau.deck import behavior
 from mau.deck.behavior import BaseWildBehavior
 from mau.deck.card import MauCard
 from mau.enums import CardColor
-
-if TYPE_CHECKING:
-    from mau.game.game import MauGame
 
 
 def deck_colors(cards: list[MauCard]) -> list[CardColor]:
@@ -73,19 +69,9 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = (
-        "_game",
-        "cards",
-        "used_cards",
-        "_top",
-        "_colors",
-        "_wild_color",
-    )
+    __slots__ = ("cards", "used_cards", "_top", "_colors", "_wild_color")
 
-    def __init__(
-        self, game: "MauGame", cards: list[MauCard] | None = None
-    ) -> None:
-        self._game = game
+    def __init__(self, cards: list[MauCard] | None = None) -> None:
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
@@ -103,8 +89,14 @@ class Deck:
     def wild_color(self) -> CardColor:
         """Получает дикий цвет для колоды."""
         if self._wild_color is None:
-            self._wild_color = self._get_wild_color()
+            raise ValueError("Wild color can`t be None")
         return self._wild_color
+
+    # TODO: Можно оповещать о событии для
+    def set_wild(self, color: CardColor) -> None:
+        """Устанавливает цвет дикой карты."""
+        logger.info("Set wild color to {}", color)
+        self._wild_color = color
 
     @property
     def top(self) -> MauCard:
@@ -112,13 +104,6 @@ class Deck:
         if self._top is None:
             self._top = self._get_top_card()
         return self._top
-
-    def _get_wild_color(self) -> CardColor:
-        """Устанавливает основной цвет для диких карт."""
-        if self._game.rules.special_wild.status:
-            return choice(self.colors)
-
-        return CardColor.BLACK
 
     def shuffle(self) -> None:
         """Перемешивает доступные карты в колоде.
@@ -173,7 +158,7 @@ class Deck:
 
     def put(self, card: MauCard) -> None:
         """Возвращает использованную карту в колоду."""
-        card.prepare_used(self._game)
+        card.prepare_used(self)
         self.used_cards.append(card)
 
     def put_top(self, card: MauCard) -> None:

@@ -1,7 +1,7 @@
 """Игровая сессия."""
 
 from datetime import datetime
-from random import randint
+from random import choice, randint
 
 from loguru import logger
 
@@ -32,12 +32,12 @@ class MauGame:
     ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
-        self.deck_generator = DeckGenerator.from_preset(self, "classic")
+        self.deck_generator = DeckGenerator.from_preset("classic")
 
         self.min_players = 2
         self.max_players = 6
         self.pm = player_manager
-        self.deck = Deck(self)
+        self.deck = Deck()
         self.event_handler: BaseEventHandler = event_handler
 
         self.owner = Player(self, owner.id, owner.name, owner.username)
@@ -82,10 +82,15 @@ class MauGame:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
         if self.rules.random_cards.status:
-            self.deck = RandomDeck(self)
+            self.deck = RandomDeck()
         else:
             self.deck = self.deck_generator.deck
         self.deck.shuffle()
+        if self.rules.special_wild.status:
+            self.deck.set_wild(choice(self.deck.colors))
+        else:
+            self.deck.set_wild(CardColor.BLACK)
+
         self.pm.start()
 
         if self.rules.shotgun.status:

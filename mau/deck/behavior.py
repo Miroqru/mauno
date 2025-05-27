@@ -26,6 +26,7 @@ from mau.enums import CardColor, GameEvents, GameState
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
+    from mau.deck.deck import Deck
     from mau.game.game import MauGame
 
 
@@ -58,12 +59,12 @@ class BaseBehavior(ABC):
         pass
 
     @abstractmethod
-    def prepare_used(self, card: "MauCard", game: "MauGame") -> None:
+    def prepare_used(self, card: "MauCard", deck: "Deck") -> None:
         """Подготовка карты к повторному использованию.
 
         Args:
             card: Для какой карты вызвано действие.
-            game: Экземпляр игры для получения текущего состояния.
+            deck: Колода, к которой принадлежит карта..
 
         """
         pass
@@ -89,7 +90,7 @@ class NumberBehavior(BaseBehavior):
         """Записывает в журнал использование карты."""
         logger.debug("Use card {} in game {}", card, game)
 
-    def prepare_used(self, card: "MauCard", game: "MauGame") -> None:
+    def prepare_used(self, card: "MauCard", deck: "Deck") -> None:
         """Подготавливает карту к повторному использованию."""
         logger.debug("Prepare card {} in game", card)
 
@@ -179,10 +180,10 @@ class BaseWildBehavior(NumberBehavior):
     name = "wild"
     cost = 50
 
-    def prepare_used(self, card: "MauCard", game: "MauGame") -> None:
+    def prepare_used(self, card: "MauCard", deck: "Deck") -> None:
         """Возвращает цвет карты в норму."""
         logger.debug("Prepare card {} in game", card)
-        card.color = game.deck.wild_color
+        card.color = deck.wild_color
 
     def _auto_select_color(self, card: "MauCard", game: "MauGame") -> None:
         logger.debug("Auto choose color for card")

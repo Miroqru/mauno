@@ -9,6 +9,7 @@ from mau.deck.behavior import BaseWildBehavior, NumberBehavior
 from mau.enums import CardColor
 
 if TYPE_CHECKING:
+    from mau.deck.deck import Deck
     from mau.game.game import MauGame
 
 CARD_REGEX = re.compile(r"(\d)_(\d)_(\d+)_([a-z+]+)")
@@ -108,9 +109,9 @@ class MauCard:
         """Выполняет активное действие карты во время её разыгрывания."""
         self.behavior.use(self, game)
 
-    def prepare_used(self, game: "MauGame") -> None:
+    def prepare_used(self, deck: "Deck") -> None:
         """Подготавливает карту к повторному использованию в колоде."""
-        self.behavior.prepare_used(self, game)
+        self.behavior.prepare_used(self, deck)
 
     def __repr__(self) -> str:
         """Представление карты для отладки."""
