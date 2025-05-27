@@ -42,6 +42,7 @@ class GameRules:
         self.twist_hand_pass = Rule(self, 10, "👋 Без обмена")
         self.random_cards = Rule(self, 11, "🎰 Случайные карты")
         self.intervention = Rule(self, 12, "😈 Вмешательство 🔧")
+        self.special_wild = Rule(self, 13, "❤️ Особая дикость")
 
     def iter_rules(self) -> Iterator[tuple[str, bool]]:
         """Возвращает итератор правил."""

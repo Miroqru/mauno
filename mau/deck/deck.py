@@ -73,9 +73,19 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = ("cards", "used_cards", "_top", "_colors", "_wild_color")
+    __slots__ = (
+        "_game",
+        "cards",
+        "used_cards",
+        "_top",
+        "_colors",
+        "_wild_color",
+    )
 
-    def __init__(self, cards: list[MauCard] | None = None) -> None:
+    def __init__(
+        self, game: "MauGame", cards: list[MauCard] | None = None
+    ) -> None:
+        self._game = game
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
@@ -105,6 +115,9 @@ class Deck:
 
     def _get_wild_color(self) -> CardColor:
         """Устанавливает основной цвет для диких карт."""
+        if self._game.rules.special_wild.status:
+            return choice(self.colors)
+
         return CardColor.BLACK
 
     def shuffle(self) -> None:
@@ -158,9 +171,9 @@ class Deck:
         self.used_cards = []
         self.shuffle()
 
-    # TODO: Или сюда лучше игру пробросить
     def put(self, card: MauCard) -> None:
         """Возвращает использованную карту в колоду."""
+        card.prepare_used(self._game)
         self.used_cards.append(card)
 
     def put_top(self, card: MauCard, game: "MauGame") -> None:
@@ -169,18 +182,12 @@ class Deck:
             self._top = card
             return
 
-        self._top.prepare_used(game)
         self.put(self._top)
         self._top = card
 
 
 class RandomDeck(Deck):
     """Колода случайных карт."""
-
-    __slots__ = ("cards", "used_cards", "_top", "_colors")
-
-    def __init__(self) -> None:
-        super().__init__([])
 
     @property
     def colors(self) -> list[CardColor]:
