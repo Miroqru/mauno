@@ -32,12 +32,12 @@ class MauGame:
     ) -> None:
         self.room_id = room_id
         self.rules = GameRules()
-        self.deck_generator = DeckGenerator.from_preset("classic")
+        self.deck_generator = DeckGenerator.from_preset(self, "classic")
 
         self.min_players = 2
         self.max_players = 6
         self.pm = player_manager
-        self.deck = Deck()
+        self.deck = Deck(self)
         self.event_handler: BaseEventHandler = event_handler
 
         self.owner = Player(self, owner.id, owner.name, owner.username)
@@ -82,7 +82,7 @@ class MauGame:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
         if self.rules.random_cards.status:
-            self.deck = RandomDeck()
+            self.deck = RandomDeck(self)
         else:
             self.deck = self.deck_generator.deck
         self.deck.shuffle()
@@ -153,7 +153,6 @@ class MauGame:
         if self.started and len(self.pm) <= 1:
             self.end()
 
-    # TODO: Может удалим?
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
 
@@ -175,8 +174,7 @@ class MauGame:
         """
         logger.info("Playing card {}", card)
         card(self)
-        # TODO: Как-то смущает меня такой ход
-        self.deck.put_top(card, self)
+        self.deck.put_top(card)
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUSH, card.pack())
 

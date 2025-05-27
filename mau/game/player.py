@@ -149,7 +149,9 @@ class Player:
 
         cover = []
         uncover = []
-        for card, can_cover in top.iter_covering(self.hand):
+        for card, can_cover in top.iter_covering(
+            self.hand, self.game.deck.wild_color
+        ):
             if can_cover and self._check_cover(card):
                 cover.append(card)
             else:

@@ -161,7 +161,7 @@ class Deck:
     def count_until_cover(self) -> int:
         """Получает количество кард в колоде до покрывающей верную."""
         for i, card in enumerate(reversed(self.cards)):
-            if self.top.can_cover(card):
+            if self.top.can_cover(card, self.wild_color):
                 return i + 1
         return 1
 
@@ -176,7 +176,7 @@ class Deck:
         card.prepare_used(self._game)
         self.used_cards.append(card)
 
-    def put_top(self, card: MauCard, game: "MauGame") -> None:
+    def put_top(self, card: MauCard) -> None:
         """Ложит карту на вершину стопки."""
         if self._top is None:
             self._top = card
@@ -219,6 +219,6 @@ class RandomDeck(Deck):
         """Возвращает использованную карту в колоду."""
         logger.debug("Put {}", card)
 
-    def put_top(self, card: MauCard, game: "MauGame") -> None:
+    def put_top(self, card: MauCard) -> None:
         """Ложит карту на вершину стопки."""
         self._top = card

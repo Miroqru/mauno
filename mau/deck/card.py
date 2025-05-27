@@ -67,7 +67,7 @@ class MauCard:
             f"{self.color.value}_{self.value}_{self.cost}_{self.behavior.name}"
         )
 
-    def can_cover(self, other_card: Self) -> bool:
+    def can_cover(self, other_card: Self, wild_color: CardColor) -> bool:
         """Проверяет что другая карта может покрыть текущую.
 
         По правилам игры цель каждого игрока - избавить от своих карт.
@@ -77,15 +77,16 @@ class MauCard:
         """
         return (
             isinstance(other_card.behavior, BaseWildBehavior)
-            or self.color == other_card.color
+            or other_card.color in (wild_color, self.color)
             or (
                 self.behavior == other_card.behavior
                 and self.value == other_card.value
             )
         )
 
+    # TODO: Тебя бы использовать по хорошему
     def iter_covering(
-        self, hand: Iterable[Self]
+        self, hand: Iterable[Self], wild_color: CardColor
     ) -> Iterator[tuple[Self, bool]]:
         """Проверяет какие карты вы можете покрыть из своей руки.
 
@@ -94,13 +95,14 @@ class MauCard:
 
         Args:
             hand (Iterable[BaseCard]): Карты в вашей руке.
+            wild_color (CardColor): какой сейчас дикий цвет.
 
         Yields:
             Iterator[BaseCard, bool]: Возвращает карту и можете ли вы
                 ею покрыть текущую.
 
         """
-        yield from ((card, self.can_cover(card)) for card in hand)
+        yield from ((card, self.can_cover(card, wild_color)) for card in hand)
 
     def use(self, game: "MauGame") -> None:
         """Выполняет активное действие карты во время её разыгрывания."""

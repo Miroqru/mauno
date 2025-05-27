@@ -6,12 +6,15 @@
 
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from mau.deck import behavior
 from mau.deck.card import MauCard
 from mau.deck.deck import Deck
 from mau.enums import CardColor
+
+if TYPE_CHECKING:
+    from mau.game.game import MauGame
 
 
 @dataclass(slots=True, frozen=True)
@@ -162,9 +165,11 @@ class DeckGenerator:
 
     def __init__(
         self,
+        game: "MauGame",
         groups: list[CardGroup] | None = None,
         preset_name: str = "custom",
     ) -> None:
+        self.game = game
         self.groups: list[CardGroup] = groups or []
         self.preset_name = preset_name
 
@@ -176,9 +181,9 @@ class DeckGenerator:
     @property
     def deck(self) -> Deck:
         """Собирает новую колоду из правил."""
-        return Deck(list(self._cards()))
+        return Deck(self.game, list(self._cards()))
 
     @classmethod
-    def from_preset(cls, preset_name: str) -> Self:
+    def from_preset(cls, game: "MauGame", preset_name: str) -> Self:
         """Получает новый генератор колоды по названию шаблона."""
-        return cls(list(CARD_PRESETS[preset_name].groups), preset_name)
+        return cls(game, list(CARD_PRESETS[preset_name].groups), preset_name)
