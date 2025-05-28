@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from mau.enums import CardColor, GameEvents, GameState
+from mau.enums import GameEvents, GameState
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
@@ -187,8 +187,13 @@ class BaseWildBehavior(NumberBehavior):
 
     def _auto_select_color(self, card: "MauCard", game: "MauGame") -> None:
         logger.debug("Auto choose color for card")
-        color_index = (game.deck.top.color + (1 if game.reverse else -1)) % 6
-        card.color = CardColor(color_index)
+        color_index = game.deck.colors.index(game.deck.top.color)
+        if game.reverse:
+            color_index -= 1
+        else:
+            color_index += 1
+        color_index %= len(game.deck.colors)
+        card.color = game.deck.colors[color_index]
         game.player.push_event(GameEvents.GAME_SELECT_COLOR, str(card.color))
 
 

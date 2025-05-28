@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from mau.deck.deck import Deck
     from mau.game.game import MauGame
 
-CARD_REGEX = re.compile(r"(\d)_(\d)_(\d+)_([a-z+]+)")
+CARD_REGEX = re.compile(r"(\d)_(\d+)_(\d+)_([a-z+]+)")
 CARD_BEHAVIOR = {
     "rotate": behavior.RotateBehavior,
     "twist": behavior.TwistBehavior,
@@ -36,9 +36,9 @@ class MauCard:
     def __init__(
         self, color: CardColor, value: int, cost: int, behavior: NumberBehavior
     ) -> None:
-        self.color: CardColor = color
-        self.value: int = value
-        self.cost: int = cost
+        self.color = color
+        self.value = value
+        self.cost = cost
         self.behavior = behavior
 
     @classmethod
@@ -119,13 +119,7 @@ class MauCard:
             f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
         )
 
-    def __call__(self, game: "MauGame") -> None:
-        """Синтаксический сахар для вызова действия карты.
-
-        Позволяет использовать способность этой карты.
-        Является сокращением для метода use_card.
-        """
-        return self.use(game)
+    __call__ = use
 
     def __eq__(self, other: object) -> bool:
         """Проверяет соответствие двух карт."""
