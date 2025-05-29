@@ -155,7 +155,7 @@ class MauGame:
             self.choose_color(choice(self.deck.colors))
 
         self.pm.remove(player)
-        if self.started and len(self.pm) <= 1:
+        if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
             self.end()
 
     def skip_players(self, n: int = 1) -> None:
