@@ -66,7 +66,11 @@ class PlayerManager:
         self._storage.add(player.user_id, player)
         self._players.append(player.user_id)
 
-    def remove(self, player: Player) -> None:
+    def remove(self, user_id: str) -> None:
+        """Удаляет игрока из хранилища."""
+        self._storage.remove(user_id)
+
+    def leave(self, player: Player) -> None:
         """Удаляет игрока из списка игроков."""
         if len(player.hand) == 0:
             self.winners.append(player.user_id)

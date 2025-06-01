@@ -154,7 +154,11 @@ class MauGame:
         if self.state == GameState.CHOOSE_COLOR:
             self.choose_color(choice(self.deck.colors))
 
-        self.pm.remove(player)
+        if self.started:
+            self.pm.leave(player)
+        else:
+            self.pm.remove(player.user_id)
+
         if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
             self.end()
 
