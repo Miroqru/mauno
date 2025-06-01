@@ -106,7 +106,7 @@ class TwistBehavior(NumberBehavior):
 
         Срабатывает если включено правило: `twist_hand`.
         """
-        if game.rules.twist_hand.status and len(game.player.hand) > 0:
+        if game.rules.twist_hand.status and len(game.player.hand) > 1:
             game.set_state(GameState.TWIST_HAND)
 
 
@@ -120,7 +120,7 @@ class RotateBehavior(NumberBehavior):
 
         Срабатывает если включено правило: `rotate_cards`.
         """
-        if game.rules.rotate_cards.status and len(game.player.hand) > 0:
+        if game.rules.rotate_cards.status and len(game.player.hand) > 1:
             game.rotate_cards()
 
 
