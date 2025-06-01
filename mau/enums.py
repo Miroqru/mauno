@@ -64,7 +64,7 @@ class GameEvents(IntEnum):
     - `player_mau`: Когда у игрока остаётся только одна карта.
     - `player_bluff`: Проверка на честность предыдущего игрока.
     - `player_take`: Взятие карт из колоды, также вместо револьвера.
-    - `player_push`: Игрок использует карту.
+    - `player_put`: Игрок использует карту.
     - `player_intervened`: Игрок вмешался в ход другого игрока.
     """
 
@@ -84,7 +84,7 @@ class GameEvents(IntEnum):
     PLAYER_MAU = 30
     PLAYER_BLUFF = 31
     PLAYER_TAKE = 32
-    PLAYER_PUSH = 33
+    PLAYER_PUT = 33
     PLAYER_INTERVENED = 34
 
 

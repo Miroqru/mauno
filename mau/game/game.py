@@ -181,7 +181,7 @@ class MauGame:
         card(self)
         self.deck.put_top(card)
         player.hand.remove(card)
-        self.push_event(player, GameEvents.PLAYER_PUSH, card.pack())
+        self.push_event(player, GameEvents.PLAYER_PUT, card.pack())
 
         if len(player.hand) == 1:
             self.push_event(player, GameEvents.PLAYER_MAU)
