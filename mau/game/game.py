@@ -110,7 +110,8 @@ class MauGame:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
         self.push_event(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
-        self.next_turn()
+        self.set_state(GameState.TAKE)
+        self.end_turn(self.player)
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
@@ -118,7 +119,6 @@ class MauGame:
         self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
-        logger.warning(self.pm._cp)
         self.push_event(self.player, GameEvents.GAME_TURN)
 
     def join_player(self, user: BaseUser) -> Player | None:
@@ -171,6 +171,20 @@ class MauGame:
         self.pm.rotate_cards(self.reverse)
         self.push_event(self.player, GameEvents.GAME_ROTATE)
 
+    def end_turn(self, player: Player) -> None:
+        """Завершает текущий ход."""
+        if len(player.hand) == 1:
+            self.push_event(player, GameEvents.PLAYER_MAU)
+
+        if len(self.pm.current.hand) == 0:
+            self.leave_player(self.pm.current)
+
+        if not self.started:
+            logger.info("Game ended -> stop process turn")
+            return
+
+        self.next_turn()
+
     def process_turn(self, card: MauCard, player: Player) -> None:
         """Обрабатываем текущий ход.
 
@@ -183,16 +197,6 @@ class MauGame:
         player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUT, card.pack())
 
-        if len(player.hand) == 1:
-            self.push_event(player, GameEvents.PLAYER_MAU)
-
-        if len(self.pm.current.hand) == 0:
-            self.leave_player(self.pm.current)
-
-        if not self.started:
-            logger.info("Game ended -> stop process turn")
-            return
-
         if self.state in (GameState.NEXT, GameState.TAKE):
             # TODO: Вынести в паттерн поведения
             if self.deck.top.cost == 1 and self.rules.side_effect.status:
@@ -200,7 +204,7 @@ class MauGame:
             elif self.rules.random_color.status:
                 self.choose_color(choice(self.deck.colors))
             else:
-                self.next_turn()
+                self.end_turn(player)
 
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""
