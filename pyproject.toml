@@ -1,6 +1,6 @@
 [project]
 name = "mau"
-version = "2.3"
+version = "2.4"
 description = "Mau card game engine"
 readme = "README.md"
 requires-python = ">=3.11"
