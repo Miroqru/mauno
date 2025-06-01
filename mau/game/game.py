@@ -185,26 +185,29 @@ class MauGame:
 
         self.next_turn()
 
-    def process_turn(self, card: MauCard, player: Player) -> None:
+    # TODO: Получаем карту по индексу
+    def process_turn(self, player: Player, card_index: int) -> None:
         """Обрабатываем текущий ход.
 
         Сначала применяется действие карты.
         А уже после она ложится на верх колоды.
         """
+        card = player.hand.pop(card_index)
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_top(card)
-        player.hand.remove(card)
         self.push_event(player, GameEvents.PLAYER_PUT, card.pack())
 
-        if self.state in (GameState.NEXT, GameState.TAKE):
-            # TODO: Вынести в паттерн поведения
-            if self.deck.top.cost == 1 and self.rules.side_effect.status:
-                logger.info("Player continue turn")
-            elif self.rules.random_color.status:
-                self.choose_color(choice(self.deck.colors))
-            else:
-                self.end_turn(player)
+        if self.state not in (GameState.NEXT, GameState.TAKE):
+            return
+
+        # TODO: Вынести в паттерн поведения
+        if self.deck.top.cost == 1 and self.rules.side_effect.status:
+            logger.info("Player continue turn")
+        elif self.rules.random_color.status:
+            self.choose_color(choice(self.deck.colors))
+        else:
+            self.end_turn(player)
 
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""

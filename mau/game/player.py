@@ -34,8 +34,8 @@ class BaseUser:
 class SortedCards:
     """Распределяет карты на: покрывающие и не покрывающие."""
 
-    cover: list["MauCard"]
-    uncover: list["MauCard"]
+    cover: list[tuple[int, "MauCard"]]
+    uncover: list[tuple[int, "MauCard"]]
 
 
 class Player:
@@ -72,7 +72,7 @@ class Player:
     def is_bluffing(self) -> bool:
         """Проверяет блефует ли игрок, когда выкидывает дикую карту."""
         for card in self.cover_cards().cover:
-            if card.color == self.game.deck.top.color:
+            if card[1].color == self.game.deck.top.color:
                 return True
         return False
 
@@ -145,21 +145,24 @@ class Player:
             and self.game.state
             in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
         ):
-            return SortedCards([], self.hand)
+            return SortedCards(
+                [], [(i, card) for i, card in enumerate(self.hand)]
+            )
 
         cover = []
         uncover = []
-        for card, can_cover in top.iter_covering(
-            self.hand, self.game.deck.wild_color
+        # TODO: Мне не нравится как выглядит эта строчка
+        for i, (card, can_cover) in enumerate(
+            top.iter_covering(self.hand, self.game.deck.wild_color)
         ):
             if can_cover and self._check_cover(card):
-                cover.append(card)
+                cover.append((i, card))
             else:
-                uncover.append(card)
+                uncover.append((i, card))
 
         return SortedCards(
-            cover=sorted(cover, key=lambda c: c.cost, reverse=True),
-            uncover=sorted(uncover, key=lambda c: c.cost, reverse=True),
+            cover=sorted(cover, key=lambda c: c[1].cost, reverse=True),
+            uncover=sorted(uncover, key=lambda c: c[1].cost, reverse=True),
         )
 
     # TODO: Режим отладки
@@ -183,7 +186,7 @@ class Player:
         self.hand = other_player.hand.copy()
         other_player.hand = player_hand
         self.push_event(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
-        self.game.next_turn()
+        self.game.end_turn(self)
 
     def shot(self) -> bool:
         """Выстрелить из револьвера."""
@@ -209,7 +212,7 @@ class Player:
         else:
             self.push_event(GameEvents.PLAYER_BLUFF)
             self.game.bluff_player[0].take_cards()
-        self.game.next_turn()
+        self.game.end_turn(self)
 
     # TODO: Я чувствую тут нужна оптимизация немного
     def call_take_cards(self) -> None:
