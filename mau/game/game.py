@@ -5,7 +5,6 @@ from random import choice
 
 from loguru import logger
 
-from mau.deck.card import MauCard
 from mau.deck.deck import Deck, RandomDeck
 from mau.deck.presets import DeckGenerator
 from mau.enums import CardColor, GameEvents, GameState
@@ -92,10 +91,7 @@ class MauGame:
             self.deck.set_wild(CardColor.BLACK)
 
         self.pm.start()
-
-        if self.rules.shotgun.status:
-            self.shotgun.reset()
-
+        self.shotgun.reset()
         self.started = True
         self.push_event(self.owner, GameEvents.GAME_START)
         self.deck.top(self)
@@ -116,7 +112,9 @@ class MauGame:
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
         logger.info("Next Player!")
-        self.state = GameState.NEXT
+        # Shotgun надо сбрасывать вручную
+        if self.state != GameState.SHOTGUN:
+            self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
         self.push_event(self.player, GameEvents.GAME_TURN)
