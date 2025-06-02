@@ -70,13 +70,16 @@ class PlayerManager:
         """Удаляет игрока из хранилища."""
         self._storage.remove(user_id)
 
-    def leave(self, player: Player) -> None:
-        """Удаляет игрока из списка игроков."""
-        if len(player.hand) == 0:
-            self.winners.append(player.user_id)
-        else:
-            self.losers.append(player.user_id)
-        self._players.remove(player.user_id)
+    def add_winner(self, user_id: str) -> None:
+        """Добавляет игрока в список победителей."""
+        self.winners.append(user_id)
+        self._players.remove(user_id)
+        player.on_leave()
+
+    def add_loser(self, user_id: str) -> None:
+        """Добавляет игрока в список проигравших."""
+        self.losers.append(user_id)
+        self._players.remove(user_id)
         player.on_leave()
 
     def remove_players(self) -> None:

@@ -141,24 +141,22 @@ class MauGame:
     def leave_player(self, player: Player) -> None:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", player, self.room_id)
+        if not self.started:
+            self.pm.remove(player.user_id)
+            return
+
         if len(player.hand) == 0:
             self.push_event(player, GameEvents.GAME_LEAVE, "win")
+            self.pm.add_winner(player.user_id)
             if self.rules.one_winner.status:
                 self.end()
         else:
             self.push_event(player, GameEvents.GAME_LEAVE, "lose")
+            self.pm.add_loser(player.user_id)
             if player == self.player:
                 self.take_counter = 0
 
-        # Если игрок решил закончить чёрной картой
-        if self.state == GameState.CHOOSE_COLOR:
-            self.choose_color(choice(self.deck.colors))
-
-        if self.started:
-            self.pm.leave(player)
-        else:
-            self.pm.remove(player.user_id)
-
+        player.on_leave()
         if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
             self.end()
 
