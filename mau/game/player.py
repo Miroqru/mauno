@@ -142,8 +142,8 @@ class Player:
                 and self.game.take_counter
             )
             or not self.can_play
-            and self.game.state
-            in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
+            or self.game.state
+            not in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
         ):
             return SortedCards(
                 [], [(i, card) for i, card in enumerate(self.hand)]

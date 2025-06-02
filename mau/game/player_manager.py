@@ -74,13 +74,11 @@ class PlayerManager:
         """Добавляет игрока в список победителей."""
         self.winners.append(user_id)
         self._players.remove(user_id)
-        player.on_leave()
 
     def add_loser(self, user_id: str) -> None:
         """Добавляет игрока в список проигравших."""
         self.losers.append(user_id)
         self._players.remove(user_id)
-        player.on_leave()
 
     def remove_players(self) -> None:
         """Удаляет всех игроков из хранилища, связанных с текущей игрой."""
