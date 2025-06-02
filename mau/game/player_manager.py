@@ -15,7 +15,14 @@ class PlayerManager:
     Позволяет взаимодействовать с игроками в рамках одной игры.
     """
 
-    __slots__ = ("_storage", "_players", "winners", "losers", "_cp")
+    __slots__ = (
+        "_storage",
+        "_players",
+        "winners",
+        "losers",
+        "_cp",
+        "player_cost",
+    )
 
     def __init__(self, storage: BaseStorage) -> None:
         self._storage = storage
@@ -24,6 +31,7 @@ class PlayerManager:
         self._players: list[str] = []
         self.winners: list[str] = []
         self.losers: list[str] = []
+        self.player_cost: dict[str, int] = {}
 
     @property
     def current(self) -> Player:
@@ -88,7 +96,7 @@ class PlayerManager:
             self._storage.remove(pl)
 
     def start(self) -> None:
-        """Подготавливает игроков к началу игры."""
+        """Подготавливает игроков к началу новой игры."""
         self.winners = []
         self.losers = []
         self._cp = 0
@@ -97,8 +105,10 @@ class PlayerManager:
             player.on_join()
 
     def end(self) -> None:
-        """Подготавливает к завершению игры."""
-        self.losers.extend(self._players)
+        """Подготавливает список игроков к завершению игры."""
+        for pl in self.iter():
+            self.losers.append(pl.user_id)
+            self.player_cost[pl.user_id] = pl.count_cost()
         self._players = []
 
     def next(self, n: int = 1, reverse: bool = False) -> None:

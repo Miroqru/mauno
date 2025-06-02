@@ -154,6 +154,7 @@ class MauGame:
             if player == self.player:
                 self.take_counter = 0
 
+        self.pm.player_cost[player.user_id] = player.count_cost()
         player.on_leave()
         if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
             self.end()
