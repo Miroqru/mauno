@@ -130,7 +130,9 @@ class PlayerManager:
         """Меняет карты в руках для всех игроков."""
         hands = deque(player.hand for player in self.iter(self._players))
         hands.rotate(-1 if reverse else 1)
-        for player, new_hand in zip(self.iter(self._players), hands):
+        for player, new_hand in zip(
+            self.iter(self._players), hands, strict=False
+        ):
             player.hand = new_hand
 
     def __len__(self) -> int:

@@ -46,7 +46,7 @@ class SessionManager(Generic[_H]):
     ) -> None:
         self._games: BaseStorage[MauGame] = game_storage or MemoryStorage()
         self._players: BaseStorage[Player] = player_storage or MemoryStorage()
-        self._event_handler = event_handler or cast(_H, DebugEventHandler())
+        self._event_handler = event_handler or cast("_H", DebugEventHandler())
 
     def set_handler(self, handler: _H) -> None:
         """Устанавливает новый обработчик событий."""

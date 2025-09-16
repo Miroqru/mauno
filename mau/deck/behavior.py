@@ -56,7 +56,6 @@ class BaseBehavior(ABC):
             game: В какой игре происходит действие.
 
         """
-        pass
 
     @abstractmethod
     def prepare_used(self, card: "MauCard", deck: "Deck") -> None:
@@ -67,7 +66,6 @@ class BaseBehavior(ABC):
             deck: Колода, к которой принадлежит карта..
 
         """
-        pass
 
     def __eq__(self, other: object) -> bool:
         """Сравнивает поведения по их типу."""

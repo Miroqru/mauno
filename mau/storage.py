@@ -22,7 +22,6 @@ class BaseStorage(ABC, Generic[_V]):
     @abstractmethod
     def add(self, key: str, value: _V) -> None:
         """Добавляет новый элемент в хранилище по ключу."""
-        pass
 
     @abstractmethod
     def remove(self, key: str) -> _V:
@@ -31,7 +30,6 @@ class BaseStorage(ABC, Generic[_V]):
         Возвращает удалённый элемент.
         Если такого элемента не существует - вернёт исключение.
         """
-        pass
 
     @abstractmethod
     def get(self, key: str) -> _V | None:
@@ -39,7 +37,6 @@ class BaseStorage(ABC, Generic[_V]):
 
         Если такого элемента нет в хранилище - вернёт None.
         """
-        pass
 
 
 class MemoryStorage(BaseStorage, Generic[_V]):

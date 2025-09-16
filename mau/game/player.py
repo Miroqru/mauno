@@ -256,7 +256,7 @@ class Player:
         """Сравнивает двух игроков по UID пользователя."""
         if isinstance(other_player, Player):
             return self.user_id == other_player.user_id
-        elif isinstance(other_player, str):
+        if isinstance(other_player, str):
             return self.user_id == other_player
         return NotImplemented
 
@@ -264,6 +264,6 @@ class Player:
         """Проверяет что игроки не совпадают."""
         if isinstance(other_player, Player):
             return self.user_id != other_player.user_id
-        elif isinstance(other_player, str):
+        if isinstance(other_player, str):
             return self.user_id != other_player
         return NotImplemented
