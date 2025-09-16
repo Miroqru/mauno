@@ -8,12 +8,7 @@ license = "AGPL-3.0-or-later"
 dependencies = ["loguru>=0.7.3"]
 
 [dependency-groups]
-dev = [
-    "icecream>=2.1.4",
-    "mypy>=1.15.0",
-    "nox>=2025.2.9",
-    "pytest>=8.3.5",
-]
+dev = ["nox>=2025.2.9", "pyright>=1.1.405", "ruff>=0.13.0"]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.12",
@@ -29,8 +24,21 @@ indent-width = 4
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "D", "N", "PL", "UP", "ANN", "W", "ASYNC"]
-ignore = ["D407", "D107", "D213", "D203"]
+select = ["ALL"]
+ignore = [
+    "D407",
+    "D107",
+    "D213",
+    "D203",
+    "RUF",
+    "COM",    # trailing commas, controlled by format
+    "EM102",  #  Exception must not use an f-string literal, assign to variable first
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "INP001", # part of an implicit namespace package. Add an `__init__.py`.
+    "FIX",    # Line contains TODO, consider resolving the
+    "TD002",  # Missing author in TODO
+    "TD003",  # Missing issue link for this TODO
+]
 
 [tool.ruff.format]
 quote-style = "double"
