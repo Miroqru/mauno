@@ -144,7 +144,7 @@ class ReverseBehavior(NumberBehavior):
 
         Если осталось 2 игрока, действует как пропуск следующего игрока.
         """
-        if len(game.pm) == 2:  # noqa
+        if len(game.pm) == 2:  # noqa: PLR2004
             game.skip_players()
         else:
             game.reverse = not game.reverse

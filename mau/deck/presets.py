@@ -34,7 +34,7 @@ class CardGroup:
 
         Если было указано по 3 карты всех цветов, то он вернёт 12 карт.
         """
-        for count in range(self.count):
+        for _ in range(self.count):
             for color in self.colors:
                 yield MauCard(
                     color,

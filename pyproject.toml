@@ -38,6 +38,7 @@ ignore = [
     "FIX",    # Line contains TODO, consider resolving the
     "TD002",  # Missing author in TODO
     "TD003",  # Missing issue link for this TODO
+    "S311", # Use standart random func
 ]
 
 [tool.ruff.format]

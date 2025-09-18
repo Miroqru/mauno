@@ -115,17 +115,14 @@ class Player:
         ):
             return False
 
-        if (
+        return (
             (
                 isinstance(self.game.deck.top.behavior, TakeBehavior)
                 and self.game.take_counter > 0
             )
             and not isinstance(card.behavior, TakeBehavior | WildTakeBehavior)
             and not self.game.rules.deferred_take.status
-        ):
-            return False
-
-        return True
+        )
 
     def cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
