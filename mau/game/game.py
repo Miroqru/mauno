@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from random import choice
+from typing import Any
 
 from loguru import logger
 
@@ -68,14 +69,15 @@ class MauGame:
 
         return self.player == player or self.rules.intervention.status
 
-    def push_event(
-        self, from_player: Player, event_type: GameEvents, data: str = ""
+    def dispatch(
+        self, from_player: Player, event_type: GameEvents, data: Any = None
     ) -> None:
-        """Обёртка над методом journal.push.
+        """Обёртка над методом вызова события.
 
-        Автоматически подставляет текущую игру.
+        Автоматически подставляет текущую игру в событие.
+        Вы также можете вызвать событие от имени игрока.
         """
-        self.event_handler.push(Event(self, from_player, event_type, data))
+        self.event_handler.dispatch(Event(self, from_player, event_type, data))
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
@@ -93,19 +95,20 @@ class MauGame:
         self.pm.start()
         self.shotgun.reset()
         self.started = True
-        self.push_event(self.owner, GameEvents.GAME_START)
+        self.dispatch(self.owner, GameEvents.GAME_START)
         self.deck.top(self)
 
+    # TODO: Методы очистки игры
     def end(self) -> None:
         """Завершает текущую игру."""
         self.pm.end()
         self.started = False
-        self.push_event(self.owner, GameEvents.GAME_END)
+        self.dispatch(self.owner, GameEvents.GAME_END)
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
-        self.push_event(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
+        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
         self.set_state(GameState.TAKE)
         self.end_turn(self.player)
 
@@ -117,7 +120,7 @@ class MauGame:
             self.state = GameState.NEXT
         self.turn_start = datetime.now()
         self.pm.next(1, self.reverse)
-        self.push_event(self.player, GameEvents.GAME_TURN)
+        self.dispatch(self.player, GameEvents.GAME_TURN)
 
     def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
@@ -131,7 +134,7 @@ class MauGame:
 
         player = Player(self, user.id, user.name, user.username)
         self.pm.add(player)
-        self.push_event(player, GameEvents.GAME_JOIN)
+        self.dispatch(player, GameEvents.GAME_JOIN)
         if self.started:
             player.on_join()
         return player
@@ -144,12 +147,12 @@ class MauGame:
             return
 
         if len(player.hand) == 0:
-            self.push_event(player, GameEvents.GAME_LEAVE, "win")
+            self.dispatch(player, GameEvents.GAME_LEAVE, "win")
             self.pm.add_winner(player.user_id)
             if self.rules.one_winner.status:
                 self.end()
         else:
-            self.push_event(player, GameEvents.GAME_LEAVE, "lose")
+            self.dispatch(player, GameEvents.GAME_LEAVE, "lose")
             self.pm.add_loser(player.user_id)
             if player == self.player:
                 self.take_counter = 0
@@ -170,12 +173,12 @@ class MauGame:
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
         self.pm.rotate_cards(self.reverse)
-        self.push_event(self.player, GameEvents.GAME_ROTATE)
+        self.dispatch(self.player, GameEvents.GAME_ROTATE)
 
     def end_turn(self, player: Player) -> None:
         """Завершает текущий ход."""
         if len(player.hand) == 1:
-            self.push_event(player, GameEvents.PLAYER_MAU)
+            self.dispatch(player, GameEvents.PLAYER_MAU)
 
         if len(self.pm.current.hand) == 0:
             self.leave_player(self.pm.current)
@@ -197,7 +200,7 @@ class MauGame:
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_top(card)
-        self.push_event(player, GameEvents.PLAYER_PUT, card.pack())
+        self.dispatch(player, GameEvents.PLAYER_PUT, card.pack())
 
         if self.state not in (GameState.NEXT, GameState.TAKE):
             return
@@ -213,4 +216,4 @@ class MauGame:
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""
         self.state = state
-        self.push_event(self.player, GameEvents.GAME_STATE, str(state.value))
+        self.dispatch(self.player, GameEvents.GAME_STATE, str(state.value))

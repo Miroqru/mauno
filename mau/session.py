@@ -82,7 +82,7 @@ class SessionManager(Generic[_H]):
         pm = PlayerManager(self._players)
         game = MauGame(pm, self._event_handler, room_id, owner)
         self._games.add(room_id, game)
-        game.push_event(game.owner, GameEvents.SESSION_START)
+        game.dispatch(game.owner, GameEvents.SESSION_START)
         return game
 
     def remove(self, room_id: str) -> None:
@@ -95,4 +95,4 @@ class SessionManager(Generic[_H]):
         logger.info("End session in room {}", room_id)
         game: MauGame = self._games.remove(room_id)
         game.pm.remove_players()
-        game.push_event(game.owner, GameEvents.SESSION_END)
+        game.dispatch(game.owner, GameEvents.SESSION_END)

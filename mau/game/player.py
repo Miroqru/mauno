@@ -1,7 +1,7 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from loguru import logger
 
@@ -80,12 +80,15 @@ class Player:
         """Считает полную ценность руки пользователя."""
         return sum(c.cost for c in self.hand)
 
-    def push_event(self, event_type: GameEvents, data: str = "") -> None:
+    def dispatch(self, event_type: GameEvents, data: Any = None) -> None:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
+        Также можно напрямую вызвать метод или через класс игры.
         """
-        self.game.event_handler.push(Event(self.game, self, event_type, data))
+        self.game.event_handler.dispatch(
+            Event(self.game, self, event_type, data)
+        )
 
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
@@ -95,7 +98,7 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
-        self.push_event(GameEvents.PLAYER_TAKE, str(take_counter))
+        self.dispatch(GameEvents.PLAYER_TAKE, str(take_counter))
         self.game.set_state(GameState.TAKE)
 
         if (
@@ -170,7 +173,7 @@ class Player:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
         self.hand = list(self.game.deck.take(7))
-        self.push_event(GameEvents.PLAYER_TAKE, "7")
+        self.dispatch(GameEvents.PLAYER_TAKE, "7")
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
@@ -185,7 +188,7 @@ class Player:
         player_hand = self.hand.copy()
         self.hand = other_player.hand.copy()
         other_player.hand = player_hand
-        self.push_event(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
+        self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
         self.game.end_turn(self)
 
     def shot(self) -> bool:
@@ -207,11 +210,10 @@ class Player:
         logger.info("{} call bluff {}", self, self.game.bluff_player)
         if self.game.bluff_player is None or not self.game.bluff_player[1]:
             self.game.take_counter += 2
-            self.push_event(GameEvents.PLAYER_BLUFF)
             self.take_cards()
         else:
-            self.push_event(GameEvents.PLAYER_BLUFF)
             self.game.bluff_player[0].take_cards()
+        self.dispatch(GameEvents.PLAYER_BLUFF)
         self.game.end_turn(self)
 
     # TODO: Я чувствую тут нужна оптимизация немного

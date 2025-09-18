@@ -192,7 +192,7 @@ class BaseWildBehavior(NumberBehavior):
             color_index += 1
         color_index %= len(game.deck.colors)
         card.color = game.deck.colors[color_index]
-        game.player.push_event(GameEvents.GAME_SELECT_COLOR, str(card.color))
+        game.player.dispatch(GameEvents.GAME_SELECT_COLOR, card.color)
 
 
 class WildColorBehavior(BaseWildBehavior):

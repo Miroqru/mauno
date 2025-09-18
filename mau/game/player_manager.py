@@ -123,7 +123,7 @@ class PlayerManager:
         for i, pl in enumerate(self._players):
             if player.user_id == pl:
                 self._cp = i
-                player.push_event(GameEvents.PLAYER_INTERVENED)
+                player.dispatch(GameEvents.PLAYER_INTERVENED)
                 return
 
     def rotate_cards(self, reverse: bool = False) -> None:

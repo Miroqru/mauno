@@ -50,9 +50,8 @@ class BaseEventHandler(ABC):
     Базовый класс определяет интерфейс взаимодействия с событиями.
     """
 
-    # TODO: push -> dispatch
     @abstractmethod
-    def push(self, event: Event) -> None:
+    def dispatch(self, event: Event) -> None:
         """Обрабатывает игровое событие.
 
         Событие обрабатывается на усмотрение клиента.
@@ -72,6 +71,6 @@ class DebugEventHandler(BaseEventHandler):
     из событий требуют действий со стороны клиента.
     """
 
-    def push(self, event: Event) -> None:
-        """Перенаправляет событие в консоль."""
+    def dispatch(self, event: Event) -> None:
+        """Вернуть событие в отладочную консоль."""
         logger.info(event)
