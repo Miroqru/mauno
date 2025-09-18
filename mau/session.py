@@ -1,9 +1,11 @@
 """Менеджер сессий.
 
 Предоставляет высокоуровневый класс для работы с игровыми сессиями.
+Обычно используется один менеджер сессий на платформу.
+Он уже и будет руководить всеми играми и игроками.
 """
 
-from typing import Generic, TypeVar, cast
+from typing import Generic, TypeVar
 
 from loguru import logger
 
@@ -21,8 +23,8 @@ class SessionManager(Generic[_H]):
     """Менеджер сессий.
 
     Высокоуровневый класс для управления сессиями и игроками.
-    Привязывается к хранилищам сессий и игрока.
     Предоставляет высокоуровневые методы для создания и удаления игр.
+    Привязывается к конкретному типу игр и хранилищу.
 
     Args:
         game_storage: Хранилище для игр. По умолчания в оперативной памяти.
@@ -30,7 +32,7 @@ class SessionManager(Generic[_H]):
             Таким образом в одном чате может находиться только одна комната.
         player_storage: Хранилище для игроков.
             По умолчанию в оперативной памяти.
-            Каждый игрок может находиться только в одной игре.
+            Каждый игрок может находиться только в одной игре (комнате).
         event_handler: Обработчик событий. Поставляется в игры для обработку
             всех происходящих событий.
 
@@ -46,7 +48,7 @@ class SessionManager(Generic[_H]):
     ) -> None:
         self._games: BaseStorage[MauGame] = game_storage or MemoryStorage()
         self._players: BaseStorage[Player] = player_storage or MemoryStorage()
-        self._event_handler = event_handler or cast("_H", DebugEventHandler())
+        self._event_handler = event_handler or DebugEventHandler()
 
     def set_handler(self, handler: _H) -> None:
         """Устанавливает новый обработчик событий."""
@@ -65,7 +67,7 @@ class SessionManager(Generic[_H]):
 
         Автоматически поставляет менеджер игроков и обработчик событий
         для игры.
-        Добавляет созданную игру в хранилище игр.
+        Добавляет созданную игру в хранилище.
         Отправляет событие `SESSION_START` о начале новой сессии.
 
         Теперь можно добавить игроков через экземпляр игры, а после
@@ -86,8 +88,8 @@ class SessionManager(Generic[_H]):
     def remove(self, room_id: str) -> None:
         """Полностью завершает игру в для указанной room ID.
 
-        Должна выполняться после `game.end()`, поскольку очищает
-        хранилище игроков.
+        Должна выполняться после `game.end()`,
+        поскольку очищает хранилище игроков.
         Удаляет игру из хранилища, отправляет событие `SESSION_END`.
         """
         logger.info("End session in room {}", room_id)
