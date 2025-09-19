@@ -1,53 +1,51 @@
-
 # Project information
 # ===================
 
 site_name: Mau
-site_url: https://mau.miroq.ru/docs/
+site_url: https://mau.miroq.ru/
 repo_url: https://github.com/miroqru/mauno
 repo_name: Mau
 edit_uri: blob/main/docs/
 site_description: Play Mau with your friends in Telegram chats
 site_author: Milinuri Nirvalen
-copyright: 2024-2025 Salormoon
-
+copyright: 2024-2025 Salor; land
 
 # Documentation layout
 # ====================
 
 nav:
-  - index.md
-  - Telegram:
-    - use/commands.md
-    - use/game.md
-    - use/install.md
-    - use/card_generator.md
-    - use/rules.md
-    - use/maintenance.md
   - Mau:
-    - mau/index.md
-    - enums: mau/enums.md
-    - events: mau/events.md
-    - storage: mau/storage.md
-    - session: mau/session.md
-    - deck:
-      - behavior: mau/deck/behavior.md
-      - card: mau/deck/card.md
-      - deck: mau/deck/deck.md
-      - presets: mau/deck/presets.md
-    - game:
-      - game: mau/game/game.md
-      - player_manager: mau/game/player_manager.md
-      - player: mau/game/player.md
-      - rules: mau/game/rules.md
-      - shotgun: mau/game/shotgun.md
+      - index.md
+      - eco.md
+      - use/commands.md
+      - use/game.md
+      - use/install.md
+      - use/card_generator.md
+      - use/rules.md
+      - use/maintenance.md
+  - Api:
+      - mau/index.md
+      - enums: mau/enums.md
+      - events: mau/events.md
+      - storage: mau/storage.md
+      - session: mau/session.md
+      - deck:
+          - behavior: mau/deck/behavior.md
+          - card: mau/deck/card.md
+          - deck: mau/deck/deck.md
+          - presets: mau/deck/presets.md
+      - game:
+          - game: mau/game/game.md
+          - player_manager: mau/game/player_manager.md
+          - player: mau/game/player.md
+          - rules: mau/game/rules.md
+          - shotgun: mau/game/shotgun.md
 
 validation:
   nav:
     omitted_files: warn
     not_found: warn
     absolute_links: info
-
 
 # Theme settings
 # ==============
