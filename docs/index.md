@@ -35,7 +35,7 @@
 - [Начало игры](use/game.md)
 - [Команды бота](use/commands.md)
 - [Игровые правила](use/rules.md)
-- [Семейство Mau](/eco.md)
+- [Семейство Mau](eco.md)
 - [Локальная установка](use/install.md)
 - [Генератор карт](use/card_generator.md)
 - [Поддержка проекта](use/maintenance.md)
