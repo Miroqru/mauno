@@ -16,12 +16,12 @@ copyright: 2024-2025 Salor; land
 nav:
   - Mau:
       - index.md
-      - eco.md
-      - use/commands.md
       - use/game.md
+      - use/commands.md
+      - use/rules.md
+      - eco.md
       - use/install.md
       - use/card_generator.md
-      - use/rules.md
       - use/maintenance.md
   - Api:
       - mau/index.md
@@ -108,6 +108,22 @@ plugins:
             signature_crossrefs: true
             separate_signature: true
             group_by_category: true
+
+# Markdown
+# ========
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - md_in_html
+  - tables
+  - pymdownx.betterem
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      auto_title: true
+      use_pygments: true
+      linenums: true
 
 # Live preview
 # ============
