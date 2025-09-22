@@ -1,0 +1,10 @@
+/* Особые стили для документации */
+
+:root > * {
+  --md-primary-fg-color: #40263c;
+  --md-accent-fg-color: #30bfb3;
+}
+
+[data-md-color-scheme='slate'] {
+  --md-hue: 320;
+}

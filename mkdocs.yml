@@ -54,19 +54,22 @@ theme:
   name: material
   palette:
     scheme: slate
-    primary: black
+    primary: brown
     accent: teal
   font:
     text: Ubuntu
     code: JetBrains Mono
   language: ru
   logo: assets/logo.png
+  favicon: assets/logo.png
   features:
     - navigation.tracking
     - navigation.tabs
     - navigation.sections
     - navigation.expand
     - navigation.indexes
+    - navigation.instant
+    - navigation.instant.progress
     - toc.follow
     - search.suggest
     - search.highlight
@@ -85,6 +88,9 @@ extra:
     - icon: fontawesome/brands/telegram
       link: https://t.me/mili_qlaster
   generator: false
+
+extra_css:
+  - assets/style.css
 
 # Auto docstings settings
 # ======================
