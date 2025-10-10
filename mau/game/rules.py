@@ -3,52 +3,42 @@
 В зависимости от выбранных правил изменяться поведение игры.
 """
 
-from collections.abc import Iterator
+from dataclasses import dataclass
+from enum import IntEnum
 
 
-class Rule:
-    """Игровое правило."""
+class GameRules(IntEnum):
+    """Набор игровых правил."""
 
-    def __init__(self, rules: "GameRules", index: int, name: str) -> None:
-        self.rules = rules
-        self.index = 1 << index
-        self.name = name
+    twist_hand = 1 << 0  # "🤝 Обмен картами
+    rotate_cards = 1 << 1  # "🌀 Круговой обмен
+    one_winner = 1 << 2  # "👑 Один победитель
+    auto_skip = 1 << 3  # "💸 Авто пропуск
+    take_until_cover = 1 << 4  # "🍷 Беру до последнего
+    shotgun = 1 << 5  # "🔫 Револьвер
+    deferred_take = 1 << 6  # "⏳ Отложенное взятие
+    auto_choose_color = 1 << 7  # "🌷 самоцвет
+    random_color = 1 << 8  # "🎲 Какой цвет
+    side_effect = 1 << 9  # "💎 Побочный выброс
+    twist_hand_pass = 1 << 10  # "👋 Без обмена
+    random_cards = 1 << 11  # "🎰 Случайные карты
+    intervention = 1 << 12  # "😈 Вмешательство 🔧
+    special_wild = 1 << 13  # "❤️ Особая дикость
 
-        self.rules.rules.append(self)
 
-    @property
-    def status(self) -> bool:
-        """Проверяет, установлен ли битовый флаг."""
-        return (self.rules.rule_flags & self.index) != 0
+Rule = GameRules | int
 
 
-class GameRules:
-    """битовые флаги игровых правил."""
+@dataclass(slots=True)
+class RuleSet:
+    """Набор выбранных игровых правил."""
 
-    def __init__(self) -> None:
-        self.rule_flags = 0
-        self.rules: list[Rule] = []
+    state: int = 0
 
-        self.twist_hand = Rule(self, 0, "🤝 Обмен картами")
-        self.rotate_cards = Rule(self, 1, "🌀 Круговой обмен")
-        self.one_winner = Rule(self, 2, "👑 Один победитель")
-        self.auto_skip = Rule(self, 3, "💸 Авто пропуск")
-        self.take_until_cover = Rule(self, 4, "🍷 Беру до последнего")
-        self.shotgun = Rule(self, 5, "🔫 Револьвер")
-        self.deferred_take = Rule(self, 6, "⏳ Отложенное взятие")
-        self.auto_choose_color = Rule(self, 7, "🌷 самоцвет")
-        self.random_color = Rule(self, 8, "🎲 Какой цвет")
-        self.side_effect = Rule(self, 9, "💎 Побочный выброс")
-        self.twist_hand_pass = Rule(self, 10, "👋 Без обмена")
-        self.random_cards = Rule(self, 11, "🎰 Случайные карты")
-        self.intervention = Rule(self, 12, "😈 Вмешательство 🔧")
-        self.special_wild = Rule(self, 13, "❤️ Особая дикость")
+    def status(self, rule: Rule) -> bool:
+        """Проверяет, включено ли выбранное правило."""
+        return (self.state & rule) != 0
 
-    def iter_rules(self) -> Iterator[tuple[str, bool]]:
-        """Возвращает итератор правил."""
-        for rule in self.rules:
-            yield (rule.name, (self.rule_flags & rule.index) != 0)
-
-    def toggle(self, rule: int) -> None:
+    def toggle(self, rule: Rule) -> None:
         """Переключает состояние битового флага."""
-        self.rule_flags ^= 1 << rule
+        self.state ^= rule
