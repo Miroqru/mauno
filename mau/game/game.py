@@ -12,7 +12,7 @@ from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
-from mau.game.rules import GameRules
+from mau.game.rules import GameRules, RuleSet
 from mau.game.shotgun import Shotgun
 
 
@@ -31,7 +31,7 @@ class MauGame:
         owner: BaseUser,
     ) -> None:
         self.room_id = room_id
-        self.rules = GameRules()
+        self.rules = RuleSet()
         self.deck_generator = DeckGenerator.from_preset("classic")
         self.pm = player_manager
         self.deck = Deck()
@@ -48,6 +48,7 @@ class MauGame:
         self.state: GameState = GameState.NEXT
         self.shotgun = Shotgun()
 
+        # TODO: Отдельный компонент таймера
         # Таймеры
         self.game_start = datetime.now(UTC)
         self.turn_start = datetime.now(UTC)
@@ -72,7 +73,9 @@ class MauGame:
         if player is None:
             return False
 
-        return self.player == player or self.rules.intervention.status
+        return self.player == player or self.rules.status(
+            GameRules.intervention
+        )
 
     def dispatch(
         self, from_player: Player, event_type: GameEvents, data: Any = None
@@ -83,6 +86,16 @@ class MauGame:
         Вы также можете вызвать событие от имени игрока.
         """
         self.event_handler.dispatch(Event(self, from_player, event_type, data))
+
+    def shot(self) -> bool:
+        """Выстрелить из револьвера."""
+        if not self.rules.shotgun.status:
+            return False
+
+        res = self.shotgun.shot()
+        if res:
+            self.shotgun = Shotgun()
+        return res
 
     def start(self) -> None:
         """Начинает новую игру в чате."""
@@ -98,7 +111,6 @@ class MauGame:
             self.deck.set_wild(CardColor.BLACK)
 
         self.pm.start()
-        self.shotgun.reset()
         self.started = True
         self.dispatch(self.owner, GameEvents.GAME_START)
         self.deck.top(self)

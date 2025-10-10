@@ -193,16 +193,6 @@ class Player:
         self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
         self.game.end_turn(self)
 
-    def shot(self) -> bool:
-        """Выстрелить из револьвера."""
-        if not self.game.rules.shotgun.status:
-            return False
-
-        res = self.game.shotgun.shot()
-        if res:
-            self.game.shotgun.reset()
-        return res
-
     def call_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.
 
