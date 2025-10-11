@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from mau.deck.deck import Deck
     from mau.game.game import MauGame
 
+# TODO: Какой-то костыль
 CARD_REGEX = re.compile(r"(\d)_(\d+)_(\d+)_([a-z+]+)")
 CARD_BEHAVIOR = {
     "rotate": behavior.RotateBehavior,
@@ -52,6 +53,7 @@ class MauCard:
         if card_match is None:
             return None
 
+        # TODO: Изменить формат карты
         color, value, cost, card_behavior = card_match.groups()
         card_behavior = CARD_BEHAVIOR[card_behavior]
 

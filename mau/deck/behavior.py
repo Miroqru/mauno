@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 from loguru import logger
 
 from mau.enums import GameEvents, GameState
+from mau.rules import GameRules
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
@@ -104,7 +105,10 @@ class TwistBehavior(NumberBehavior):
 
         Срабатывает если включено правило: `twist_hand`.
         """
-        if game.rules.twist_hand.status and len(game.player.hand) > 1:
+        if (
+            game.rules.status(GameRules.twist_hand)
+            and len(game.player.hand) > 1
+        ):
             game.set_state(GameState.TWIST_HAND)
 
 
@@ -118,7 +122,10 @@ class RotateBehavior(NumberBehavior):
 
         Срабатывает если включено правило: `rotate_cards`.
         """
-        if game.rules.rotate_cards.status and len(game.player.hand) > 1:
+        if (
+            game.rules.status(GameRules.rotate_cards)
+            and len(game.player.hand) > 1
+        ):
             game.rotate_cards()
 
 
@@ -207,9 +214,9 @@ class WildColorBehavior(BaseWildBehavior):
         - При правиле `random_color` выбирает случайный цвет.
         - Иначе переходит в состояние выбора цвета.
         """
-        if game.rules.auto_choose_color.status:
+        if game.rules.status(GameRules.auto_choose_color):
             self._auto_select_color(card, game)
-        elif not game.rules.random_color.status:
+        elif not game.rules.status(GameRules.random_color):
             game.set_state(GameState.CHOOSE_COLOR)
 
 
@@ -233,9 +240,9 @@ class WildTakeBehavior(BaseWildBehavior):
         - При правиле `random_color` выбирает случайный цвет.
         - Иначе переходит в состояние выбора цвета.
         """
-        if game.rules.auto_choose_color.status:
+        if game.rules.status(GameRules.auto_choose_color):
             self._auto_select_color(card, game)
-        elif not game.rules.random_color.status:
+        elif not game.rules.status(GameRules.random_color):
             game.set_state(GameState.CHOOSE_COLOR)
 
         game.take_counter += card.value

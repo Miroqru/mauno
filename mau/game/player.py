@@ -8,6 +8,7 @@ from loguru import logger
 from mau.deck.behavior import TakeBehavior, WildTakeBehavior
 from mau.enums import GameEvents, GameState
 from mau.events import Event
+from mau.rules import GameRules
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
@@ -107,14 +108,14 @@ class Player:
         self.game.set_state(GameState.TAKE)
 
         if (
-            self.game.rules.auto_skip.status
+            self.game.rules.status(GameRules.auto_skip)
             and len(self.cover_cards().cover) == 0
         ):
             self.game.next_turn()
 
     def _check_cover(self, card: "MauCard") -> bool:
         if (
-            self.game.rules.intervention.status
+            self.game.rules.status(GameRules.intervention)
             and card != self.game.deck.top
             and self != self.game.player
         ):
@@ -126,7 +127,7 @@ class Player:
                 and self.game.take_counter > 0
             )
             and not isinstance(card.behavior, TakeBehavior | WildTakeBehavior)
-            and not self.game.rules.deferred_take.status
+            and not self.game.rules.status(GameRules.deferred_take)
         )
 
     def cover_cards(self) -> SortedCards:
@@ -154,8 +155,8 @@ class Player:
                 [], [(i, card) for i, card in enumerate(self.hand)]
             )
 
-        cover = []
-        uncover = []
+        cover: list[tuple[int, MauCard]] = []
+        uncover: list[tuple[int, MauCard]] = []
         # TODO: Мне не нравится как выглядит эта строчка
         for i, (card, can_cover) in enumerate(
             top.iter_covering(self.hand, self.game.deck.wild_color)
@@ -223,12 +224,15 @@ class Player:
         """
         origin_counter = self.game.take_counter
 
-        if self.game.rules.take_until_cover.status and origin_counter == 0:
+        if (
+            self.game.rules.status(GameRules.take_until_cover)
+            and origin_counter == 0
+        ):
             self.game.take_counter = self.game.deck.count_until_cover()
 
         if (
             self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
-            and (self.game.rules.shotgun.status)
+            and (self.game.rules.status(GameRules.shotgun))
             and self.game.state != GameState.SHOTGUN
         ):
             self.game.set_state(GameState.SHOTGUN)

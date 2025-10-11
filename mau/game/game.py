@@ -12,8 +12,8 @@ from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
-from mau.game.rules import GameRules, RuleSet
 from mau.game.shotgun import Shotgun
+from mau.rules import GameRules, RuleSet
 
 
 class MauGame:
@@ -89,7 +89,7 @@ class MauGame:
 
     def shot(self) -> bool:
         """Выстрелить из револьвера."""
-        if not self.rules.shotgun.status:
+        if not self.rules.status(GameRules.shotgun):
             return False
 
         res = self.shotgun.shot()
@@ -100,15 +100,18 @@ class MauGame:
     def start(self) -> None:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
-        if self.rules.random_cards.status:
+        if self.rules.status(GameRules.random_cards):
             self.deck = RandomDeck()
         else:
             self.deck = self.deck_generator.deck
         self.deck.shuffle()
-        if self.rules.special_wild.status:
-            self.deck.set_wild(choice(self.deck.colors))
-        else:
-            self.deck.set_wild(CardColor.BLACK)
+
+        wild_color = (
+            choice(self.deck.colors)
+            if self.rules.status(GameRules.special_wild)
+            else CardColor.BLACK
+        )
+        self.deck.set_wild(wild_color)
 
         self.pm.start()
         self.started = True
@@ -166,7 +169,7 @@ class MauGame:
         if len(player.hand) == 0:
             self.dispatch(player, GameEvents.GAME_LEAVE, "win")
             self.pm.add_winner(player.user_id)
-            if self.rules.one_winner.status:
+            if self.rules.status(GameRules.one_winner):
                 self.end()
         else:
             self.dispatch(player, GameEvents.GAME_LEAVE, "lose")
@@ -180,7 +183,6 @@ class MauGame:
             self.end()
         elif self.is_owner(player):
             self._owner_id = self.pm.cur(1).user_id
-
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
@@ -226,9 +228,9 @@ class MauGame:
             return
 
         # TODO: Вынести в паттерн поведения
-        if self.deck.top.cost == 1 and self.rules.side_effect.status:
+        if self.deck.top.cost == 1 and self.rules.status(GameRules.side_effect):
             logger.info("Player continue turn")
-        elif self.rules.random_color.status:
+        elif self.rules.status(GameRules.random_color):
             self.choose_color(choice(self.deck.colors))
         else:
             self.end_turn(player)

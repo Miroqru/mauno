@@ -1,4 +1,7 @@
-"""Менеджер игроков в рамках одной игры."""
+"""Менеджер игроков в рамках одной игры.
+
+TODO: А ты нам нужен?
+"""
 
 from collections import deque
 from collections.abc import Iterable, Iterator
@@ -27,7 +30,10 @@ class PlayerManager:
     )
 
     def __init__(
-        self, storage: BaseStorage, min_players: int = 2, max_players: int = 6
+        self,
+        storage: BaseStorage[Player],
+        min_players: int = 2,
+        max_players: int = 6,
     ) -> None:
         self.min_players = min_players
         self.max_players = max_players
@@ -59,7 +65,7 @@ class PlayerManager:
     def iter(self, players: Iterable[str] | None = None) -> Iterator[Player]:
         """Проходится по всему списку игроков."""
         for pl in players or self._players:
-            storage_player = self.get(pl)
+            storage_player = self.get_or_none(pl)
             if storage_player is not None:
                 yield storage_player
 

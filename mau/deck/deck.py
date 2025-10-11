@@ -17,7 +17,7 @@ from mau.enums import CardColor
 
 def deck_colors(cards: list[MauCard]) -> list[CardColor]:
     """Возвращает все использованные цвета в колоде, исключая дикие карты."""
-    res = []
+    res: list[CardColor] = []
     for card in cards:
         if isinstance(card.behavior, BaseWildBehavior):
             continue
