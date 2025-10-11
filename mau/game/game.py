@@ -7,7 +7,6 @@ from typing import Any
 from loguru import logger
 
 from mau.deck.deck import Deck, RandomDeck
-from mau.deck.presets import DeckGenerator
 from mau.enums import CardColor, GameEvents, GameState
 from mau.events import BaseEventHandler, Event
 from mau.game.player import BaseUser, Player
@@ -32,7 +31,6 @@ class MauGame:
     ) -> None:
         self.room_id = room_id
         self.rules = RuleSet()
-        self.deck_generator = DeckGenerator.from_preset("classic")
         self.pm = player_manager
         self.deck = Deck()
         self.event_handler: BaseEventHandler = event_handler
@@ -102,8 +100,6 @@ class MauGame:
         logger.info("Start new game in chat {}", self.room_id)
         if self.rules.status(GameRules.random_cards):
             self.deck = RandomDeck()
-        else:
-            self.deck = self.deck_generator.deck
         self.deck.shuffle()
 
         wild_color = (
@@ -221,6 +217,7 @@ class MauGame:
         card = player.hand.pop(card_index)
         logger.info("Playing card {}", card)
         card(self)
+        self.deck.top.on_cover(self)
         self.deck.put_top(card)
         self.dispatch(player, GameEvents.PLAYER_PUT, card)
 
