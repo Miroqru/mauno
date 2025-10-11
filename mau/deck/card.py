@@ -4,26 +4,14 @@ import re
 from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, Self
 
-from mau.deck import behavior
-from mau.deck.behavior import BaseWildBehavior, NumberBehavior
+from mau.deck.behavior import CardBehavior
 from mau.enums import CardColor
 
 if TYPE_CHECKING:
-    from mau.deck.deck import Deck
     from mau.game.game import MauGame
 
 # TODO: Какой-то костыль
 CARD_REGEX = re.compile(r"(\d)_(\d+)_(\d+)_([a-z+]+)")
-CARD_BEHAVIOR = {
-    "rotate": behavior.RotateBehavior,
-    "twist": behavior.TwistBehavior,
-    "number": behavior.NumberBehavior,
-    "turn": behavior.TurnBehavior,
-    "reverse": behavior.ReverseBehavior,
-    "take": behavior.TakeBehavior,
-    "wild+color": behavior.WildColorBehavior,
-    "wild+take": behavior.WildTakeBehavior,
-}
 
 
 class MauCard:
@@ -35,40 +23,12 @@ class MauCard:
     __slots__ = ("color", "value", "cost", "behavior")
 
     def __init__(
-        self, color: CardColor, value: int, cost: int, behavior: NumberBehavior
+        self, color: CardColor, value: int, cost: int, behavior: CardBehavior
     ) -> None:
         self.color = color
         self.value = value
         self.cost = cost
         self.behavior = behavior
-
-    @classmethod
-    def unpack(cls, card_str: str) -> Self | None:
-        """Превращает упакованную строку карты в её экземпляр.
-
-        Обратное действие для получения экземпляра карты из строки.
-        Используется уже при обработке отправленного стикеров.
-        """
-        card_match = CARD_REGEX.match(card_str)
-        if card_match is None:
-            return None
-
-        # TODO: Изменить формат карты
-        color, value, cost, card_behavior = card_match.groups()
-        card_behavior = CARD_BEHAVIOR[card_behavior]
-
-        return cls(
-            color=CardColor(int(color)),
-            value=int(value),
-            cost=card_behavior.cost or int(value),
-            behavior=card_behavior(),
-        )
-
-    def pack(self) -> str:
-        """запаковывает карту в строку."""
-        return (
-            f"{self.color.value}_{self.value}_{self.cost}_{self.behavior.name}"
-        )
 
     def can_cover(self, other_card: Self, wild_color: CardColor) -> bool:
         """Проверяет что другая карта может покрыть текущую.
@@ -78,13 +38,9 @@ class MauCard:
         верхушки одной из своей руки.
         Как только карты кончатся - вы победили.
         """
-        return (
-            isinstance(other_card.behavior, BaseWildBehavior)
-            or other_card.color in (wild_color, self.color)
-            or (
-                self.behavior == other_card.behavior
-                and self.value == other_card.value
-            )
+        return other_card.color in (wild_color, self.color) or (
+            self.behavior == other_card.behavior
+            and self.value == other_card.value
         )
 
     # TODO: Тебя бы использовать по хорошему
@@ -107,13 +63,15 @@ class MauCard:
         """
         yield from ((card, self.can_cover(card, wild_color)) for card in hand)
 
-    def use(self, game: "MauGame") -> None:
+    def on_use(self, game: "MauGame") -> None:
         """Выполняет активное действие карты во время её разыгрывания."""
-        self.behavior.use(self, game)
+        for call in self.behavior.use:
+            call(game, self)
 
-    def prepare_used(self, deck: "Deck") -> None:
+    def on_cover(self, game: "MauGame") -> None:
         """Подготавливает карту к повторному использованию в колоде."""
-        self.behavior.prepare_used(self, deck)
+        for call in self.behavior.cover:
+            call(game, self)
 
     def __repr__(self) -> str:
         """Представление карты для отладки."""
@@ -121,7 +79,7 @@ class MauCard:
             f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
         )
 
-    __call__ = use
+    __call__ = on_use
 
     def __eq__(self, other: object) -> bool:
         """Проверяет соответствие двух карт."""
