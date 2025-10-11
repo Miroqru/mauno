@@ -39,7 +39,7 @@ class BaseStorage(ABC, Generic[_V]):
         """
 
 
-class MemoryStorage(BaseStorage, Generic[_V]):
+class MemoryStorage(BaseStorage[_V], Generic[_V]):
     """Хранилище в оперативной памяти.
 
     Базовое реализация хранилище.
