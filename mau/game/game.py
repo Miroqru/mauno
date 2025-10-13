@@ -1,6 +1,5 @@
 """Игровая сессия."""
 
-from datetime import UTC, datetime
 from random import choice
 from typing import Any
 
@@ -13,6 +12,7 @@ from mau.events import BaseEventHandler, Event, GameEvents
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 from mau.game.shotgun import Shotgun
+from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
 
 
@@ -47,10 +47,7 @@ class MauGame:
         self.take_counter: int = 0
         self.state: GameState = GameState.NEXT
         self.shotgun = Shotgun()
-
-        # TODO: Отдельный компонент таймера
-        self.game_start = datetime.now(UTC)
-        self.turn_start = datetime.now(UTC)
+        self.timer = GameTimer()
 
     @property
     def player(self) -> Player:
@@ -110,6 +107,7 @@ class MauGame:
         self.deck.set_wild(wild_color)
 
         self.pm.start()
+        self.timer.start()
         self.started = True
         self.dispatch(self.owner, GameEvents.GAME_START)
         self.deck.top(self)
@@ -134,9 +132,9 @@ class MauGame:
         # Shotgun надо сбрасывать вручную
         if self.state != GameState.SHOTGUN:
             self.state = GameState.NEXT
-        self.turn_start = datetime.now(UTC)
+        stat = self.timer.tick()
         self.pm.next(1, self.reverse)
-        self.dispatch(self.player, GameEvents.GAME_TURN)
+        self.dispatch(self.player, GameEvents.GAME_TURN, stat)
 
     def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
