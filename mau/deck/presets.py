@@ -16,10 +16,8 @@ from mau.deck.deck import Deck
 class CardGroup:
     """Группа карт.
 
-    Обобщённо описывает карты. которые должны быть.
+    Обобщённо описывает несколько карт. которые должны быть в колоде.
     Тип карты, значение, цвета, и их количество в колоде.
-
-    К примеру: Числовые карты всех цветов по две на каждый цвет.
     """
 
     behavior: CardBehavior
@@ -35,19 +33,6 @@ class CardGroup:
         for _ in range(self.count):
             for color in self.colors:
                 yield MauCard(color, self.value, self.value, self.behavior)
-
-
-@dataclass(slots=True, frozen=True)
-class DeckPreset:
-    """Шаблон колоды.
-
-    Содержит готовые правила формирования колоды, которые можно
-    использовать в игре.
-    """
-
-    name: str
-    desc: str
-    groups: Iterable[CardGroup]
 
 
 class DeckGenerator:
