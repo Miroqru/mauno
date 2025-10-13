@@ -13,7 +13,6 @@ from mau.events import BaseEventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
-from mau.storage import BaseStorage, MemoryStorage
 
 _H = TypeVar("_H", bound=BaseEventHandler)
 
@@ -34,15 +33,14 @@ class SessionManager(Generic[_H]):
 
     """
 
-    __slots__ = ("_games", "_players", "_event_handler")
+    __slots__ = ("_games", "_players", "_event_handler", "_active_players")
 
     def __init__(
         self,
         event_handler: _H,
-        game_storage: BaseStorage[MauGame] | None = None,
     ) -> None:
-        self._games: BaseStorage[MauGame] = game_storage or MemoryStorage()
-        self._active_players: dict[str, str]
+        self._games: dict[str, MauGame] = {}
+        self._active_players: dict[str, str] = {}
         self._event_handler = event_handler
 
     def player(self, user_id: str) -> Player | None:
@@ -130,9 +128,9 @@ class SessionManager(Generic[_H]):
 
         """
         logger.info("User {} Create new game session in {}", owner, room_id)
-        pm = PlayerManager(self._players, min_players, max_players)
+        pm = PlayerManager(min_players, max_players)
         game = MauGame(pm, self._event_handler, room_id, owner)
-        self._games.add(room_id, game)
+        self._games[room_id] = game
         game.dispatch(game.owner, GameEvents.SESSION_START)
         return game
 
@@ -144,7 +142,7 @@ class SessionManager(Generic[_H]):
         Удаляет игру из хранилища, отправляет событие `SESSION_END`.
         """
         logger.info("End session in room {}", room_id)
-        game = self._games.remove(room_id)
+        game = self._games.pop(room_id)
         for pl in game.pm.iter():
             self._active_players.pop(pl.user_id)
         game.dispatch(game.owner, GameEvents.SESSION_END)

@@ -1,7 +1,4 @@
-"""Менеджер игроков в рамках одной игры.
-
-TODO: А ты нам нужен?
-"""
+"""Менеджер игроков в рамках одной игры."""
 
 from collections import deque
 from collections.abc import Iterable, Iterator
@@ -10,7 +7,6 @@ from random import shuffle
 
 from mau.events import GameEvents
 from mau.game.player import Player
-from mau.storage import BaseStorage
 
 
 class GameReverse(IntEnum):
@@ -39,18 +35,15 @@ class PlayerManager:
         "reverse",
     )
 
-    def __init__(
-        self,
-        storage: BaseStorage[Player],
-        min_players: int = 2,
-        max_players: int = 6,
-    ) -> None:
+    def __init__(self, min_players: int = 2, max_players: int = 6) -> None:
+        self._storage: dict[str, Player] = {}
         self.min_players = min_players
         self.max_players = max_players
-        self._storage = storage
         self._cp = 0
         self.reverse = GameReverse.NEXT
         self._players: list[str] = []
+
+        # TODO: Переработать
         self.winners: list[str] = []
         self.losers: list[str] = []
         self.player_cost: dict[str, int] = {}
@@ -95,12 +88,12 @@ class PlayerManager:
         if len(self._players) >= self.max_players:
             raise ValueError("Too man players in game")
 
-        self._storage.add(player.user_id, player)
+        self._storage[player.user_id] = player
         self._players.append(player.user_id)
 
     def remove(self, user_id: str) -> None:
         """Удаляет игрока из хранилища."""
-        self._storage.remove(user_id)
+        self._storage.pop(user_id)
 
     def add_winner(self, user_id: str) -> None:
         """Добавляет игрока в список победителей."""
@@ -111,13 +104,6 @@ class PlayerManager:
         """Добавляет игрока в список проигравших."""
         self.losers.append(user_id)
         self._players.remove(user_id)
-
-    def remove_players(self) -> None:
-        """Удаляет всех игроков из хранилища, связанных с текущей игрой."""
-        for pl in self.winners:
-            self._storage.remove(pl)
-        for pl in self.losers:
-            self._storage.remove(pl)
 
     def start(self) -> None:
         """Подготавливает игроков к началу новой игры.

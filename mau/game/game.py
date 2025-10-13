@@ -97,6 +97,7 @@ class MauGame:
             and not self.rules.status(GameRules.deferred_take)
         )
 
+    # TODO: User ID instead Player
     def dispatch(
         self, from_player: Player, event_type: GameEvents, data: Any = None
     ) -> None:
