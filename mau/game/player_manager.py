@@ -7,7 +7,7 @@ from collections import deque
 from collections.abc import Iterable, Iterator
 from random import shuffle
 
-from mau.enums import GameEvents
+from mau.events import GameEvents
 from mau.game.player import Player
 from mau.storage import BaseStorage
 

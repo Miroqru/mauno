@@ -8,9 +8,8 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 
 from mau.deck.behavior import CardBehavior
-from mau.deck.card import MauCard
+from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
-from mau.enums import CardColor
 
 
 @dataclass(slots=True, frozen=True)

@@ -7,17 +7,76 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from loguru import logger
-
-from mau.enums import GameEvents
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
     from mau.game.player import Player
 
 _T = TypeVar("_T")
+
+
+# TODO: Разделить на несколько событий
+class GameEvents(IntEnum):
+    """Определение игровых событий.
+
+    Когда происходит некоторое действие в игре, вызывается событие.
+    События могут сопровождаться строкой с полезной информацией.
+    Для обработки игровых события воспользуйтесь классом `EventHandler`.
+    В целях оптимизации события представлены числовым значением.
+
+    Некоторые из событий требуют действий со стороны клиента.
+    Как например завершение сессии во время завершения игры.
+
+    **Игровая сессия**: Связанные с менеджером сессий.
+
+    - `session_start`: Создана новая комната.
+    - `session_end`: Сессия в комнате завершена.
+
+    **Игра**: События, вызванные игровым процессом.
+
+    - `game_start`: Началась новая игра.
+    - `game_end`: Завершилась игра.
+    - `game_join`: Игрок присоединился к игре.
+    - `game_leave`: Игрок вышел, проиграл, выиграл, был исключён, застрелился.
+    - `game_select_color`: Выбор нового цвета для карты.
+    - `game_select_player`: Выбор игрока для обмена картами.
+    - `game_turn`: Завершение текущего и начало следующего хода.
+    - `game_rotate`: Обмен картами между всеми игроками.
+    - `game_state`: Обновление игрового состояния.
+
+    **Игрок**: События, сопровождаемые действием игрока.
+
+    - `player_mau`: Когда у игрока остаётся только одна карта.
+    - `player_bluff`: Проверка на честность предыдущего игрока.
+    - `player_take`: Взятие карт из колоды, также вместо револьвера.
+    - `player_put`: Игрок использует карту.
+    - `player_intervened`: Игрок вмешался в ход другого игрока.
+    """
+
+    SESSION_START = 10
+    SESSION_END = 11
+    SESSION_JOIN = 12
+    SESSION_LEAVE = 13
+
+    GAME_START = 20
+    GAME_END = 21
+    GAME_JOIN = 22
+    GAME_LEAVE = 23
+    GAME_SELECT_COLOR = 24
+    GAME_SELECT_PLAYER = 25
+    GAME_TURN = 26
+    GAME_ROTATE = 27
+    GAME_STATE = 28
+
+    PLAYER_MAU = 30
+    PLAYER_BLUFF = 31
+    PLAYER_TAKE = 32
+    PLAYER_PUT = 33
+    PLAYER_INTERVENED = 34
 
 
 @dataclass(slots=True, frozen=True)

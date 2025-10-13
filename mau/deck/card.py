@@ -1,17 +1,35 @@
 """Игровые карты Mau."""
 
-import re
 from collections.abc import Iterable, Iterator
+from enum import IntEnum
 from typing import TYPE_CHECKING, Self
 
 from mau.deck.behavior import CardBehavior
-from mau.enums import CardColor
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
 
-# TODO: Какой-то костыль
-CARD_REGEX = re.compile(r"(\d)_(\d+)_(\d+)_([a-z+]+)")
+
+class CardColor(IntEnum):
+    """Цвета карты.
+
+    У каждой карты обязательно есть цвет для отличия от других карт.
+    В классическом режиме используются красный, жёлтый, зелёный, синий,
+    а чёрный цвет используется как козырный.
+    Это значит что он кроет любую карту.
+
+    Настройки цветов карт можно переопределить настройками игры.
+    то значит что козырным цветом может быть любая карта.
+    """
+
+    RED = 0
+    ORANGE = 1
+    YELLOW = 2
+    GREEN = 3
+    CYAN = 4
+    BLUE = 5
+    BLACK = 6
+    CREAM = 7
 
 
 class MauCard:

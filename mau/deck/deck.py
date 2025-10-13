@@ -11,8 +11,7 @@ from loguru import logger
 
 from mau.deck import behavior
 from mau.deck.behavior import CardBehavior
-from mau.deck.card import MauCard
-from mau.enums import CardColor
+from mau.deck.card import CardColor, MauCard
 
 
 def deck_colors(cards: list[MauCard]) -> list[CardColor]:

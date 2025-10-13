@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, Self
 
 from loguru import logger
 
-from mau.enums import GameEvents, GameState
-from mau.events import Event
+from mau.enums import GameState
+from mau.events import Event, GameEvents
 from mau.rules import GameRules
 
 if TYPE_CHECKING:

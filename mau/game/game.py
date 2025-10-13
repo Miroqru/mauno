@@ -6,9 +6,10 @@ from typing import Any
 
 from loguru import logger
 
-from mau.deck.deck import Deck, RandomDeck
-from mau.enums import CardColor, GameEvents, GameState
-from mau.events import BaseEventHandler, Event
+from mau.deck.card import CardColor
+from mau.deck.deck import Deck
+from mau.enums import GameState
+from mau.events import BaseEventHandler, Event, GameEvents
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 from mau.game.shotgun import Shotgun

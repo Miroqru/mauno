@@ -4,12 +4,13 @@
 """
 
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from mau.enums import GameEvents, GameState
-from mau.events import dataclass
+from mau.enums import GameState
+from mau.events import GameEvents
 from mau.rules import GameRules
 
 if TYPE_CHECKING:

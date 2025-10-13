@@ -9,8 +9,7 @@ from typing import Generic, TypeVar
 
 from loguru import logger
 
-from mau.enums import GameEvents
-from mau.events import BaseEventHandler
+from mau.events import BaseEventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
