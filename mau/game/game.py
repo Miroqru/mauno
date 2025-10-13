@@ -75,6 +75,7 @@ class MauGame:
 
         return self.player == player or self.rules.intervention.status
 
+    # TODO: User ID instead Player
     def dispatch(
         self, from_player: Player, event_type: GameEvents, data: Any = None
     ) -> None:
@@ -169,7 +170,6 @@ class MauGame:
             self.end()
         elif self.is_owner(player):
             self._owner_id = self.pm.cur(1).user_id
-
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.
