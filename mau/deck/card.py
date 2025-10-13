@@ -1,6 +1,6 @@
 """Игровые карты Mau."""
 
-from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import TYPE_CHECKING, Self
 
@@ -32,21 +32,17 @@ class CardColor(IntEnum):
     CREAM = 7
 
 
+@dataclass(slots=True)
 class MauCard:
     """Описание каждой карты Mau.
 
     Предоставляет общий функционал для всех карт.
     """
 
-    __slots__ = ("color", "value", "cost", "behavior")
-
-    def __init__(
-        self, color: CardColor, value: int, cost: int, behavior: CardBehavior
-    ) -> None:
-        self.color = color
-        self.value = value
-        self.cost = cost
-        self.behavior = behavior
+    color: CardColor
+    value: int
+    cost: int
+    behavior: CardBehavior
 
     def can_cover(self, other_card: Self, wild_color: CardColor) -> bool:
         """Проверяет что другая карта может покрыть текущую.
@@ -61,26 +57,6 @@ class MauCard:
             and self.value == other_card.value
         )
 
-    # TODO: Тебя бы использовать по хорошему
-    def iter_covering(
-        self, hand: Iterable[Self], wild_color: CardColor
-    ) -> Iterator[tuple[Self, bool]]:
-        """Проверяет какие карты вы можете покрыть из своей руки.
-
-        Используется чтобы проверить всю свою руку на наличие карт,
-        которыми можно покрыть текущую.
-
-        Args:
-            hand (Iterable[BaseCard]): Карты в вашей руке.
-            wild_color (CardColor): какой сейчас дикий цвет.
-
-        Yields:
-            Iterator[BaseCard, bool]: Возвращает карту и можете ли вы
-                ею покрыть текущую.
-
-        """
-        yield from ((card, self.can_cover(card, wild_color)) for card in hand)
-
     def on_use(self, game: "MauGame") -> None:
         """Выполняет активное действие карты во время её разыгрывания."""
         for call in self.behavior.use:
@@ -92,31 +68,3 @@ class MauCard:
             call(game, self)
 
     __call__ = on_use
-
-    def __repr__(self) -> str:
-        """Представление карты для отладки."""
-        return (
-            f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
-        )
-
-    def __eq__(self, other: object) -> bool:
-        """Проверяет соответствие двух карт."""
-        if not isinstance(other, MauCard):
-            return NotImplemented
-
-        return (
-            self.color == other.color
-            and self.behavior == other.behavior
-            and self.value == other.value
-        )
-
-    def __lt__(self, other_card: object) -> bool:
-        """Проверяет что данная карта меньшей стоимости чем прочая."""
-        if not isinstance(other_card, MauCard):
-            return NotImplemented
-
-        return (
-            self.color < other_card.color
-            and self.value < other_card.value
-            and self.cost < other_card.cost
-        )
