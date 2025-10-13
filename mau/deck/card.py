@@ -57,7 +57,7 @@ class MauCard:
         Как только карты кончатся - вы победили.
         """
         return other_card.color in (wild_color, self.color) or (
-            self.behavior == other_card.behavior
+            self.behavior.name == other_card.behavior.name
             and self.value == other_card.value
         )
 
@@ -91,13 +91,13 @@ class MauCard:
         for call in self.behavior.cover:
             call(game, self)
 
+    __call__ = on_use
+
     def __repr__(self) -> str:
         """Представление карты для отладки."""
         return (
             f"MauCard<{self.color}, {self.value}, {self.cost}, {self.behavior}>"
         )
-
-    __call__ = on_use
 
     def __eq__(self, other: object) -> bool:
         """Проверяет соответствие двух карт."""

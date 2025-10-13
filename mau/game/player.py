@@ -112,33 +112,6 @@ class Player:
         ):
             self.game.next_turn()
 
-    # TODO: Переместить в класс игры
-    def _check_cover(self, card: "MauCard") -> bool:
-        if (
-            self.game.rules.status(GameRules.intervention)
-            and card != self.game.deck.top
-            and self != self.game.player
-        ):
-            return False
-
-        # Для режима побочного выброса
-        if (
-            self.game.state == GameState.CONTINUE
-            and self.game.rules.status(GameRules.side_effect)
-            and card.cost == self.game.deck.top.cost
-        ):
-            return True
-
-        # Совмещение нескольких карт
-        return (
-            (
-                self.game.deck.top.behavior.on_counter
-                and self.game.take_counter > 0
-            )
-            and not self.game.deck.top.behavior.on_counter
-            and not self.game.rules.status(GameRules.deferred_take)
-        )
-
     def cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
 
@@ -167,7 +140,7 @@ class Player:
         for i, (card, can_cover) in enumerate(
             top.iter_covering(self.hand, self.game.deck.wild_color)
         ):
-            if can_cover and self._check_cover(card):
+            if can_cover and self.game.can_cover(self, card):
                 cover.append((i, card))
             else:
                 uncover.append((i, card))

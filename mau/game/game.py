@@ -5,7 +5,7 @@ from typing import Any
 
 from loguru import logger
 
-from mau.deck.card import CardColor
+from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import BaseEventHandler, Event, GameEvents
@@ -69,6 +69,32 @@ class MauGame:
 
         return self.player == player or self.rules.status(
             GameRules.intervention
+        )
+
+    def can_cover(self, player: Player, card: MauCard) -> bool:
+        """Проверяет может ли текущая карта покрыть верхнюю из колоды."""
+        top = self.deck.top
+
+        if (
+            self.rules.status(GameRules.intervention)
+            and card != top
+            and player != self.player
+        ):
+            return False
+
+        # Для режима побочного выброса
+        if (
+            self.state == GameState.CONTINUE
+            and self.rules.status(GameRules.side_effect)
+            and card.cost == top.cost
+        ):
+            return True
+
+        # Совмещение нескольких карт
+        return (
+            (top.behavior.on_counter and self.take_counter > 0)
+            and not top.behavior.on_counter
+            and not self.rules.status(GameRules.deferred_take)
         )
 
     def dispatch(
