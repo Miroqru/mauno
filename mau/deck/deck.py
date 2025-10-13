@@ -25,7 +25,7 @@ def deck_colors(cards: list[MauCard]) -> list[CardColor]:
 
 # TODO: Внедрить прочие поведения
 def _random_behavior() -> CardBehavior:
-    return CardBehavior("random", 0, use=[behavior.log], cover=[])
+    return CardBehavior(name="random", cost=0, use=[behavior.log], cover=[])
 
 
 def random_card() -> MauCard:

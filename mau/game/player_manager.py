@@ -5,11 +5,20 @@ TODO: А ты нам нужен?
 
 from collections import deque
 from collections.abc import Iterable, Iterator
+from enum import IntEnum
 from random import shuffle
 
 from mau.events import GameEvents
 from mau.game.player import Player
 from mau.storage import BaseStorage
+
+
+class GameReverse(IntEnum):
+    """Направление ходов в игре."""
+
+    NEXT = 1
+    BACK = 2
+    STOP = 3
 
 
 class PlayerManager:
@@ -27,6 +36,7 @@ class PlayerManager:
         "player_cost",
         "min_players",
         "max_players",
+        "reverse",
     )
 
     def __init__(
@@ -39,7 +49,7 @@ class PlayerManager:
         self.max_players = max_players
         self._storage = storage
         self._cp = 0
-
+        self.reverse = GameReverse.NEXT
         self._players: list[str] = []
         self.winners: list[str] = []
         self.losers: list[str] = []
@@ -131,12 +141,23 @@ class PlayerManager:
             self.player_cost[pl.user_id] = pl.count_cost()
         self._players = []
 
-    def next(self, n: int = 1, reverse: bool = False) -> None:
-        """Перемещает курсор игрока дальше."""
-        if reverse:
-            self._cp = (self._cp - n) % len(self._players)
+    def set_reverse(self, reverse: GameReverse) -> None:
+        """Устанавливает новое значение порядка ходов в игре."""
+        self.reverse = reverse
+
+    def toggle_reverse(self) -> None:
+        """Переключает порядок ходов на обратный."""
+        if self.reverse == GameReverse.NEXT:
+            self.reverse = GameReverse.BACK
         else:
+            self.reverse = GameReverse.NEXT
+
+    def next(self, n: int = 1) -> None:
+        """Перемещает курсор игрока дальше."""
+        if self.reverse == GameReverse.NEXT:
             self._cp = (self._cp + n) % len(self._players)
+        elif self.reverse == GameReverse.BACK:
+            self._cp = (self._cp - n) % len(self._players)
 
     def set_cp(self, player: Player) -> None:
         """Устанавливает курсор текущего игрока на переданного."""
@@ -146,10 +167,10 @@ class PlayerManager:
                 player.dispatch(GameEvents.PLAYER_INTERVENED)
                 return
 
-    def rotate_cards(self, reverse: bool = False) -> None:
+    def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
         hands = deque(player.hand for player in self.iter(self._players))
-        hands.rotate(-1 if reverse else 1)
+        hands.rotate(1 if self.reverse == GameReverse.NEXT else -1)
         for player, new_hand in zip(
             self.iter(self._players), hands, strict=False
         ):

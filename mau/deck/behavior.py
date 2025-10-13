@@ -23,10 +23,10 @@ Callback = Callable[["MauGame", "MauCard"], None]
 def _auto_select_color(card: "MauCard", game: "MauGame") -> None:
     logger.debug("Auto choose color for card")
     color_index = game.deck.colors.index(game.deck.top.color)
-    if game.reverse:
-        color_index -= 1
-    else:
+    if game.pm.reverse == 1:
         color_index += 1
+    else:
+        color_index -= 1
     color_index %= len(game.deck.colors)
     card.color = game.deck.colors[color_index]
     game.player.dispatch(GameEvents.GAME_SELECT_COLOR, card.color)
@@ -70,8 +70,7 @@ def reverse(game: "MauGame", card: "MauCard") -> None:
     if len(game.pm) == 2:  # noqa: PLR2004
         game.skip_players()
     else:
-        game.reverse = not game.reverse
-        logger.info("Reverse flag now {}", game.reverse)
+        game.toggle_reverse()
 
 
 def take(game: "MauGame", card: "MauCard") -> None:

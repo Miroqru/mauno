@@ -70,7 +70,8 @@ class GameEvents(IntEnum):
     GAME_SELECT_PLAYER = 25
     GAME_TURN = 26
     GAME_ROTATE = 27
-    GAME_STATE = 28
+    GAME_REVERSE = 28
+    GAME_STATE = 29
 
     PLAYER_MAU = 30
     PLAYER_BLUFF = 31
