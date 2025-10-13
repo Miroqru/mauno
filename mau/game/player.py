@@ -112,6 +112,7 @@ class Player:
         ):
             self.game.next_turn()
 
+    # TODO: Переместить в класс игры
     def _check_cover(self, card: "MauCard") -> bool:
         if (
             self.game.rules.status(GameRules.intervention)
@@ -119,6 +120,14 @@ class Player:
             and self != self.game.player
         ):
             return False
+
+        # Для режима побочного выброса
+        if (
+            self.game.state == GameState.CONTINUE
+            and self.game.rules.status(GameRules.side_effect)
+            and card.cost == self.game.deck.top.cost
+        ):
+            return True
 
         # Совмещение нескольких карт
         return (

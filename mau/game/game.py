@@ -110,13 +110,6 @@ class MauGame:
         self.started = False
         self.dispatch(self.owner, GameEvents.GAME_END)
 
-    def choose_color(self, color: CardColor) -> None:
-        """Устанавливаем цвет для последней карты."""
-        self.deck.top.color = color
-        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, color)
-        self.set_state(GameState.TAKE)
-        self.end_turn(self.player)
-
     def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
         logger.info("Joining {} in game with id {}", user, self.room_id)
@@ -200,6 +193,13 @@ class MauGame:
         self.pm.toggle_reverse()
         self.player.dispatch(GameEvents.GAME_REVERSE, self.pm.reverse)
 
+    def choose_color(self, color: CardColor) -> None:
+        """Устанавливаем цвет для последней карты."""
+        self.deck.top.color = color
+        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, color)
+        self.set_state(GameState.TAKE)
+        self.end_turn(self.player)
+
     # Обработка ходов
     # ===============
 
@@ -216,13 +216,16 @@ class MauGame:
         self.deck.put_top(card)
         self.dispatch(player, GameEvents.PLAYER_PUT, card)
 
+        if self.state == GameState.NEXT and self.rules.status(
+            GameRules.side_effect
+        ):
+            self.state = GameState.CONTINUE
+            return
+
         if self.state not in (GameState.NEXT, GameState.TAKE):
             return
 
-        # TODO: Вынести в паттерн поведения
-        if self.deck.top.cost == 1 and self.rules.status(GameRules.side_effect):
-            logger.info("Player continue turn")
-        elif self.rules.status(GameRules.random_color):
+        if self.rules.status(GameRules.random_color):
             self.choose_color(choice(self.deck.colors))
         else:
             self.end_turn(player)
