@@ -37,23 +37,15 @@ def log(game: "MauGame", card: "MauCard") -> None:
     logger.debug("Use card {} in game {}", card, game)
 
 
-# TODO: Просто поведение, без определённого режима
-def twist(game: "MauGame", card: "MauCard") -> None:
-    """переходит в состояния обмена картами с другим игроком.
-
-    Срабатывает если включено правило: `twist_hand`.
-    """
-    if game.rules.status(GameRules.twist_hand) and len(game.player.hand) > 1:
+def twist(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
+    """переходит в состояния обмена картами с другим игроком."""
+    if len(game.player.hand) > 1:
         game.set_state(GameState.TWIST_HAND)
 
 
-# TODO: Просто поведение, без определённого режима
-def rotate(game: "MauGame", card: "MauCard") -> None:
-    """Обменивает карты между всеми игроками.
-
-    Срабатывает если включено правило: `rotate_cards`.
-    """
-    if game.rules.status(GameRules.rotate_cards) and len(game.player.hand) > 1:
+def rotate(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
+    """Обменивает карты между всеми игроками."""
+    if len(game.player.hand) > 1:
         game.rotate_cards()
 
 
@@ -62,7 +54,7 @@ def turn(game: "MauGame", card: "MauCard") -> None:
     game.skip_players(card.value)
 
 
-def reverse(game: "MauGame", card: "MauCard") -> None:
+def reverse(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
     """Разворачивает порядок ходов в игре.
 
     Если осталось 2 игрока, действует как пропуск следующего игрока.
