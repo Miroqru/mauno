@@ -197,12 +197,12 @@ class Player:
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
-        logger.info("{} call bluff {}", self, self.game.bluff_player)
-        if self.game.bluff_player is None or not self.game.bluff_player[1]:
+        logger.info("{} call bluff {}", self, self.game.bluff_state)
+        if self.game.bluff_state is None or not self.game.bluff_state[1]:
             self.game.take_counter += 2
             self.take_cards()
         else:
-            bluff_player = self.game.pm.get(self.game.bluff_player[0])
+            bluff_player = self.game.pm.get(self.game.bluff_state[0])
             bluff_player.take_cards()
         self.dispatch(GameEvents.PLAYER_BLUFF)
         self.game.end_turn(self)

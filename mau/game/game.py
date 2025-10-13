@@ -39,7 +39,7 @@ class MauGame:
         self._owner_id = owner.id
         self.pm.add(Player(self, owner.id, owner.name, owner.username))
 
-        self.bluff_player: tuple[str, bool] | None = None
+        self.bluff_state: tuple[str, bool] | None = None
         self.started: bool = False
         self.open: bool = True
         self.take_counter: int = 0

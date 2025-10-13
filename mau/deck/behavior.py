@@ -94,7 +94,7 @@ def take_bluff(game: "MauGame", card: "MauCard") -> None:
         "Take counter increase by {} now {}", card.value, game.take_counter
     )
     game.take_counter += card.value
-    game.bluff_player = (game.player.user_id, game.player.is_bluffing())
+    game.bluff_state = (game.player.user_id, game.player.is_bluffing())
 
 
 def reset_color(game: "MauGame", card: "MauCard") -> None:
