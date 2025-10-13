@@ -122,13 +122,10 @@ class Player:
         logger.debug("Last card was {}", top)
         # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
         # то нам сейчас карты нне очень важны
-        # Если сейчас не ход игрока, то активных карт нету
-        # Это для глупенького веб клиента будет полезно
-        if (
-            (top.behavior.on_counter and self.game.take_counter)
-            or not self.can_play
-            or self.game.state
-            not in (GameState.NEXT, GameState.CONTINUE, GameState.TAKE)
+        if not self.can_play or self.game.state not in (
+            GameState.NEXT,
+            GameState.CONTINUE,
+            GameState.TAKE,
         ):
             return SortedCards(
                 [], [(i, card) for i, card in enumerate(self.hand)]
@@ -136,11 +133,8 @@ class Player:
 
         cover: list[tuple[int, MauCard]] = []
         uncover: list[tuple[int, MauCard]] = []
-        # TODO: Мне не нравится как выглядит эта строчка
-        for i, (card, can_cover) in enumerate(
-            top.iter_covering(self.hand, self.game.deck.wild_color)
-        ):
-            if can_cover and self.game.can_cover(self, card):
+        for i, card in enumerate(self.hand):
+            if self.game.can_cover(self, card):
                 cover.append((i, card))
             else:
                 uncover.append((i, card))
