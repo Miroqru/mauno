@@ -7,10 +7,9 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
@@ -19,7 +18,6 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
-# TODO: Разделить на несколько событий
 class GameEvents(IntEnum):
     """Определение игровых событий.
 
@@ -30,31 +28,6 @@ class GameEvents(IntEnum):
 
     Некоторые из событий требуют действий со стороны клиента.
     Как например завершение сессии во время завершения игры.
-
-    **Игровая сессия**: Связанные с менеджером сессий.
-
-    - `session_start`: Создана новая комната.
-    - `session_end`: Сессия в комнате завершена.
-
-    **Игра**: События, вызванные игровым процессом.
-
-    - `game_start`: Началась новая игра.
-    - `game_end`: Завершилась игра.
-    - `game_join`: Игрок присоединился к игре.
-    - `game_leave`: Игрок вышел, проиграл, выиграл, был исключён, застрелился.
-    - `game_select_color`: Выбор нового цвета для карты.
-    - `game_select_player`: Выбор игрока для обмена картами.
-    - `game_turn`: Завершение текущего и начало следующего хода.
-    - `game_rotate`: Обмен картами между всеми игроками.
-    - `game_state`: Обновление игрового состояния.
-
-    **Игрок**: События, сопровождаемые действием игрока.
-
-    - `player_mau`: Когда у игрока остаётся только одна карта.
-    - `player_bluff`: Проверка на честность предыдущего игрока.
-    - `player_take`: Взятие карт из колоды, также вместо револьвера.
-    - `player_put`: Игрок использует карту.
-    - `player_intervened`: Игрок вмешался в ход другого игрока.
     """
 
     SESSION_START = 10
@@ -101,7 +74,7 @@ class Event(Generic[_T]):
     data: _T
 
 
-class BaseEventHandler(ABC):
+class EventHandler(Protocol):
     """Базовый обработчик событий.
 
     Предоставляет интерфейс для обработки событий на стороне клиента.
@@ -110,7 +83,6 @@ class BaseEventHandler(ABC):
     Базовый класс определяет интерфейс взаимодействия с событиями.
     """
 
-    @abstractmethod
     def dispatch(self, event: Event[Any]) -> None:
         """Обрабатывает игровое событие.
 

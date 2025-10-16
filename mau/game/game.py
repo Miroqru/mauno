@@ -8,7 +8,7 @@ from loguru import logger
 from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
-from mau.events import BaseEventHandler, Event, GameEvents
+from mau.events import Event, EventHandler, GameEvents
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import GameReverse, PlayerManager
 from mau.game.shotgun import Shotgun
@@ -26,7 +26,7 @@ class MauGame:
     def __init__(
         self,
         player_manager: PlayerManager,
-        event_handler: BaseEventHandler,
+        event_handler: EventHandler,
         room_id: str,
         owner: BaseUser,
     ) -> None:
@@ -34,7 +34,7 @@ class MauGame:
         self.rules = RuleSet()
         self.pm = player_manager
         self.deck = Deck()
-        self.event_handler: BaseEventHandler = event_handler
+        self.event_handler: EventHandler = event_handler
 
         self._owner_id = owner.id
         self.pm.add(Player(self, owner.id, owner.name, owner.username))

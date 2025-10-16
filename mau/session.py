@@ -9,12 +9,12 @@ from typing import Generic, TypeVar
 
 from loguru import logger
 
-from mau.events import BaseEventHandler, GameEvents
+from mau.events import EventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 
-_H = TypeVar("_H", bound=BaseEventHandler)
+_H = TypeVar("_H", bound=EventHandler)
 
 
 class SessionManager(Generic[_H]):
@@ -24,13 +24,8 @@ class SessionManager(Generic[_H]):
     Предоставляет высокоуровневые методы для создания и удаления игр.
     Привязывается к конкретному типу игр и хранилищу.
 
-    Args:
-        game_storage: Хранилище для игр. По умолчания в оперативной памяти.
-            Каждая созданная игра связывается с идентификатором `room_id`.
-            Таким образом в одном чате может находиться только одна комната.
-        event_handler: Обработчик событий. Поставляется в игры для обработку
-            всех происходящих событий.
-
+    При создании применяет обработчик событий, который будет использоваться
+    для взаимодействия с игровыми событиями.
     """
 
     __slots__ = ("_games", "_players", "_event_handler", "_active_players")
@@ -81,13 +76,12 @@ class SessionManager(Generic[_H]):
         game.dispatch(player, GameEvents.SESSION_JOIN)
         return player
 
-    def leave(
-        self, player: Player, room_id: str | None = None
-    ) -> Player | None:
+    def leave(self, player: Player, room_id: str | None = None) -> None:
         """Выход из игры.
 
         Дополнительно снимает блокировку активного игрока.
         Чтобы игрок мог принять участие в другой игре.
+        Если `room_id` не указан, вычисляет его по активным игрокам.
         """
         room_id = room_id or self._active_players.get(player.user_id)
         if room_id is None:
@@ -96,7 +90,7 @@ class SessionManager(Generic[_H]):
         self._active_players.pop(player.user_id)
         game = self.room(room_id)
         if game is None:
-            return None
+            return
 
         game.leave_player(player)
         game.dispatch(player, GameEvents.SESSION_LEAVE)
