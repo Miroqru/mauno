@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Self
 
 from loguru import logger
 
+from mau.deck.card import CardColor
 from mau.enums import GameState
 from mau.events import Event, GameEvents
 from mau.rules import GameRules
@@ -12,9 +13,6 @@ from mau.rules import GameRules
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
     from mau.game.game import MauGame
-
-
-_MIN_SHOTGUN_TAKE_COUNTER = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,9 +163,9 @@ class Player:
         self.hand = other_player.hand.copy()
         other_player.hand = player_hand
         self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
-        self.game.end_turn(self)
+        self.end_turn()
 
-    def call_bluff(self) -> None:
+    def check_bluff(self) -> None:
         """Проверка предыдущего игрока на блеф.
 
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
@@ -181,44 +179,23 @@ class Player:
             bluff_player = self.game.pm.get(self.game.bluff_state[0])
             bluff_player.take_cards()
         self.dispatch(GameEvents.PLAYER_BLUFF)
-        self.game.end_turn(self)
+        self.end_turn()
 
-    # TODO: Я чувствую тут нужна оптимизация немного
-    def call_take_cards(self) -> None:
-        """Действия игрока при взятии карты.
+    def end_turn(self) -> None:
+        """Игрок завершает текущий ход."""
+        if len(self.hand) == 1:
+            self.dispatch(GameEvents.PLAYER_MAU)
 
-        В зависимости от правил, можно взять не одну карту, а сразу
-        несколько.
-        Если включен револьвер, то при взятии нескольких карт будет
-        выбор:
+        elif len(self.hand) == 0:
+            self.game.leave_player(self)
 
-        - Брать карты сейчас.
-        - Выстрелить, чтобы взял следующий игрок.
-        """
-        origin_counter = self.game.take_counter
+        self.game.next_turn()
 
-        if (
-            self.game.rules.status(GameRules.take_until_cover)
-            and origin_counter == 0
-        ):
-            self.game.take_counter = self.game.deck.count_until_cover()
-
-        if (
-            self.game.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
-            and (self.game.rules.status(GameRules.shotgun))
-            and self.game.state != GameState.SHOTGUN
-        ):
-            self.game.set_state(GameState.SHOTGUN)
-            return
-
-        logger.info("{} take cards", self)
-        self.take_cards()
-
-        # Если у игры с самого начала был счётчик карт
-        # Вероятно игрок берёт от карты +2/+4
-        logger.debug(origin_counter)
-        if origin_counter:
-            self.game.next_turn()
+    def choose_color(self, color: CardColor) -> None:
+        """Устанавливаем цвет для последней карты."""
+        self.game.deck.top.color = color
+        self.dispatch(GameEvents.GAME_SELECT_COLOR, color)
+        self.end_turn()
 
     def __str__(self) -> str:
         """Представление игрока в строковом виде."""

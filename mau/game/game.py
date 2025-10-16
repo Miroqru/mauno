@@ -15,6 +15,8 @@ from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
 
+_MIN_SHOTGUN_TAKE_COUNTER = 3
+
 
 class MauGame:
     """Представляет каждую игру Mau.
@@ -108,6 +110,25 @@ class MauGame:
         """
         self.event_handler.dispatch(Event(self, from_player, event_type, data))
 
+    # TODO: Немного не понятно
+    def take_cards(self) -> None:
+        """Взятие карт игроков.
+
+        Используется когда игрок хочет взять карты.
+        """
+        if (
+            self.rules.status(GameRules.take_until_cover)
+            and self.take_counter == 0
+        ):
+            self.take_counter = self.deck.count_until_cover()
+
+        if (
+            self.take_counter > _MIN_SHOTGUN_TAKE_COUNTER
+            and (self.rules.status(GameRules.shotgun))
+            and self.state != GameState.SHOTGUN
+        ):
+            self.set_state(GameState.SHOTGUN)
+
     # управление игрой
     # ================
 
@@ -130,7 +151,6 @@ class MauGame:
         self.dispatch(self.owner, GameEvents.GAME_START)
         self.deck.top(self)
 
-    # TODO: Методы очистки игры
     def end(self) -> None:
         """Завершает текущую игру."""
         self.pm.end()
@@ -205,12 +225,6 @@ class MauGame:
             self.pm.set_reverse(reverse)
         self.player.dispatch(GameEvents.GAME_REVERSE, self.pm.reverse)
 
-    def choose_color(self, color: CardColor) -> None:
-        """Устанавливаем цвет для последней карты."""
-        self.deck.top.color = color
-        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, color)
-        self.end_turn(self.player)
-
     # Обработка ходов
     # ===============
 
@@ -240,17 +254,7 @@ class MauGame:
         if self.rules.status(GameRules.random_color):
             self.choose_color(choice(self.deck.colors))
         else:
-            self.end_turn(player)
-
-    def end_turn(self, player: Player) -> None:
-        """Завершает текущий ход."""
-        if len(player.hand) == 1:
-            self.dispatch(player, GameEvents.PLAYER_MAU)
-
-        elif len(player.hand) == 0:
-            self.leave_player(player)
-
-        self.next_turn()
+            self.player.end_turn()
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
