@@ -142,12 +142,11 @@ class Player:
             uncover=sorted(uncover, key=lambda c: c[1].cost, reverse=True),
         )
 
-    # TODO: Режим отладки
     def on_join(self) -> None:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
-        self.hand = list(self.game.deck.take(7))
-        self.dispatch(GameEvents.PLAYER_TAKE, 7)
+        self.hand = list(self.game.deck.take(self.game.start_cards))
+        self.dispatch(GameEvents.PLAYER_TAKE, self.game.start_cards)
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""

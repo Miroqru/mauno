@@ -45,6 +45,7 @@ class MauGame:
         self.started: bool = False
         self.open: bool = True
         self.take_counter: int = 0
+        self.start_cards = 7
         self.state: GameState = GameState.NEXT
         self.shotgun = Shotgun()
         self.timer = GameTimer()
