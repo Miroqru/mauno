@@ -161,20 +161,20 @@ class MauGame:
             self.pm.remove(player.user_id)
             return
 
+        self.dispatch(player, GameEvents.GAME_LEAVE, player.hand)
         if len(player.hand) == 0:
-            self.dispatch(player, GameEvents.GAME_LEAVE, "win")
             self.pm.add_winner(player.user_id)
             if self.rules.status(GameRules.one_winner):
                 self.end()
+                return
         else:
-            self.dispatch(player, GameEvents.GAME_LEAVE, "lose")
             self.pm.add_loser(player.user_id)
             if player == self.player:
                 self.take_counter = 0
 
         self.pm.player_cost[player.user_id] = player.count_cost()
         player.on_leave()
-        if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
+        if len(self.pm) <= 1:
             self.end()
         elif self.is_owner(player):
             self._owner_id = self.pm.cur(1).user_id
@@ -192,39 +192,23 @@ class MauGame:
             self.shotgun = Shotgun()
         return res
 
-    def skip_players(self, n: int = 1) -> None:
-        """Пропустить ход для следующих игроков.
-
-        В зависимости от направления игры пропускает несколько игроков.
-        """
-        logger.info("Skip {} players", n)
-        self.pm.next(n)
-
-    def rotate_cards(self) -> None:
-        """Меняет карты в руках для всех игроков."""
-        self.pm.rotate_cards()
-        self.dispatch(self.player, GameEvents.GAME_ROTATE)
-
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""
         self.state = state
         self.dispatch(self.player, GameEvents.GAME_STATE, state)
 
-    def set_reverse(self, reverse: GameReverse) -> None:
+    def set_reverse(self, reverse: GameReverse | None = None) -> None:
         """Устанавливает порядок ходов."""
-        self.pm.set_reverse(reverse)
-        self.player.dispatch(GameEvents.GAME_REVERSE, self.pm.reverse)
-
-    def toggle_reverse(self) -> None:
-        """Устанавливает порядок ходов."""
-        self.pm.toggle_reverse()
+        if reverse is None:
+            self.pm.toggle_reverse()
+        else:
+            self.pm.set_reverse(reverse)
         self.player.dispatch(GameEvents.GAME_REVERSE, self.pm.reverse)
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
         self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, color)
-        self.set_state(GameState.TAKE)
         self.end_turn(self.player)
 
     # Обработка ходов
@@ -239,6 +223,7 @@ class MauGame:
         card = player.hand.pop(card_index)
         logger.info("Playing card {}", card)
         card(self)
+
         self.deck.top.on_cover(self)
         self.deck.put_top(card)
         self.dispatch(player, GameEvents.PLAYER_PUT, card)
@@ -262,21 +247,21 @@ class MauGame:
         if len(player.hand) == 1:
             self.dispatch(player, GameEvents.PLAYER_MAU)
 
-        if len(player.hand) == 0:
+        elif len(player.hand) == 0:
             self.leave_player(player)
-
-        if not self.started:
-            logger.info("Game ended -> stop process turn")
-            return
 
         self.next_turn()
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
+        if not self.started:
+            logger.info("Game ended -> stop process turn")
+            return
+
         logger.info("Next Player!")
         # Shotgun надо сбрасывать вручную
         if self.state != GameState.SHOTGUN:
             self.state = GameState.NEXT
         stat = self.timer.tick()
-        self.pm.next(1)
+        self.pm.next()
         self.dispatch(self.player, GameEvents.GAME_TURN, stat)

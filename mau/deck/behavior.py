@@ -46,12 +46,13 @@ def twist(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
 def rotate(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
     """Обменивает карты между всеми игроками."""
     if len(game.player.hand) > 1:
-        game.rotate_cards()
+        game.pm.rotate_cards()
+        game.dispatch(game.player, GameEvents.GAME_ROTATE)
 
 
 def turn(game: "MauGame", card: "MauCard") -> None:
     """Пропускает N игроков, где N - значение карты."""
-    game.skip_players(card.value)
+    game.pm.next(card.value)
 
 
 def reverse(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
@@ -60,9 +61,9 @@ def reverse(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
     Если осталось 2 игрока, действует как пропуск следующего игрока.
     """
     if len(game.pm) == 2:  # noqa: PLR2004
-        game.skip_players()
+        game.pm.next()
     else:
-        game.toggle_reverse()
+        game.set_reverse()
 
 
 def take(game: "MauGame", card: "MauCard") -> None:
