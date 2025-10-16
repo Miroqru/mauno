@@ -5,12 +5,12 @@
 Большинство действий игроков сопровождаются некоторыми действиями.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
-
-from loguru import logger
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
@@ -95,8 +95,8 @@ class Event(Generic[_T]):
     Созданные игрой события отправляются в обработчик.
     """
 
-    game: "MauGame"
-    player: "Player"
+    game: MauGame
+    player: Player
     event_type: GameEvents
     data: _T
 
@@ -120,17 +120,3 @@ class BaseEventHandler(ABC):
 
         Обработка некоторых из событий важна для корректной игры.
         """
-
-
-class DebugEventHandler(BaseEventHandler):
-    """Отладочный обработчик событий.
-
-    Используется для тестирования как заглушка.
-    Все пришедшие события перенаправляются в консоль.
-    Не подходит для использования во время игры, поскольку некоторые
-    из событий требуют действий со стороны клиента.
-    """
-
-    def dispatch(self, event: Event[Any]) -> None:
-        """Вернуть событие в отладочную консоль."""
-        logger.info(event)
