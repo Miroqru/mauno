@@ -1,6 +1,6 @@
 [project]
 name = "mau"
-version = "2.4"
+version = "3.0"
 description = "Mau card game engine"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,21 +34,17 @@ ignore = [
     "D203",
     "RUF",
     "COM",    # trailing commas, controlled by format
+    "EM101",  #  Exception must not use a string literal, assign to variable first
     "EM102",  #  Exception must not use an f-string literal, assign to variable first
     "TRY003", # Avoid specifying long messages outside the exception class
     "INP001", # part of an implicit namespace package. Add an `__init__.py`.
     "FIX",    # Line contains TODO, consider resolving the
     "TD002",  # Missing author in TODO
     "TD003",  # Missing issue link for this TODO
-    "S311",   # Use standart random func
+    "S311",   # Use std random func
     "EM101",  # Exception must not use a string literal, assign to variable first
 ]
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
 
 # Build system ---------------------------------------------------------
 
