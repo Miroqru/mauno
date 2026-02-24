@@ -24,7 +24,11 @@ class PlayerManager:
         "player_cost",
     )
 
-    def __init__(self, storage: BaseStorage) -> None:
+    def __init__(
+        self, storage: BaseStorage, min_players: int = 2, max_players: int = 6
+    ) -> None:
+        self.min_players = min_players
+        self.max_players = max_players
         self._storage = storage
         self._cp = 0
 
@@ -70,7 +74,13 @@ class PlayerManager:
         )
 
     def add(self, player: Player) -> None:
-        """Добавляет игрока в хранилище."""
+        """Добавляет игрока в хранилище.
+
+        Вернёт исключение, если не получилось добавить игрока.
+        """
+        if len(self._players) >= self.max_players:
+            raise ValueError("Too man players in game")
+
         self._storage.add(player.user_id, player)
         self._players.append(player.user_id)
 
@@ -96,7 +106,13 @@ class PlayerManager:
             self._storage.remove(pl)
 
     def start(self) -> None:
-        """Подготавливает игроков к началу новой игры."""
+        """Подготавливает игроков к началу новой игры.
+
+        Вернёт исключение, если игроков недостаточно для игры.
+        """
+        if len(self._players) < self.min_players:
+            raise ValueError("You need more players to start game")
+
         self.winners = []
         self.losers = []
         self._cp = 0
