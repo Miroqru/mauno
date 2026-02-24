@@ -16,7 +16,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the project
-        run: uv sync --locked --all-extras
+        run: uv sync --all-extras
 
       - name: Lint project with ruff
         run: uvx ruff check --output-format github
@@ -35,7 +35,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the project
-        run: uv sync --locked --all-groups
+        run: uv sync --all-groups
 
       - name: Type check lib
         run: uv run pyright
