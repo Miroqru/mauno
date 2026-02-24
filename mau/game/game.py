@@ -40,9 +40,7 @@ class MauGame:
 
         self.owner = Player(self, owner.id, owner.name, owner.username)
         self.pm.add(self.owner)
-
-        # TODO: Может стоит хранить не всего игрока?
-        self.bluff_player: tuple[Player, bool] | None = None
+        self.bluff_player: tuple[str, bool] | None = None
         self.started: bool = False
         self.open: bool = True
         self.reverse: bool = False

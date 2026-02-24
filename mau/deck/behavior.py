@@ -239,4 +239,4 @@ class WildTakeBehavior(BaseWildBehavior):
             game.set_state(GameState.CHOOSE_COLOR)
 
         game.take_counter += card.value
-        game.bluff_player = (game.player, game.player.is_bluffing())
+        game.bluff_player = (game.player.user_id, game.player.is_bluffing())

@@ -209,7 +209,8 @@ class Player:
             self.game.take_counter += 2
             self.take_cards()
         else:
-            self.game.bluff_player[0].take_cards()
+            bluff_player = self.game.pm.get(self.game.bluff_player[0])
+            bluff_player.take_cards()
         self.dispatch(GameEvents.PLAYER_BLUFF)
         self.game.end_turn(self)
 
