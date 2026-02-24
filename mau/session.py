@@ -62,7 +62,13 @@ class SessionManager(Generic[_H]):
         """Возвращает игру напрямую из хранилища по ID комнаты."""
         return self._games.get(room_id)
 
-    def create(self, room_id: str, owner: BaseUser, min_players: int = 2, max_players: int = 6) -> MauGame:
+    def create(
+        self,
+        room_id: str,
+        owner: BaseUser,
+        min_players: int = 2,
+        max_players: int = 6,
+    ) -> MauGame:
         """Создает новую игру.
 
         Автоматически поставляет менеджер игроков и обработчик событий
@@ -76,6 +82,10 @@ class SessionManager(Generic[_H]):
         Args:
             room_id: к какой комнате будет привязана игра в хранилище.
             owner: Владелец комнаты, становится первым игроком.
+            min_players: Минимальное число игроков для начала игры.
+            max_players: Максимальное число игроков в одной игре.
+                Не рекомендуется изменять, поскольку карт может не хватить
+                на всех игроков.
 
         """
         logger.info("User {} Create new game session in {}", owner, room_id)

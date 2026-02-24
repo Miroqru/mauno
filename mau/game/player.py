@@ -69,6 +69,11 @@ class Player:
         """Имеет ли право хода текущий игрок."""
         return self.game.can_play(self.user_id)
 
+    @property
+    def is_owner(self) -> bool:
+        """Является ли текущий игрок владельцем комнаты."""
+        return self.game.is_owner(self)
+
     def is_bluffing(self) -> bool:
         """Проверяет блефует ли игрок, когда выкидывает дикую карту."""
         for card in self.cover_cards().cover:

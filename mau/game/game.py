@@ -33,13 +33,13 @@ class MauGame:
         self.room_id = room_id
         self.rules = GameRules()
         self.deck_generator = DeckGenerator.from_preset("classic")
-
         self.pm = player_manager
         self.deck = Deck()
         self.event_handler: BaseEventHandler = event_handler
 
-        self.owner = Player(self, owner.id, owner.name, owner.username)
-        self.pm.add(self.owner)
+        self._owner_id = owner.id
+        self.pm.add(Player(self, owner.id, owner.name, owner.username))
+
         self.bluff_player: tuple[str, bool] | None = None
         self.started: bool = False
         self.open: bool = True
@@ -56,6 +56,15 @@ class MauGame:
     def player(self) -> Player:
         """Возвращает текущего игрока."""
         return self.pm.current
+
+    @property
+    def owner(self) -> Player:
+        """Возвращает владельца игры."""
+        return self.pm.get(self._owner_id)
+
+    def is_owner(self, player: Player) -> bool:
+        """Проверяет что игрок является владельцем комнаты."""
+        return player.user_id == self._owner_id
 
     def can_play(self, user_id: str) -> bool:
         """Может ли текущий игрок совершать действия."""
