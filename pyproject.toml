@@ -5,7 +5,9 @@ description = "Mau card game engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "AGPL-3.0-or-later"
-dependencies = ["loguru>=0.7.3"]
+dependencies = [
+    "loguru>=0.7.3",
+]
 
 [dependency-groups]
 dev = ["nox>=2025.2.9", "pyright>=1.1.405", "ruff>=0.13.0"]
@@ -38,7 +40,8 @@ ignore = [
     "FIX",    # Line contains TODO, consider resolving the
     "TD002",  # Missing author in TODO
     "TD003",  # Missing issue link for this TODO
-    "S311", # Use standart random func
+    "S311",   # Use standart random func
+    "EM101",  # Exception must not use a string literal, assign to variable first
 ]
 
 [tool.ruff.format]

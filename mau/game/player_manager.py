@@ -44,7 +44,7 @@ class PlayerManager:
         if len(self._players) == 0:
             raise ValueError("Game not started to get players")
         return self.get(self._players[(self._cp + offset) % len(self._players)])
-        
+
     def get(self, user_id: str) -> Player:
         """Возвращает игрока из хранилища по его ID."""
         pl = self._storage.get(user_id)
