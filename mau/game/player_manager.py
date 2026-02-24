@@ -39,13 +39,6 @@ class PlayerManager:
         self.losers: list[str] = []
         self.player_cost: dict[str, int] = {}
 
-    @property
-    def current(self) -> Player:
-        """Получает текущего игрока."""
-        if len(self._players) == 0:
-            raise ValueError("Game not started to get players")
-        return self.get(self._players[self._cp % len(self._players)])
-
     def cur(self, offset: int = 0) -> Player:
         """ПОлучает игрока по курсору со сдвигом."""
         if len(self._players) == 0:

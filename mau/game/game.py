@@ -55,7 +55,7 @@ class MauGame:
     @property
     def player(self) -> Player:
         """Возвращает текущего игрока."""
-        return self.pm.current
+        return self.pm.cur()
 
     @property
     def owner(self) -> Player:
@@ -188,8 +188,9 @@ class MauGame:
         if len(player.hand) == 1:
             self.dispatch(player, GameEvents.PLAYER_MAU)
 
-        if len(self.pm.current.hand) == 0:
-            self.leave_player(self.pm.current)
+        cur = self.pm.cur()
+        if len(cur.hand) == 0:
+            self.leave_player(cur)
 
         if not self.started:
             logger.info("Game ended -> stop process turn")
