@@ -21,7 +21,7 @@ jobs:
       - name: Lint project with ruff
         run: uvx ruff check --output-format github
 
-  mypy:
+  pyright:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -37,5 +37,5 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-groups
 
-      - name: Type check telegram bot
-        run: uv run mypy -p mau
+      - name: Type check lib
+        run: uv run pyright
