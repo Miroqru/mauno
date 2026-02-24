@@ -1,6 +1,6 @@
 """Игровая сессия."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from random import choice
 from typing import Any
 
@@ -49,8 +49,8 @@ class MauGame:
         self.shotgun = Shotgun()
 
         # Таймеры
-        self.game_start = datetime.now()
-        self.turn_start = datetime.now()
+        self.game_start = datetime.now(UTC)
+        self.turn_start = datetime.now(UTC)
 
     @property
     def player(self) -> Player:
@@ -123,7 +123,7 @@ class MauGame:
         # Shotgun надо сбрасывать вручную
         if self.state != GameState.SHOTGUN:
             self.state = GameState.NEXT
-        self.turn_start = datetime.now()
+        self.turn_start = datetime.now(UTC)
         self.pm.next(1, self.reverse)
         self.dispatch(self.player, GameEvents.GAME_TURN)
 
