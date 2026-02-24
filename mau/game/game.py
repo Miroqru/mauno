@@ -166,6 +166,9 @@ class MauGame:
         player.on_leave()
         if len(self.pm) == 0 or self.started and len(self.pm) <= 1:
             self.end()
+        elif self.is_owner(player):
+            self._owner_id = self.pm.cur(1).user_id
+
 
     def skip_players(self, n: int = 1) -> None:
         """Пропустить ход для следующих игроков.

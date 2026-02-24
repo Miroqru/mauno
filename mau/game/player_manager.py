@@ -44,11 +44,14 @@ class PlayerManager:
         """Получает текущего игрока."""
         if len(self._players) == 0:
             raise ValueError("Game not started to get players")
-        pl = self.get(self._players[self._cp % len(self._players)])
-        if pl is None:
-            raise ValueError("No players in game")
-        return pl
+        return self.get(self._players[self._cp % len(self._players)])
 
+    def cur(self, offset: int = 0) -> Player:
+        """ПОлучает игрока по курсору со сдвигом."""
+        if len(self._players) == 0:
+            raise ValueError("Game not started to get players")
+        return self.get(self._players[(self._cp + offset) % len(self._players)])
+        
     def get(self, user_id: str) -> Player:
         """Возвращает игрока из хранилища по его ID."""
         pl = self._storage.get(user_id)
