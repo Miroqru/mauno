@@ -22,6 +22,8 @@ class PlayerManager:
         "losers",
         "_cp",
         "player_cost",
+        "min_players",
+        "max_players"
     )
 
     def __init__(
