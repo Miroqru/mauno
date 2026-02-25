@@ -1,6 +1,6 @@
 [project]
 name = "mau"
-version = "3.0"
+version = "3.1"
 description = "Mau card game engine"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -43,6 +43,7 @@ ignore = [
     "TD003",  # Missing issue link for this TODO
     "S311",   # Use std random func
     "EM101",  # Exception must not use a string literal, assign to variable first
+    "FBT",    # Boolean positional value
 ]
 
 
