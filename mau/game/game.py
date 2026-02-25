@@ -1,7 +1,6 @@
 """Игровая сессия."""
 
 from random import choice
-from typing import TypeVar
 
 from loguru import logger
 
@@ -16,8 +15,6 @@ from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
-
-_E = TypeVar("_E")
 
 
 class MauGame:
