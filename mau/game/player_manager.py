@@ -51,8 +51,6 @@ class PlayerManager:
         self.reverse = GameReverse.NEXT
         self._players: list[str] = []
         self.results: dict[str, GameResult] = {}
-
-        # TODO: Переработать
         self.player_cost: dict[str, int] = {}
 
     def cur(self, offset: int = 0) -> Player:
@@ -127,14 +125,11 @@ class PlayerManager:
             self.results[pl.user_id] = GameResult(False, pl.count_cost())
         self._players = []
 
-    # TODO: Совместить методы
-    def set_reverse(self, reverse: GameReverse) -> None:
+    def set_reverse(self, reverse: GameReverse | None = None) -> None:
         """Устанавливает новое значение порядка ходов в игре."""
-        self.reverse = reverse
-
-    def toggle_reverse(self) -> None:
-        """Переключает порядок ходов на обратный."""
-        if self.reverse == GameReverse.NEXT:
+        if reverse is not None:
+            self.reverse = reverse
+        elif self.reverse == GameReverse.NEXT:
             self.reverse = GameReverse.BACK
         else:
             self.reverse = GameReverse.NEXT

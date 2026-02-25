@@ -189,7 +189,6 @@ class MauGame:
             self.pm.remove(player.user_id)
             return
 
-        # TODO: Rector win/lose
         is_win = len(player.hand) == 0
         self.dispatch(player, GameEvents.GAME_LEAVE, is_win)
         self.pm.leave(player, is_win)
@@ -230,10 +229,7 @@ class MauGame:
 
     def set_reverse(self, reverse: GameReverse | None = None) -> None:
         """Устанавливает порядок ходов."""
-        if reverse is None:
-            self.pm.toggle_reverse()
-        else:
-            self.pm.set_reverse(reverse)
+        self.pm.set_reverse(reverse)
         self.player.dispatch(GameEvents.GAME_REVERSE, self.pm.reverse)
 
     # Обработка ходов
