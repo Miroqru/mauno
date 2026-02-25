@@ -2,6 +2,7 @@
 
 from collections import deque
 from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
 from enum import IntEnum
 from random import shuffle
 
@@ -17,6 +18,14 @@ class GameReverse(IntEnum):
     STOP = 3
 
 
+@dataclass(slots=True, frozen=True)
+class GameResult:
+    """Результат игры для игрока."""
+
+    winner: bool
+    score: int
+
+
 class PlayerManager:
     """Менеджер игроков.
 
@@ -26,13 +35,12 @@ class PlayerManager:
     __slots__ = (
         "_storage",
         "_players",
-        "winners",
-        "losers",
         "_cp",
         "player_cost",
         "min_players",
         "max_players",
         "reverse",
+        "results",
     )
 
     def __init__(self, min_players: int = 2, max_players: int = 6) -> None:
@@ -42,10 +50,9 @@ class PlayerManager:
         self._cp = 0
         self.reverse = GameReverse.NEXT
         self._players: list[str] = []
+        self.results: dict[str, GameResult] = {}
 
         # TODO: Переработать
-        self.winners: list[str] = []
-        self.losers: list[str] = []
         self.player_cost: dict[str, int] = {}
 
     def cur(self, offset: int = 0) -> Player:
@@ -95,15 +102,10 @@ class PlayerManager:
         """Удаляет игрока из хранилища."""
         self._storage.pop(user_id)
 
-    def add_winner(self, user_id: str) -> None:
-        """Добавляет игрока в список победителей."""
-        self.winners.append(user_id)
-        self._players.remove(user_id)
-
-    def add_loser(self, user_id: str) -> None:
-        """Добавляет игрока в список проигравших."""
-        self.losers.append(user_id)
-        self._players.remove(user_id)
+    def leave(self, player: Player, winner: bool) -> None:
+        """Игрок покидает игру при выигрыше или поражении."""
+        self._players.remove(player.user_id)
+        self.results[player.user_id] = GameResult(winner, player.count_cost())
 
     def start(self) -> None:
         """Подготавливает игроков к началу новой игры.
@@ -113,8 +115,7 @@ class PlayerManager:
         if len(self._players) < self.min_players:
             raise ValueError("You need more players to start game")
 
-        self.winners = []
-        self.losers = []
+        self.results = {}
         self._cp = 0
         shuffle(self._players)
         for player in self.iter(self._players):
@@ -123,10 +124,10 @@ class PlayerManager:
     def end(self) -> None:
         """Подготавливает список игроков к завершению игры."""
         for pl in self.iter():
-            self.losers.append(pl.user_id)
-            self.player_cost[pl.user_id] = pl.count_cost()
+            self.results[pl.user_id] = GameResult(False, pl.count_cost())
         self._players = []
 
+    # TODO: Совместить методы
     def set_reverse(self, reverse: GameReverse) -> None:
         """Устанавливает новое значение порядка ходов в игре."""
         self.reverse = reverse

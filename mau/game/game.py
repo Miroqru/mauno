@@ -192,21 +192,22 @@ class MauGame:
         # TODO: Rector win/lose
         is_win = len(player.hand) == 0
         self.dispatch(player, GameEvents.GAME_LEAVE, is_win)
-        if is_win:
-            self.pm.add_winner(player.user_id)
-            if self.rules.status(GameRules.one_winner):
-                self.end()
-                return
-        else:
-            self.pm.add_loser(player.user_id)
-            if player == self.player:
-                self.take_counter = 0
+        self.pm.leave(player, is_win)
 
-        self.pm.player_cost[player.user_id] = player.count_cost()
+        if is_win and self.rules.status(GameRules.one_winner):
+            self.end()
+            return
+
+        if player == self.player:
+            self.take_counter = 0
+
         player.on_leave()
+
         if len(self.pm) <= 1:
             self.end()
-        elif self.is_owner(player):
+            return
+
+        if self.is_owner(player):
             self._owner_id = self.pm.cur(1).user_id
 
     # управление состоянием игры
