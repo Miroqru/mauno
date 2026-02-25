@@ -1,7 +1,7 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self, TypeVar
 
 from loguru import logger
 
@@ -13,6 +13,9 @@ from mau.rules import GameRules
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
     from mau.game.game import MauGame
+
+
+_E = TypeVar("_E")
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,15 +86,16 @@ class Player:
         """Считает полную ценность руки пользователя."""
         return sum(c.cost for c in self.hand)
 
-    def dispatch(self, event_type: GameEvents, data: Any = None) -> None:
+    def dispatch(self, event_type: GameEvents, data: _E = None) -> Event[_E]:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
         Также можно напрямую вызвать метод или через класс игры.
         """
-        self.game.event_handler.dispatch(
-            Event(self.game, self, event_type, data)
-        )
+        e = Event(self.game, self, event_type, data)
+
+        self.game.event_handler.dispatch(e)
+        return e
 
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""

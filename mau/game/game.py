@@ -1,7 +1,7 @@
 """Игровая сессия."""
 
 from random import choice
-from typing import Any
+from typing import TypeVar
 
 from loguru import logger
 
@@ -16,6 +16,8 @@ from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
+
+_E = TypeVar("_E")
 
 
 class MauGame:
@@ -102,14 +104,19 @@ class MauGame:
 
     # TODO: User ID instead Player
     def dispatch(
-        self, from_player: Player, event_type: GameEvents, data: Any = None
-    ) -> None:
+        self,
+        from_player: Player,
+        event_type: GameEvents,
+        data: _E = None,
+    ) -> Event[_E]:
         """Обёртка над методом вызова события.
 
         Автоматически подставляет текущую игру в событие.
         Вы также можете вызвать событие от имени игрока.
         """
-        self.event_handler.dispatch(Event(self, from_player, event_type, data))
+        e = Event(self, from_player, event_type, data)
+        self.event_handler.dispatch(e)
+        return e
 
     # TODO: Немного не понятно
     def take_cards(self) -> None:
@@ -182,8 +189,10 @@ class MauGame:
             self.pm.remove(player.user_id)
             return
 
-        self.dispatch(player, GameEvents.GAME_LEAVE, player.hand)
-        if len(player.hand) == 0:
+        # TODO: Rector win/lose
+        is_win = len(player.hand) == 0
+        self.dispatch(player, GameEvents.GAME_LEAVE, is_win)
+        if is_win:
             self.pm.add_winner(player.user_id)
             if self.rules.status(GameRules.one_winner):
                 self.end()
