@@ -49,7 +49,6 @@ class MauGame:
         self.shotgun = Shotgun()
 
         # TODO: Отдельный компонент таймера
-        # Таймеры
         self.game_start = datetime.now(UTC)
         self.turn_start = datetime.now(UTC)
 
@@ -238,4 +237,4 @@ class MauGame:
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""
         self.state = state
-        self.dispatch(self.player, GameEvents.GAME_STATE, str(state.value))
+        self.dispatch(self.player, GameEvents.GAME_STATE, state)

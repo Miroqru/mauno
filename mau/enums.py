@@ -78,6 +78,8 @@ class GameEvents(IntEnum):
 
     SESSION_START = 10
     SESSION_END = 11
+    SESSION_JOIN = 12
+    SESSION_LEAVE = 13
 
     GAME_START = 20
     GAME_END = 21
