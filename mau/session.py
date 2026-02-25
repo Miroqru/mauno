@@ -73,7 +73,7 @@ class SessionManager(Generic[_H]):
         if player is None:
             return None
 
-        game.dispatch(player, GameEvents.SESSION_JOIN)
+        player.dispatch(GameEvents.SESSION_JOIN)
         return player
 
     def leave(self, player: Player, room_id: str | None = None) -> None:
@@ -93,7 +93,7 @@ class SessionManager(Generic[_H]):
             return
 
         game.leave_player(player)
-        game.dispatch(player, GameEvents.SESSION_LEAVE)
+        player.dispatch(GameEvents.SESSION_LEAVE)
 
     def create(
         self,
@@ -125,7 +125,7 @@ class SessionManager(Generic[_H]):
         pm = PlayerManager(min_players, max_players)
         game = MauGame(pm, self._event_handler, room_id, owner)
         self._games[room_id] = game
-        game.dispatch(game.owner, GameEvents.SESSION_START)
+        game.owner.dispatch(GameEvents.SESSION_START)
         return game
 
     def remove(self, room_id: str) -> None:
@@ -139,4 +139,4 @@ class SessionManager(Generic[_H]):
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
             self._active_players.pop(pl.user_id)
-        game.dispatch(game.owner, GameEvents.SESSION_END)
+        game.owner.dispatch(GameEvents.SESSION_END)

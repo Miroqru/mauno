@@ -8,7 +8,7 @@ from loguru import logger
 from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
-from mau.events import Event, EventHandler, GameEvents
+from mau.events import EventHandler, GameEvents
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import GameReverse, PlayerManager
 from mau.game.shotgun import Shotgun
@@ -102,23 +102,6 @@ class MauGame:
             and not self.rules.status(GameRules.deferred_take)
         )
 
-    # TODO: User ID instead Player
-    def dispatch(
-        self,
-        from_player: Player,
-        event_type: GameEvents,
-        data: _E = None,
-    ) -> Event[_E]:
-        """Обёртка над методом вызова события.
-
-        Автоматически подставляет текущую игру в событие.
-        Вы также можете вызвать событие от имени игрока.
-        """
-        e = Event(self, from_player, event_type, data)
-        self.event_handler.dispatch(e)
-        return e
-
-    # TODO: Немного не понятно
     def take_cards(self) -> None:
         """Взятие карт игроков.
 
@@ -156,14 +139,14 @@ class MauGame:
         self.pm.start()
         self.timer.start()
         self.started = True
-        self.dispatch(self.owner, GameEvents.GAME_START)
+        self.owner.dispatch(GameEvents.GAME_START)
         self.deck.top(self)
 
     def end(self) -> None:
         """Завершает текущую игру."""
         self.pm.end()
         self.started = False
-        self.dispatch(self.owner, GameEvents.GAME_END)
+        self.owner.dispatch(GameEvents.GAME_END)
 
     def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
@@ -177,7 +160,7 @@ class MauGame:
 
         player = Player(self, user.id, user.name, user.username)
         self.pm.add(player)
-        self.dispatch(player, GameEvents.GAME_JOIN)
+        player.dispatch(GameEvents.GAME_JOIN)
         if self.started:
             player.on_join()
         return player
@@ -190,7 +173,7 @@ class MauGame:
             return
 
         is_win = len(player.hand) == 0
-        self.dispatch(player, GameEvents.GAME_LEAVE, is_win)
+        player.dispatch(GameEvents.GAME_LEAVE, is_win)
         self.pm.leave(player, is_win)
 
         if is_win and self.rules.status(GameRules.one_winner):
@@ -225,7 +208,7 @@ class MauGame:
     def set_state(self, state: GameState) -> None:
         """Устанавливает новое состояние для игры."""
         self.state = state
-        self.dispatch(self.player, GameEvents.GAME_STATE, state)
+        self.player.dispatch(GameEvents.GAME_STATE, state)
 
     def set_reverse(self, reverse: GameReverse | None = None) -> None:
         """Устанавливает порядок ходов."""
@@ -247,7 +230,7 @@ class MauGame:
 
         self.deck.top.on_cover(self)
         self.deck.put_top(card)
-        self.dispatch(player, GameEvents.PLAYER_PUT, card)
+        player.dispatch(GameEvents.PLAYER_PUT, card)
 
         if self.state == GameState.NEXT and self.rules.status(
             GameRules.side_effect
@@ -275,4 +258,4 @@ class MauGame:
             self.state = GameState.NEXT
         stat = self.timer.tick()
         self.pm.next()
-        self.dispatch(self.player, GameEvents.GAME_TURN, stat)
+        self.player.dispatch(GameEvents.GAME_TURN, stat)

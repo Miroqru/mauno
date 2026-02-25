@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
-    from mau.game.player import Player
 
 _T = TypeVar("_T")
 
@@ -69,7 +68,7 @@ class Event(Generic[_T]):
     """
 
     game: MauGame
-    player: Player
+    user_id: str
     event_type: GameEvents
     data: _T
 

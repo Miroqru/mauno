@@ -92,8 +92,7 @@ class Player:
         Автоматически подставляет игрока и игру.
         Также можно напрямую вызвать метод или через класс игры.
         """
-        e = Event(self.game, self, event_type, data)
-
+        e = Event(self.game, self.user_id, event_type, data)
         self.game.event_handler.dispatch(e)
         return e
 
