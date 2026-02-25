@@ -104,7 +104,7 @@ class Player:
         for card in self.game.deck.take(take_counter):
             self.hand.append(card)
         self.game.take_counter = 0
-        self.dispatch(GameEvents.PLAYER_TAKE, str(take_counter))
+        self.dispatch(GameEvents.PLAYER_TAKE, take_counter)
         self.game.set_state(GameState.TAKE)
 
         if (
@@ -176,7 +176,7 @@ class Player:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
         self.hand = list(self.game.deck.take(7))
-        self.dispatch(GameEvents.PLAYER_TAKE, "7")
+        self.dispatch(GameEvents.PLAYER_TAKE, 7)
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""

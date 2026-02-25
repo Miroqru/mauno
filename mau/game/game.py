@@ -43,6 +43,7 @@ class MauGame:
         self.bluff_player: tuple[str, bool] | None = None
         self.started: bool = False
         self.open: bool = True
+        # TODO: Перенести в менеджер игроков
         self.reverse: bool = False
         self.take_counter: int = 0
         self.state: GameState = GameState.NEXT
@@ -127,7 +128,7 @@ class MauGame:
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self.deck.top.color = color
-        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, str(color))
+        self.dispatch(self.player, GameEvents.GAME_SELECT_COLOR, color)
         self.set_state(GameState.TAKE)
         self.end_turn(self.player)
 
@@ -221,7 +222,7 @@ class MauGame:
         logger.info("Playing card {}", card)
         card(self)
         self.deck.put_top(card)
-        self.dispatch(player, GameEvents.PLAYER_PUT, card.pack())
+        self.dispatch(player, GameEvents.PLAYER_PUT, card)
 
         if self.state not in (GameState.NEXT, GameState.TAKE):
             return
