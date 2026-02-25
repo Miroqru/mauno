@@ -95,11 +95,10 @@ class MauGame:
             self.shotgun = Shotgun()
         return res
 
-    def start(self) -> None:
+    def start(self, deck: Deck) -> None:
         """Начинает новую игру в чате."""
         logger.info("Start new game in chat {}", self.room_id)
-        if self.rules.status(GameRules.random_cards):
-            self.deck = RandomDeck()
+        self.deck = deck
         self.deck.shuffle()
 
         wild_color = (
