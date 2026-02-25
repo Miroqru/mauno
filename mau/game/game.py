@@ -253,9 +253,9 @@ class MauGame:
             return
 
         if self.rules.status(GameRules.random_color):
-            self.choose_color(choice(self.deck.colors))
+            player.choose_color(choice(self.deck.colors))
         else:
-            self.player.end_turn()
+            player.end_turn()
 
     def next_turn(self) -> None:
         """Передаёт ход следующему игроку."""
