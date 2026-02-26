@@ -5,6 +5,7 @@
 Он уже и будет руководить всеми играми и игроками.
 """
 
+from collections.abc import Mapping
 from typing import Generic, TypeVar
 
 from loguru import logger
@@ -17,83 +18,64 @@ from mau.game.player_manager import PlayerManager
 _H = TypeVar("_H", bound=EventHandler)
 
 
-class SessionManager(Generic[_H]):
-    """Менеджер сессий.
+class RoomManager(Generic[_H]):
+    """Менеджер комнат.
 
-    Высокоуровневый класс для управления сессиями и игроками.
-    Предоставляет высокоуровневые методы для создания и удаления игр.
-    Привязывается к конкретному типу игр и хранилищу.
+    Каждая игра здесь называется комнатой.
+    Каждый игрок может участвовать только в одной активной игре.
+    Задача менеджера - предоставлять высокоуровневый API для управления
+    комнатами.
+    Каждая комната привязывается к своему уникальному room_id.
 
-    При создании применяет обработчик событий, который будет использоваться
-    для взаимодействия с игровыми событиями.
+    При инициализации передаётся обработчик событий, который будет
+    реагировать на события, происходящие во всех комнатах.
     """
 
-    __slots__ = ("_games", "_players", "_event_handler", "_active_players")
+    __slots__ = ("_games", "_players", "_event_handler")
 
     def __init__(
         self,
         event_handler: _H,
     ) -> None:
         self._games: dict[str, MauGame] = {}
-        self._active_players: dict[str, str] = {}
+        self._players: dict[str, str] = {}
         self._event_handler = event_handler
 
+    # Получение данных
+    # ================
+
+    @property
+    def rooms(self) -> Mapping[str, MauGame]:
+        """Возвращает словарь всех активных игр."""
+        return self._games
+
+    def room(self, room_id: str) -> MauGame | None:
+        """Возвращает по её ID из хранилища."""
+        return self._games.get(room_id)
+
     def player(self, user_id: str) -> Player | None:
-        """Возвращает игрока напрямую из хранилища по ID пользователя."""
-        game_id = self._active_players.get(user_id)
-        if game_id is None:
+        """Возвращает игрока по его ID.
+
+        Ищет среди активных игроков, а после обращается к менеджеру
+        игроков в указанной игре.
+
+        Автоматически очищает несуществующие игры.
+        Если такого игрока не будет в игре - вернёт исключение.
+        В любом другом случае вернёт либо игрока. либо None.
+        """
+        room_id = self._players.get(user_id)
+        if room_id is None:
             return None
-        game = self._games.get(game_id)
+
+        game = self._games.get(room_id)
         if game is None:
-            self._active_players.pop(user_id)
+            self._players.pop(user_id)
             return None
 
         return game.pm.get(user_id)
 
-    def room(self, room_id: str) -> MauGame | None:
-        """Возвращает игру напрямую из хранилища по ID комнаты."""
-        return self._games.get(room_id)
-
-    def join(self, room_id: str, user: BaseUser) -> Player | None:
-        """Присоединиться к игре.
-
-        Записывает игрока в список активных игроков.
-        Полезно для блокировки активных игроков, чтобы один игрок
-        не мог участвовать сразу в нескольких играх.
-        """
-        active_game = self._active_players.get(user.id)
-        if active_game is not None:
-            raise ValueError("User already in game")
-
-        game = self.room(room_id)
-        if game is None:
-            raise ValueError("game not found")
-        self._active_players[user.id] = room_id
-        player = game.join_player(user)
-        if player is None:
-            return None
-
-        player.dispatch(GameEvents.SESSION_JOIN)
-        return player
-
-    def leave(self, player: Player, room_id: str | None = None) -> None:
-        """Выход из игры.
-
-        Дополнительно снимает блокировку активного игрока.
-        Чтобы игрок мог принять участие в другой игре.
-        Если `room_id` не указан, вычисляет его по активным игрокам.
-        """
-        room_id = room_id or self._active_players.get(player.user_id)
-        if room_id is None:
-            raise ValueError("User not in game")
-
-        self._active_players.pop(player.user_id)
-        game = self.room(room_id)
-        if game is None:
-            return
-
-        game.leave_player(player)
-        player.dispatch(GameEvents.SESSION_LEAVE)
+    # Высокоуровневое управление
+    # ==========================
 
     def create(
         self,
@@ -104,13 +86,11 @@ class SessionManager(Generic[_H]):
     ) -> MauGame:
         """Создает новую игру.
 
-        Автоматически поставляет менеджер игроков и обработчик событий
-        для игры.
-        Добавляет созданную игру в хранилище.
+        Автоматически поставляет менеджер игроков и обработчик событий.
         Отправляет событие `SESSION_START` о начале новой сессии.
 
-        Теперь можно добавить игроков через экземпляр игры, а после
-        запустить игру.
+        Все игрока добавляются через метод `join`.
+        Чтобы начать игру, воспользуйтесь экземпляром игры.
 
         Args:
             room_id: к какой комнате будет привязана игра в хранилище.
@@ -125,18 +105,65 @@ class SessionManager(Generic[_H]):
         pm = PlayerManager(min_players, max_players)
         game = MauGame(pm, self._event_handler, room_id, owner)
         self._games[room_id] = game
+        self._players[owner.id] = room_id
         game.owner.dispatch(GameEvents.SESSION_START)
         return game
 
     def remove(self, room_id: str) -> None:
-        """Полностью завершает игру в для указанной room ID.
+        """Полностью завершает игру.
 
-        Должна выполняться после `game.end()`,
-        поскольку очищает хранилище игроков.
+        Очищает хранилище игроков.
+        Должен запускаться после завершения игры.
+
         Удаляет игру из хранилища, отправляет событие `SESSION_END`.
         """
         logger.info("End session in room {}", room_id)
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
-            self._active_players.pop(pl.user_id)
+            self._players.pop(pl.user_id)
         game.owner.dispatch(GameEvents.SESSION_END)
+
+    def join(self, room_id: str, user: BaseUser) -> Player | None:
+        """Присоединиться к игре.
+
+        Записывает игрока в список активных игроков.
+        Полезно для блокировки активных игроков, чтобы один игрок
+        не мог участвовать сразу в нескольких играх.
+        """
+        active_game = self._players.get(user.id)
+        if active_game is not None:
+            raise ValueError("User already in game")
+
+        game = self.room(room_id)
+        if game is None:
+            raise ValueError("game not found")
+
+        self._players[user.id] = room_id
+        player = game.join_player(user)
+        if player is None:
+            raise ValueError("Failed to join game")
+
+        player.dispatch(GameEvents.SESSION_JOIN)
+        return player
+
+    def leave(self, player: Player, room_id: str | None = None) -> None:
+        """Выход из игры.
+
+        Используется игрок хочет полностью покинуть игру.
+        К примеру чтобы досрочно выйти ищ игры.
+        Или после того как игра завершилась, чтобы зайти в другую игру.
+
+        Можно напрямую указать комнату, из которой нужен выйти.
+        Иначе она будет получена из контекста.
+        """
+        room_id = room_id or self._players.get(player.user_id)
+        if room_id is None:
+            raise ValueError("User not in game")
+
+        self._players.pop(player.user_id)
+        game = self.room(room_id)
+        if game is None:
+            return
+
+        game.leave_player(player)
+        player.dispatch(GameEvents.SESSION_LEAVE)
