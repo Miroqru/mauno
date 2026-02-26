@@ -17,6 +17,8 @@ from mau.game.player_manager import PlayerManager
 
 _H = TypeVar("_H", bound=EventHandler)
 
+RoomID = str
+
 
 class RoomManager(Generic[_H]):
     """Менеджер комнат.
@@ -37,23 +39,23 @@ class RoomManager(Generic[_H]):
         self,
         event_handler: _H,
     ) -> None:
-        self._games: dict[str, MauGame] = {}
-        self._players: dict[str, str] = {}
+        self._games: dict[RoomID, MauGame] = {}
+        self._players: dict[str, RoomID] = {}
         self._event_handler = event_handler
 
     # Получение данных
     # ================
 
     @property
-    def rooms(self) -> Mapping[str, MauGame]:
+    def rooms(self) -> Mapping[RoomID, MauGame]:
         """Возвращает словарь всех активных игр."""
         return self._games
 
-    def room(self, room_id: str) -> MauGame | None:
+    def room(self, room_id: RoomID) -> MauGame | None:
         """Возвращает по её ID из хранилища."""
         return self._games.get(room_id)
 
-    def player(self, user_id: str) -> Player | None:
+    def player(self, user_id: RoomID) -> Player | None:
         """Возвращает игрока по его ID.
 
         Ищет среди активных игроков, а после обращается к менеджеру
@@ -109,7 +111,7 @@ class RoomManager(Generic[_H]):
         game.owner.dispatch(GameEvents.SESSION_START)
         return game
 
-    def remove(self, room_id: str) -> None:
+    def remove(self, room_id: RoomID) -> None:
         """Полностью завершает игру.
 
         Очищает хранилище игроков.
@@ -123,7 +125,7 @@ class RoomManager(Generic[_H]):
             self._players.pop(pl.user_id)
         game.owner.dispatch(GameEvents.SESSION_END)
 
-    def join(self, room_id: str, user: BaseUser) -> Player | None:
+    def join(self, room_id: RoomID, user: BaseUser) -> Player | None:
         """Присоединиться к игре.
 
         Записывает игрока в список активных игроков.
@@ -146,7 +148,7 @@ class RoomManager(Generic[_H]):
         player.dispatch(GameEvents.SESSION_JOIN)
         return player
 
-    def leave(self, player: Player, room_id: str | None = None) -> None:
+    def leave(self, player: Player, room_id: RoomID | None = None) -> None:
         """Выход из игры.
 
         Используется игрок хочет полностью покинуть игру.
