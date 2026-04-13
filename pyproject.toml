@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["nox>=2025.2.9", "pyright>=1.1.405", "ruff>=0.13.0"]
+dev = ["nox>=2025.2.9", "pyright>=1.1.408", "ruff>=0.13.0"]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.12",
