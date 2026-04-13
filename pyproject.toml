@@ -50,5 +50,5 @@ ignore = [
 # Build system ---------------------------------------------------------
 
 [build-system]
-requires = ["hatchling >= 1.26"]
+requires = ["hatchling>=1.29.0"]
 build-backend = "hatchling.build"
