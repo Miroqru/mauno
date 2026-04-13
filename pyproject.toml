@@ -14,7 +14,7 @@ dev = ["nox>=2025.2.9", "pyright>=1.1.405", "ruff>=0.13.0"]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.12",
-    "mkdocstrings>=0.29.1",
+    "mkdocstrings>=1.0.3",
     "mkdocstrings-python>=1.16.10",
 ]
 
