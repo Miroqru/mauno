@@ -44,7 +44,7 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = ("cards", "used_cards", "_top", "_colors", "_wild_color")
+    __slots__ = ("_colors", "_top", "_wild_color", "cards", "used_cards")
 
     def __init__(self, cards: list[MauCard] | None = None) -> None:
         self.cards: list[MauCard] = cards or []

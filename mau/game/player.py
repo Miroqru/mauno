@@ -128,9 +128,7 @@ class Player:
             GameState.CONTINUE,
             GameState.TAKE,
         ):
-            return SortedCards(
-                [], [(i, card) for i, card in enumerate(self.hand)]
-            )
+            return SortedCards([], [(i, card) for i, card in enumerate(self.hand)])
 
         cover: list[tuple[int, MauCard]] = []
         uncover: list[tuple[int, MauCard]] = []

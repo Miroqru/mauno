@@ -69,9 +69,7 @@ class MauGame:
         if player is None:
             return False
 
-        return self.player == player or self.rules.status(
-            GameRules.intervention
-        )
+        return self.player == player or self.rules.status(GameRules.intervention)
 
     def can_cover(self, player: Player, card: MauCard) -> bool:
         """Проверяет может ли текущая карта покрыть верхнюю из колоды."""
@@ -104,10 +102,7 @@ class MauGame:
 
         Используется когда игрок хочет взять карты.
         """
-        if (
-            self.rules.status(GameRules.take_until_cover)
-            and self.take_counter == 0
-        ):
+        if self.rules.status(GameRules.take_until_cover) and self.take_counter == 0:
             self.take_counter = self.deck.count_until_cover()
 
         if (
@@ -229,9 +224,7 @@ class MauGame:
         self.deck.put_top(card)
         player.dispatch(GameEvents.PLAYER_PUT, card)
 
-        if self.state == GameState.NEXT and self.rules.status(
-            GameRules.side_effect
-        ):
+        if self.state == GameState.NEXT and self.rules.status(GameRules.side_effect):
             self.state = GameState.CONTINUE
             return
 

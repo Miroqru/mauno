@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
@@ -53,7 +53,7 @@ class GameEvents(IntEnum):
 
 
 @dataclass(slots=True, frozen=True)
-class Event(Generic[_T]):
+class Event[T]:
     """Игровое событие.
 
     Когда во время игры происходит действие, создаётся события.

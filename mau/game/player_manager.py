@@ -33,14 +33,14 @@ class PlayerManager:
     """
 
     __slots__ = (
-        "_storage",
-        "_players",
         "_cp",
-        "player_cost",
-        "min_players",
+        "_players",
+        "_storage",
         "max_players",
-        "reverse",
+        "min_players",
+        "player_cost",
         "results",
+        "reverse",
     )
 
     def __init__(self, min_players: int = 2, max_players: int = 6) -> None:
@@ -80,9 +80,7 @@ class PlayerManager:
     def iter_others(self) -> Iterator[tuple[int, Player]]:
         """Возвращает индекс и ID всех игроков, кроме текущего."""
         yield from (
-            (i, self.get(uid))
-            for i, uid in enumerate(self._players)
-            if i != self._cp
+            (i, self.get(uid)) for i, uid in enumerate(self._players) if i != self._cp
         )
 
     def add(self, player: Player) -> None:
@@ -153,9 +151,7 @@ class PlayerManager:
         """Меняет карты в руках для всех игроков."""
         hands = deque(player.hand for player in self.iter(self._players))
         hands.rotate(1 if self.reverse == GameReverse.NEXT else -1)
-        for player, new_hand in zip(
-            self.iter(self._players), hands, strict=False
-        ):
+        for player, new_hand in zip(self.iter(self._players), hands, strict=False):
             player.hand = new_hand
 
     def __len__(self) -> int:

@@ -6,7 +6,6 @@
 """
 
 from collections.abc import Mapping
-from typing import Generic, TypeVar
 
 from loguru import logger
 
@@ -15,12 +14,10 @@ from mau.game.game import MauGame
 from mau.game.player import BaseUser, Player
 from mau.game.player_manager import PlayerManager
 
-_H = TypeVar("_H", bound=EventHandler)
-
 RoomID = str
 
 
-class RoomManager(Generic[_H]):
+class RoomManager[H: EventHandler]:
     """Менеджер комнат.
 
     Каждая игра здесь называется комнатой.
@@ -33,11 +30,11 @@ class RoomManager(Generic[_H]):
     реагировать на события, происходящие во всех комнатах.
     """
 
-    __slots__ = ("_games", "_players", "_event_handler")
+    __slots__ = ("_event_handler", "_games", "_players")
 
     def __init__(
         self,
-        event_handler: _H,
+        event_handler: H,
     ) -> None:
         self._games: dict[RoomID, MauGame] = {}
         self._players: dict[str, RoomID] = {}

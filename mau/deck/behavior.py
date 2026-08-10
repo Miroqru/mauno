@@ -60,7 +60,7 @@ def reverse(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
 
     Если осталось 2 игрока, действует как пропуск следующего игрока.
     """
-    if len(game.pm) == 2:  # noqa: PLR2004
+    if len(game.pm) == 2:
         game.pm.next()
     else:
         game.set_reverse()
@@ -68,9 +68,7 @@ def reverse(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
 
 def take(game: "MauGame", card: "MauCard") -> None:
     """Увеличивает счётчик взятия карт на значение карты."""
-    logger.info(
-        "Take counter increase by {} now {}", card.value, game.take_counter
-    )
+    logger.info("Take counter increase by {} now {}", card.value, game.take_counter)
     game.take_counter += card.value
 
 
@@ -83,9 +81,7 @@ def take_bluff(game: "MauGame", card: "MauCard") -> None:
     - При правиле `random_color` выбирает случайный цвет.
     - Иначе переходит в состояние выбора цвета.
     """
-    logger.info(
-        "Take counter increase by {} now {}", card.value, game.take_counter
-    )
+    logger.info("Take counter increase by {} now {}", card.value, game.take_counter)
     game.take_counter += card.value
     game.bluff_state = (game.player.user_id, game.player.is_bluffing())
 
