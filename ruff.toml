@@ -1,0 +1,33 @@
+[lint]
+select = ["ALL"]
+ignore = [
+    # Ошибки связанные с Кириллицей
+    "RUF001", "RUF002", "RUF003",
+
+    # todo marks (disable: FIXME, TODO authors)
+    # Because this project has no contributors
+    "TD003", "FIX002", "FIX001", "TD001", "TD002",
+
+    # Сравнение магических значений
+    "PLR2004",
+
+    # Работа с датой
+    "DTZ005",
+
+    # Документация
+    "D100", "D101", "D102", "D103", "D104", "D106", "D203", "D213", "D107",
+
+    # Boolean positional arguments
+    "FBT001", "FBT002",
+
+    # Shebang
+    "EXE002",
+
+    # Плавающая запятая, потому что мы минимализм
+    "COM",
+
+    # Использование строковых литералов при вызове исключений
+    "TRY003", "EM101", "EM102",
+
+    "INP001"
+]
