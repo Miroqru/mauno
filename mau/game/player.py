@@ -1,6 +1,5 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self, TypeVar
 
@@ -35,7 +34,7 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
-    __slots__ = ("_game", "_hand", "_id", "_user_mention", "_user_name")
+    __slots__ = ("_game", "_hand", "_id", "_user_name")
 
     def __init__(self, game: "MauGame", player_id: PlayerID, user_name: str) -> None:
         self._hand: list[MauCard] = []

@@ -7,7 +7,7 @@ from enum import IntEnum
 from random import shuffle
 
 from mau.events import GameEvents
-from mau.game.player import Player
+from mau.game.player import Player, PlayerID
 
 
 class GameReverse(IntEnum):
@@ -52,14 +52,14 @@ class PlayerManager:
     )
 
     def __init__(self, min_players: int = 2, max_players: int = 6) -> None:
-        self._storage: dict[str, Player] = {}
+        self._storage: dict[PlayerID, Player] = {}
         self.min_players = min_players
         self.max_players = max_players
         self._cp = 0
         self.reverse = GameReverse.NEXT
-        self._players: list[str] = []
-        self.results: dict[str, GameResult] = {}
-        self.player_cost: dict[str, int] = {}
+        self._players: list[PlayerID] = []
+        self.results: dict[PlayerID, GameResult] = {}
+        self.player_cost: dict[PlayerID, int] = {}
 
     def cur(self, offset: int = 0) -> Player:
         """ПОлучает игрока по курсору со сдвигом."""
@@ -147,14 +147,11 @@ class PlayerManager:
         elif self.reverse == GameReverse.BACK:
             self._cp = (self._cp - n) % len(self._players)
 
-    # TODO: Выдавать ошибку если не удалось установить курсор
     def set_cp(self, player: Player) -> None:
         """Устанавливает курсор текущего игрока на переданного."""
-        for i, pl in enumerate(self._players):
-            if player.id == pl:
-                self._cp = i
-                player.dispatch(GameEvents.PLAYER_INTERVENED, None)
-                return
+        index = self._players.index(player.id)
+        self._cp = index
+        player.dispatch(GameEvents.PLAYER_INTERVENED, None)
 
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
