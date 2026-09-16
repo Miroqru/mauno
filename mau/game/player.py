@@ -63,11 +63,6 @@ class Player:
         return self._user_name
 
     @property
-    def mention(self) -> str:
-        """Возвращает упоминание игрока для отправки уведомления (Telegram)."""
-        return self._user_mention
-
-    @property
     def can_play(self) -> bool:
         """Может ли текущий игрок совершать ход."""
         return self._game.can_play(self)
