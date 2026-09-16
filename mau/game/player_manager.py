@@ -91,8 +91,8 @@ class PlayerManager:
         if len(self._players) >= self.max_players:
             raise ValueError("Too man players in game")
 
-        self._storage[player.user_id] = player
-        self._players.append(player.user_id)
+        self._storage[player.id] = player
+        self._players.append(player.id)
 
     def remove(self, user_id: str) -> None:
         """Удаляет игрока из хранилища."""
@@ -100,8 +100,8 @@ class PlayerManager:
 
     def leave(self, player: Player, winner: bool) -> None:
         """Игрок покидает игру при выигрыше или поражении."""
-        self._players.remove(player.user_id)
-        self.results[player.user_id] = GameResult(winner, player.count_cost())
+        self._players.remove(player.id)
+        self.results[player.id] = GameResult(winner, player.count_cost())
 
     def start(self) -> None:
         """Подготавливает игроков к началу новой игры.
@@ -120,7 +120,8 @@ class PlayerManager:
     def end(self) -> None:
         """Подготавливает список игроков к завершению игры."""
         for pl in self.iter():
-            self.results[pl.user_id] = GameResult(False, pl.count_cost())
+            # TODO: Начать использовать множество
+            self.results[pl.id] = GameResult(False, pl.count_cost())
         self._players = []
 
     def set_reverse(self, reverse: GameReverse | None = None) -> None:
@@ -139,20 +140,22 @@ class PlayerManager:
         elif self.reverse == GameReverse.BACK:
             self._cp = (self._cp - n) % len(self._players)
 
+    # TODO: Выдавать ошибку если не удалось установить курсор
     def set_cp(self, player: Player) -> None:
         """Устанавливает курсор текущего игрока на переданного."""
         for i, pl in enumerate(self._players):
-            if player.user_id == pl:
+            if player.id == pl:
                 self._cp = i
                 player.dispatch(GameEvents.PLAYER_INTERVENED)
                 return
+
 
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""
         hands = deque(player.hand for player in self.iter(self._players))
         hands.rotate(1 if self.reverse == GameReverse.NEXT else -1)
         for player, new_hand in zip(self.iter(self._players), hands, strict=False):
-            player.hand = new_hand
+            player.set_hand(new_hand)
 
     def __len__(self) -> int:
         """Возвращает количество игроков в игре."""

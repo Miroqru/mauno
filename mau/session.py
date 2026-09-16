@@ -119,15 +119,17 @@ class RoomManager[H: EventHandler]:
         logger.info("End session in room {}", room_id)
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
-            self._players.pop(pl.user_id)
+            self._players.pop(pl.id)
         game.owner.dispatch(GameEvents.SESSION_END)
 
-    def join(self, room_id: RoomID, user: BaseUser) -> Player | None:
+    def join(self, room_id: RoomID, user: BaseUser) -> Player:
         """Присоединиться к игре.
 
         Записывает игрока в список активных игроков.
         Полезно для блокировки активных игроков, чтобы один игрок
         не мог участвовать сразу в нескольких играх.
+
+        Если не удалось присоединиться к игре, возвращает ошибку.
         """
         active_game = self._players.get(user.id)
         if active_game is not None:
@@ -155,11 +157,11 @@ class RoomManager[H: EventHandler]:
         Можно напрямую указать комнату, из которой нужен выйти.
         Иначе она будет получена из контекста.
         """
-        room_id = room_id or self._players.get(player.user_id)
+        room_id = room_id or self._players.get(player.id)
         if room_id is None:
             raise ValueError("User not in game")
 
-        self._players.pop(player.user_id)
+        self._players.pop(player.id)
         game = self.room(room_id)
         if game is None:
             return

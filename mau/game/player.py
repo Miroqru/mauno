@@ -1,5 +1,6 @@
 """Представляет игроков, связанных с текущей игровой сессией."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self, TypeVar
 
@@ -16,8 +17,10 @@ if TYPE_CHECKING:
 
 
 _E = TypeVar("_E")
+PlayerID = str
 
 
+# TODO: Брысь, и без тебя нормально всё было
 @dataclass(frozen=True, slots=True)
 class BaseUser:
     """Абстрактное представление пользователя.
@@ -26,7 +29,7 @@ class BaseUser:
     Чтобы отвязать пользователя от конкретной реализации.
     """
 
-    id: str
+    id: PlayerID
     name: str
     username: str
 
@@ -46,14 +49,31 @@ class Player:
     Реализует команды для взаимодействия игрока с текущей сессией.
     """
 
+    __slots__ = ("_game", "_hand", "_id", "_user_mention", "_user_name")
+
     def __init__(
-        self, game: "MauGame", user_id: str, user_name: str, user_mention: str
+        self, game: "MauGame", player_id: PlayerID, user_name: str, user_mention: str
     ) -> None:
-        self.hand: list[MauCard] = []
-        self.game: MauGame = game
-        self.user_id = user_id
+        self._hand: list[MauCard] = []
+        self._game: MauGame = game
+        self._id = player_id
         self._user_name = user_name
         self._user_mention = user_mention
+
+    @property
+    def game(self) -> "MauGame":
+        """Возвращает привязанную к игроку игру."""
+        return self._game
+
+    @property
+    def hand(self) -> "list[MauCard]":
+        """Возвращает карты пользователя."""
+        return self._hand
+
+    @property
+    def id(self) -> PlayerID:
+        """Возвращает внешний уникальный идентификатор игрока."""
+        return self._id
 
     @property
     def name(self) -> str:
@@ -62,56 +82,65 @@ class Player:
 
     @property
     def mention(self) -> str:
-        """Возвращает упоминание игрока для отправки уведомления."""
+        """Возвращает упоминание игрока для отправки уведомления (Telegram)."""
         return self._user_mention
 
     @property
     def can_play(self) -> bool:
-        """Имеет ли право хода текущий игрок."""
-        return self.game.can_play(self.user_id)
+        """Может ли текущий игрок совершать ход."""
+        return self._game.can_play(self)
 
     @property
     def is_owner(self) -> bool:
         """Является ли текущий игрок владельцем комнаты."""
-        return self.game.is_owner(self)
+        return self._game.is_owner(self)
 
     def is_bluffing(self) -> bool:
         """Проверяет блефует ли игрок, когда выкидывает дикую карту."""
         for card in self.cover_cards().cover:
-            if card[1].color == self.game.deck.top.color:
+            if card[1].color == self._game.deck.top.color:
                 return True
         return False
 
     def count_cost(self) -> int:
         """Считает полную ценность руки пользователя."""
-        return sum(c.cost for c in self.hand)
+        return sum(c.cost for c in self._hand)
 
+    # TODO; Принудительно указывать данные
     def dispatch(self, event_type: GameEvents, data: _E = None) -> Event[_E]:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
         Также можно напрямую вызвать метод или через класс игры.
         """
-        e = Event(self.game, self.user_id, event_type, data)
-        self.game.event_handler.dispatch(e)
+        e = Event(self._game, self.id, event_type, data)
+        self._game.event_handler.dispatch(e)
         return e
+
+    def set_hand(self, cards: "list[MauCard]") -> None:
+        """Выдаёт карты пользователя.
+
+        Внешний метод для взаимодействия с рукой пользователя.
+        """
+        logger.debug("Set {} card for player {}", len(cards), self.id)
+        self._hand = cards
 
     def take_cards(self) -> None:
         """Игрок берёт заданное количество карт согласно счётчику."""
-        take_counter = self.game.take_counter or 1
+        take_counter = self._game.take_counter or 1
         logger.debug("{} Draw {} cards", self._user_name, take_counter)
 
-        for card in self.game.deck.take(take_counter):
-            self.hand.append(card)
-        self.game.take_counter = 0
+        for card in self._game.deck.take(take_counter):
+            self._hand.append(card)
+        self._game.take_counter = 0
         self.dispatch(GameEvents.PLAYER_TAKE, take_counter)
-        self.game.set_state(GameState.TAKE)
+        self._game.set_state(GameState.TAKE)
 
         if (
-            self.game.rules.status(GameRules.auto_skip)
+            self._game.rules.status(GameRules.auto_skip)
             and len(self.cover_cards().cover) == 0
         ):
-            self.game.next_turn()
+            self._game.next_turn()
 
     def cover_cards(self) -> SortedCards:
         """Возвращает отсортированный список карт из руки пользователя.
@@ -119,21 +148,21 @@ class Player:
         Карты делятся на те, которыми он может покрыть и которыми не может
         покрыть текущую верхнюю карту.
         """
-        top = self.game.deck.top
+        top = self._game.deck.top
         logger.debug("Last card was {}", top)
         # Если мы сейчас в состоянии выбора цвета, револьвера. обмена руками
         # то нам сейчас карты нне очень важны
-        if not self.can_play or self.game.state not in (
+        if not self.can_play or self._game.state not in (
             GameState.NEXT,
             GameState.CONTINUE,
             GameState.TAKE,
         ):
-            return SortedCards([], [(i, card) for i, card in enumerate(self.hand)])
+            return SortedCards([], [(i, card) for i, card in enumerate(self._hand)])
 
         cover: list[tuple[int, MauCard]] = []
         uncover: list[tuple[int, MauCard]] = []
-        for i, card in enumerate(self.hand):
-            if self.game.can_cover(self, card):
+        for i, card in enumerate(self._hand):
+            if self._game.can_cover(self, card):
                 cover.append((i, card))
             else:
                 uncover.append((i, card))
@@ -146,23 +175,23 @@ class Player:
     def on_join(self) -> None:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
-        self.hand = list(self.game.deck.take(self.game.start_cards))
-        self.dispatch(GameEvents.PLAYER_TAKE, self.game.start_cards)
+        self._hand = list(self._game.deck.take(self._game.start_cards))
+        self.dispatch(GameEvents.PLAYER_TAKE, self._game.start_cards)
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
         logger.debug("{} Leave from game", self._user_name)
-        for card in self.hand:
-            self.game.deck.put(card)
-        self.hand = []
+        for card in self._hand:
+            self._game.deck.put(card)
+        self._hand = []
 
     def twist_hand(self, other_player: Self) -> None:
         """Меняет местами руки для двух игроков."""
         logger.info("Switch hand between {} and {}", self, other_player)
-        player_hand = self.hand.copy()
-        self.hand = other_player.hand.copy()
-        other_player.hand = player_hand
-        self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.user_id)
+        player_hand = self._hand.copy()
+        self._hand = other_player.hand[:]
+        other_player.set_hand(player_hand)
+        self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.id)
         self.end_turn()
 
     def check_bluff(self) -> None:
@@ -171,29 +200,29 @@ class Player:
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
-        logger.info("{} call bluff {}", self, self.game.bluff_state)
-        if self.game.bluff_state is None or not self.game.bluff_state[1]:
-            self.game.take_counter += 2
+        logger.info("{} call bluff {}", self, self._game.bluff_state)
+        if self._game.bluff_state is None or not self._game.bluff_state[1]:
+            self._game.take_counter += 2
             self.take_cards()
         else:
-            bluff_player = self.game.pm.get(self.game.bluff_state[0])
+            bluff_player = self._game.pm.get(self._game.bluff_state[0])
             bluff_player.take_cards()
         self.dispatch(GameEvents.PLAYER_BLUFF)
         self.end_turn()
 
     def end_turn(self) -> None:
         """Игрок завершает текущий ход."""
-        if len(self.hand) == 1:
+        if len(self._hand) == 1:
             self.dispatch(GameEvents.PLAYER_MAU)
 
-        elif len(self.hand) == 0:
-            self.game.leave_player(self)
+        elif len(self._hand) == 0:
+            self._game.leave_player(self)
 
-        self.game.next_turn()
+        self._game.next_turn()
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
-        self.game.deck.top.color = color
+        self._game.deck.top.color = color
         self.dispatch(GameEvents.GAME_SELECT_COLOR, color)
         self.end_turn()
 
@@ -204,15 +233,22 @@ class Player:
     def __eq__(self, other_player: object) -> bool:
         """Сравнивает двух игроков по UID пользователя."""
         if isinstance(other_player, Player):
-            return self.user_id == other_player.user_id
+            return self._id == other_player._id
         if isinstance(other_player, str):
-            return self.user_id == other_player
+            return self._id == other_player
         return NotImplemented
 
     def __ne__(self, other_player: object) -> bool:
         """Проверяет что игроки не совпадают."""
         if isinstance(other_player, Player):
-            return self.user_id != other_player.user_id
+            return self._id != other_player._id
         if isinstance(other_player, str):
-            return self.user_id != other_player
+            return self._id != other_player
         return NotImplemented
+
+
+PlayerOrID = Player | PlayerID
+"""Позволяет передавать игрока или его идентификатор.
+
+Если передать идентификатор, метод сам получить по нему игрока.
+"""

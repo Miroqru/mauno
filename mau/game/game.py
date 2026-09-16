@@ -8,7 +8,7 @@ from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import EventHandler, GameEvents
-from mau.game.player import BaseUser, Player
+from mau.game.player import BaseUser, Player, PlayerOrID
 from mau.game.player_manager import GameReverse, PlayerManager
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
@@ -51,23 +51,28 @@ class MauGame:
 
     @property
     def player(self) -> Player:
-        """Возвращает текущего игрока."""
+        """Возвращает текущего игрока.
+
+        Alias для `pm.cur()` с нулевым сдвигом.
+        """
         return self.pm.cur()
 
     @property
     def owner(self) -> Player:
-        """Возвращает владельца игры."""
+        """Возвращает владельца текущей игры."""
         return self.pm.get(self._owner_id)
 
     def is_owner(self, player: Player) -> bool:
         """Проверяет что игрок является владельцем комнаты."""
-        return player.user_id == self._owner_id
+        return player.id == self._owner_id
 
-    def can_play(self, user_id: str) -> bool:
+    def can_play(self, player: PlayerOrID) -> bool:
         """Может ли текущий игрок совершать действия."""
-        player = self.pm.get_or_none(user_id)
-        if player is None:
-            return False
+        if not isinstance(player, Player):
+            pl = self.pm.get_or_none(player)
+            if pl is None:
+                return False
+            player = pl
 
         return self.player == player or self.rules.status(GameRules.intervention)
 
@@ -161,7 +166,7 @@ class MauGame:
         """Удаляет пользователя из игры."""
         logger.info("Leaving {} game with id {}", player, self.room_id)
         if not self.started:
-            self.pm.remove(player.user_id)
+            self.pm.remove(player.id)
             return
 
         is_win = len(player.hand) == 0
@@ -182,7 +187,7 @@ class MauGame:
             return
 
         if self.is_owner(player):
-            self._owner_id = self.pm.cur(1).user_id
+            self._owner_id = self.pm.cur(1).id
 
     # управление состоянием игры
     # ==========================
