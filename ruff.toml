@@ -29,5 +29,13 @@ ignore = [
     # Использование строковых литералов при вызове исключений
     "TRY003", "EM101", "EM102",
 
-    "INP001"
+    "INP001",
+
+    # Missing copyright at top of file
+    # Chiori not need a copyright
+    'CPY001',
+
+    # Standard pseudo-random generators are not suitable for cryptographic purposes (Ruff S311)
+    # We are not a crypto casino to use cryptographic random
+    "S311"
 ]
