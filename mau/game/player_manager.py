@@ -18,11 +18,19 @@ class GameReverse(IntEnum):
     STOP = 3
 
 
+class ResultType(IntEnum):
+    """Результат игры."""
+
+    WINNER = 0
+    DRAW = 1
+    LOOSER = 2
+
+
 @dataclass(slots=True, frozen=True)
 class GameResult:
     """Результат игры для игрока."""
 
-    winner: bool
+    winner: ResultType
     score: int
 
 
@@ -98,10 +106,10 @@ class PlayerManager:
         """Удаляет игрока из хранилища."""
         self._storage.pop(user_id)
 
-    def leave(self, player: Player, winner: bool) -> None:
+    def leave(self, player: Player, result: ResultType) -> None:
         """Игрок покидает игру при выигрыше или поражении."""
         self._players.remove(player.id)
-        self.results[player.id] = GameResult(winner, player.count_cost())
+        self.results[player.id] = GameResult(result, player.count_cost())
 
     def start(self) -> None:
         """Подготавливает игроков к началу новой игры.
@@ -120,8 +128,7 @@ class PlayerManager:
     def end(self) -> None:
         """Подготавливает список игроков к завершению игры."""
         for pl in self.iter():
-            # TODO: Начать использовать множество
-            self.results[pl.id] = GameResult(False, pl.count_cost())
+            self.results[pl.id] = GameResult(ResultType.LOOSER, pl.count_cost())
         self._players = []
 
     def set_reverse(self, reverse: GameReverse | None = None) -> None:
@@ -148,7 +155,6 @@ class PlayerManager:
                 self._cp = i
                 player.dispatch(GameEvents.PLAYER_INTERVENED, None)
                 return
-
 
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""

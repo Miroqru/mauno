@@ -9,7 +9,7 @@ from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import EventHandler, GameEvents
 from mau.game.player import Player, PlayerID, PlayerOrID
-from mau.game.player_manager import GameReverse, PlayerManager
+from mau.game.player_manager import GameReverse, PlayerManager, ResultType
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
@@ -170,11 +170,13 @@ class MauGame:
             self.pm.remove(player.id)
             return
 
-        is_win = len(player.hand) == 0
-        player.dispatch(GameEvents.GAME_LEAVE, is_win)
-        self.pm.leave(player, is_win)
+        # В будущем может быть больше вариантов победы
+        result = ResultType.WINNER if len(player.hand) == 0 else ResultType.LOOSER
 
-        if is_win and self.rules.status(GameRules.one_winner):
+        player.dispatch(GameEvents.GAME_LEAVE, result)
+        self.pm.leave(player, result)
+
+        if result == ResultType.WINNER and self.rules.status(GameRules.one_winner):
             self.end()
             return
 
