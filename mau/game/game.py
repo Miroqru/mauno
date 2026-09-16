@@ -136,14 +136,14 @@ class MauGame:
         self.pm.start()
         self.timer.start()
         self.started = True
-        self.owner.dispatch(GameEvents.GAME_START)
+        self.owner.dispatch(GameEvents.GAME_START, None)
         self.deck.top(self)
 
     def end(self) -> None:
         """Завершает текущую игру."""
         self.pm.end()
         self.started = False
-        self.owner.dispatch(GameEvents.GAME_END)
+        self.owner.dispatch(GameEvents.GAME_END, None)
 
     def join_player(self, user: BaseUser) -> Player | None:
         """Добавляет игрока в игру."""
@@ -157,7 +157,7 @@ class MauGame:
 
         player = Player(self, user.id, user.name, user.username)
         self.pm.add(player)
-        player.dispatch(GameEvents.GAME_JOIN)
+        player.dispatch(GameEvents.GAME_JOIN, None)
         if self.started:
             player.on_join()
         return player

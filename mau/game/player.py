@@ -106,8 +106,7 @@ class Player:
         """Считает полную ценность руки пользователя."""
         return sum(c.cost for c in self._hand)
 
-    # TODO; Принудительно указывать данные
-    def dispatch(self, event_type: GameEvents, data: _E = None) -> Event[_E]:
+    def dispatch(self, event_type: GameEvents, data: _E) -> Event[_E]:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
@@ -207,13 +206,13 @@ class Player:
         else:
             bluff_player = self._game.pm.get(self._game.bluff_state[0])
             bluff_player.take_cards()
-        self.dispatch(GameEvents.PLAYER_BLUFF)
+        self.dispatch(GameEvents.PLAYER_BLUFF, None)
         self.end_turn()
 
     def end_turn(self) -> None:
         """Игрок завершает текущий ход."""
         if len(self._hand) == 1:
-            self.dispatch(GameEvents.PLAYER_MAU)
+            self.dispatch(GameEvents.PLAYER_MAU, None)
 
         elif len(self._hand) == 0:
             self._game.leave_player(self)

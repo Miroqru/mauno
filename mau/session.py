@@ -105,7 +105,7 @@ class RoomManager[H: EventHandler]:
         game = MauGame(pm, self._event_handler, room_id, owner)
         self._games[room_id] = game
         self._players[owner.id] = room_id
-        game.owner.dispatch(GameEvents.SESSION_START)
+        game.owner.dispatch(GameEvents.SESSION_START, None)
         return game
 
     def remove(self, room_id: RoomID) -> None:
@@ -120,7 +120,7 @@ class RoomManager[H: EventHandler]:
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
             self._players.pop(pl.id)
-        game.owner.dispatch(GameEvents.SESSION_END)
+        game.owner.dispatch(GameEvents.SESSION_END, None)
 
     def join(self, room_id: RoomID, user: BaseUser) -> Player:
         """Присоединиться к игре.
@@ -144,7 +144,7 @@ class RoomManager[H: EventHandler]:
         if player is None:
             raise ValueError("Failed to join game")
 
-        player.dispatch(GameEvents.SESSION_JOIN)
+        player.dispatch(GameEvents.SESSION_JOIN, None)
         return player
 
     def leave(self, player: Player, room_id: RoomID | None = None) -> None:
@@ -167,4 +167,4 @@ class RoomManager[H: EventHandler]:
             return
 
         game.leave_player(player)
-        player.dispatch(GameEvents.SESSION_LEAVE)
+        player.dispatch(GameEvents.SESSION_LEAVE, None)

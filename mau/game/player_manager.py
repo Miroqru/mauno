@@ -146,7 +146,7 @@ class PlayerManager:
         for i, pl in enumerate(self._players):
             if player.id == pl:
                 self._cp = i
-                player.dispatch(GameEvents.PLAYER_INTERVENED)
+                player.dispatch(GameEvents.PLAYER_INTERVENED, None)
                 return
 
 

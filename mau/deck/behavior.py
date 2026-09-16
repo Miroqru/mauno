@@ -47,7 +47,7 @@ def rotate(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
     """Обменивает карты между всеми игроками."""
     if len(game.player.hand) > 1:
         game.pm.rotate_cards()
-        game.player.dispatch(GameEvents.GAME_ROTATE)
+        game.player.dispatch(GameEvents.GAME_ROTATE, None)
 
 
 def turn(game: "MauGame", card: "MauCard") -> None:
