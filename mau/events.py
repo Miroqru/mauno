@@ -5,16 +5,12 @@
 Большинство действий игроков сопровождаются некоторыми действиями.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
-
-_T = TypeVar("_T")
 
 
 class GameEvents(IntEnum):
@@ -67,10 +63,10 @@ class Event[T]:
     Созданные игрой события отправляются в обработчик.
     """
 
-    game: MauGame
+    game: "MauGame"
     user_id: str
     event_type: GameEvents
-    data: _T
+    data: T
 
 
 class EventHandler(Protocol):
@@ -89,5 +85,5 @@ class EventHandler(Protocol):
         Это может быть отправка в консоль, по веб сокету или действие
         в боте.
 
-        Обработка некоторых из событий важна для корректной игры.
+        Обработка некоторых из событий важна для корректного игрового цикла.
         """

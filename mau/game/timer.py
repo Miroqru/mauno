@@ -68,7 +68,7 @@ class GameTimer:
         """Сбрасывает таймер."""
         self._start = int(time())
         self._turn = int(time())
-        self.ticks = 0
+        self._ticks = 0
 
     def tick(self) -> TimerStat:
         """Обновление таймера.
