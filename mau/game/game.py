@@ -8,7 +8,7 @@ from mau.deck.card import CardColor, MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import EventHandler, GameEvents
-from mau.game.player import BaseUser, Player, PlayerOrID
+from mau.game.player import Player, PlayerID, PlayerOrID
 from mau.game.player_manager import GameReverse, PlayerManager
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
@@ -29,7 +29,8 @@ class MauGame:
         player_manager: PlayerManager,
         event_handler: EventHandler,
         room_id: str,
-        owner: BaseUser,
+        owner_id: PlayerID,
+        owner_name: str,
     ) -> None:
         self.room_id = room_id
         self.rules = RuleSet()
@@ -37,8 +38,8 @@ class MauGame:
         self.deck = Deck()
         self.event_handler: EventHandler = event_handler
 
-        self._owner_id = owner.id
-        self.pm.add(Player(self, owner.id, owner.name, owner.username))
+        self._owner_id = owner_id
+        self.pm.add(Player(self, owner_id, owner_name))
 
         self.bluff_state: tuple[str, bool] | None = None
         self.started: bool = False
@@ -145,17 +146,17 @@ class MauGame:
         self.started = False
         self.owner.dispatch(GameEvents.GAME_END, None)
 
-    def join_player(self, user: BaseUser) -> Player | None:
+    def join_player(self, player_id: PlayerID, name: str) -> Player | None:
         """Добавляет игрока в игру."""
-        logger.info("Joining {} in game with id {}", user, self.room_id)
-        player = self.pm.get_or_none(user.id)
+        logger.info("Joining {} in game with id {}", name, self.room_id)
+        player = self.pm.get_or_none(player_id)
         if player is not None:
             return player
 
         if not self.open:
             return None
 
-        player = Player(self, user.id, user.name, user.username)
+        player = Player(self, player_id, name)
         self.pm.add(player)
         player.dispatch(GameEvents.GAME_JOIN, None)
         if self.started:

@@ -20,20 +20,6 @@ _E = TypeVar("_E")
 PlayerID = str
 
 
-# TODO: Брысь, и без тебя нормально всё было
-@dataclass(frozen=True, slots=True)
-class BaseUser:
-    """Абстрактное представление пользователя.
-
-    Представляет собой хранимую о пользователе информацию.
-    Чтобы отвязать пользователя от конкретной реализации.
-    """
-
-    id: PlayerID
-    name: str
-    username: str
-
-
 @dataclass(frozen=True, slots=True)
 class SortedCards:
     """Распределяет карты на: покрывающие и не покрывающие."""
@@ -51,14 +37,11 @@ class Player:
 
     __slots__ = ("_game", "_hand", "_id", "_user_mention", "_user_name")
 
-    def __init__(
-        self, game: "MauGame", player_id: PlayerID, user_name: str, user_mention: str
-    ) -> None:
+    def __init__(self, game: "MauGame", player_id: PlayerID, user_name: str) -> None:
         self._hand: list[MauCard] = []
         self._game: MauGame = game
         self._id = player_id
         self._user_name = user_name
-        self._user_mention = user_mention
 
     @property
     def game(self) -> "MauGame":

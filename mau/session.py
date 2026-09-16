@@ -11,7 +11,7 @@ from loguru import logger
 
 from mau.events import EventHandler, GameEvents
 from mau.game.game import MauGame
-from mau.game.player import BaseUser, Player
+from mau.game.player import Player, PlayerID
 from mau.game.player_manager import PlayerManager
 
 RoomID = str
@@ -79,7 +79,8 @@ class RoomManager[H: EventHandler]:
     def create(
         self,
         room_id: str,
-        owner: BaseUser,
+        owner_id: PlayerID,
+        owner_name: str,
         min_players: int = 2,
         max_players: int = 8,
     ) -> MauGame:
@@ -93,18 +94,19 @@ class RoomManager[H: EventHandler]:
 
         Args:
             room_id: к какой комнате будет привязана игра в хранилище.
-            owner: Владелец комнаты, становится первым игроком.
+            owner_id: Идентификатор владельца комнаты, станет первым игроком.
+            owner_name: Имя владельца комнаты, станет первым игроком для игры.
             min_players: Минимальное число игроков для начала игры.
             max_players: Максимальное число игроков в одной игре.
                 Не рекомендуется изменять, поскольку карт может не хватить
                 на всех игроков.
 
         """
-        logger.info("User {} Create new game session in {}", owner, room_id)
+        logger.info("User {} Create new game session in {}", owner_name, room_id)
         pm = PlayerManager(min_players, max_players)
-        game = MauGame(pm, self._event_handler, room_id, owner)
+        game = MauGame(pm, self._event_handler, room_id, owner_id, owner_name)
         self._games[room_id] = game
-        self._players[owner.id] = room_id
+        self._players[owner_id] = room_id
         game.owner.dispatch(GameEvents.SESSION_START, None)
         return game
 
@@ -122,7 +124,7 @@ class RoomManager[H: EventHandler]:
             self._players.pop(pl.id)
         game.owner.dispatch(GameEvents.SESSION_END, None)
 
-    def join(self, room_id: RoomID, user: BaseUser) -> Player:
+    def join(self, room_id: RoomID, player_id: PlayerID, name: str) -> Player:
         """Присоединиться к игре.
 
         Записывает игрока в список активных игроков.
@@ -131,7 +133,7 @@ class RoomManager[H: EventHandler]:
 
         Если не удалось присоединиться к игре, возвращает ошибку.
         """
-        active_game = self._players.get(user.id)
+        active_game = self._players.get(player_id)
         if active_game is not None:
             raise ValueError("User already in game")
 
@@ -139,8 +141,8 @@ class RoomManager[H: EventHandler]:
         if game is None:
             raise ValueError("game not found")
 
-        self._players[user.id] = room_id
-        player = game.join_player(user)
+        self._players[player_id] = room_id
+        player = game.join_player(player_id, name)
         if player is None:
             raise ValueError("Failed to join game")
 
