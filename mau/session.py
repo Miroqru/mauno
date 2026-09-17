@@ -32,10 +32,7 @@ class RoomManager[H: EventHandler]:
 
     __slots__ = ("_event_handler", "_games", "_players")
 
-    def __init__(
-        self,
-        event_handler: H,
-    ) -> None:
+    def __init__(self, event_handler: H) -> None:
         self._games: dict[RoomID, MauGame] = {}
         self._players: dict[str, RoomID] = {}
         self._event_handler = event_handler
@@ -44,12 +41,17 @@ class RoomManager[H: EventHandler]:
     # ================
 
     @property
+    def event_handler(self) -> H:
+        """Возвращает привязанный обработчик событий."""
+        return self._event_handler
+
+    @property
     def rooms(self) -> Mapping[RoomID, MauGame]:
-        """Возвращает словарь всех активных игр."""
+        """Возвращает словарь всех активных игр с привязкой к комнатам."""
         return self._games
 
     def room(self, room_id: RoomID) -> MauGame | None:
-        """Возвращает по её ID из хранилища."""
+        """Возвращает экземпляр игры по ID комнаты из хранилища."""
         return self._games.get(room_id)
 
     def player(self, user_id: RoomID) -> Player | None:
