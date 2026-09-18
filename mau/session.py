@@ -37,11 +37,11 @@ class SessionManager(Generic[_H]):
 
     """
 
-    __slots__ = ("_games", "_players", "_event_handler", "_active_players")
+    __slots__ = ("_games", "_players", "_event_handler")
 
     def __init__(self, event_handler: _H) -> None:
         self._games: dict[str, MauGame] = {}
-        self._active_players: dict[str, str] = {}
+        self._players: dict[str, str] = {}
         self._event_handler = event_handler
 
     def player(self, user_id: str) -> Player | None:
@@ -95,5 +95,5 @@ class SessionManager(Generic[_H]):
         logger.info("End session in room {}", room_id)
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
-            self._active_players.pop(pl.user_id)
+            self._players.pop(pl.user_id)
         game.dispatch(game.owner, GameEvents.SESSION_END)
