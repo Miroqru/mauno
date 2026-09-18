@@ -7,7 +7,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from loguru import logger
 
@@ -51,7 +51,7 @@ class BaseEventHandler(ABC):
     """
 
     @abstractmethod
-    def dispatch(self, event: Event) -> None:
+    def dispatch(self, event: Event[Any]) -> None:
         """Обрабатывает игровое событие.
 
         Событие обрабатывается на усмотрение клиента.
@@ -71,6 +71,6 @@ class DebugEventHandler(BaseEventHandler):
     из событий требуют действий со стороны клиента.
     """
 
-    def dispatch(self, event: Event) -> None:
+    def dispatch(self, event: Event[Any]) -> None:
         """Вернуть событие в отладочную консоль."""
         logger.info(event)

@@ -42,8 +42,8 @@ class SessionManager(Generic[_H]):
 
     def __init__(
         self,
-        game_storage: BaseStorage | None = None,
-        player_storage: BaseStorage | None = None,
+        game_storage: BaseStorage[MauGame] | None = None,
+        player_storage: BaseStorage[Player] | None = None,
         event_handler: _H | None = None,
     ) -> None:
         self._games: BaseStorage[MauGame] = game_storage or MemoryStorage()
