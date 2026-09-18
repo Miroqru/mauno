@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from mau.game.game import MauGame
+    from mau.game.player import PlayerID
 
 
 class GameEvents(IntEnum):
@@ -64,7 +65,7 @@ class Event[T]:
     """
 
     game: "MauGame"
-    user_id: str
+    player_id: "PlayerID"
     event_type: GameEvents
     data: T
 

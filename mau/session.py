@@ -54,7 +54,7 @@ class RoomManager[H: EventHandler]:
         """Возвращает экземпляр игры по ID комнаты из хранилища."""
         return self._games.get(room_id)
 
-    def player(self, user_id: RoomID) -> Player | None:
+    def player(self, player_id: PlayerID) -> Player | None:
         """Возвращает игрока по его ID.
 
         Ищет среди активных игроков, а после обращается к менеджеру
@@ -64,16 +64,16 @@ class RoomManager[H: EventHandler]:
         Если такого игрока не будет в игре - вернёт исключение.
         В любом другом случае вернёт либо игрока. либо None.
         """
-        room_id = self._players.get(user_id)
+        room_id = self._players.get(player_id)
         if room_id is None:
             return None
 
         game = self._games.get(room_id)
         if game is None:
-            self._players.pop(user_id)
+            self._players.pop(player_id)
             return None
 
-        return game.pm.get(user_id)
+        return game.pm.get(player_id)
 
     # Высокоуровневое управление
     # ==========================

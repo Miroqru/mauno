@@ -67,16 +67,16 @@ class PlayerManager:
             raise ValueError("Game not started to get players")
         return self.get(self._players[(self._cp + offset) % len(self._players)])
 
-    def get(self, user_id: str) -> Player:
+    def get(self, player_id: PlayerID) -> Player:
         """Возвращает игрока из хранилища по его ID."""
-        pl = self._storage.get(user_id)
+        pl = self._storage.get(player_id)
         if pl is None:
-            raise ValueError(f"Where player with ID {user_id}")
+            raise ValueError(f"Where player with ID {player_id}")
         return pl
 
-    def get_or_none(self, user_id: str) -> Player | None:
+    def get_or_none(self, player_id: PlayerID) -> Player | None:
         """Возвращает игрока из хранилища по его ID."""
-        return self._storage.get(user_id)
+        return self._storage.get(player_id)
 
     def iter(self, players: Iterable[str] | None = None) -> Iterator[Player]:
         """Проходится по всему списку игроков."""
@@ -102,9 +102,9 @@ class PlayerManager:
         self._storage[player.id] = player
         self._players.append(player.id)
 
-    def remove(self, user_id: str) -> None:
+    def remove(self, player_id: PlayerID) -> Player:
         """Удаляет игрока из хранилища."""
-        self._storage.pop(user_id)
+        return self._storage.pop(player_id)
 
     def leave(self, player: Player, result: ResultType) -> None:
         """Игрок покидает игру при выигрыше или поражении."""
