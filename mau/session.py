@@ -12,7 +12,7 @@ from loguru import logger
 from mau.events import EventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import Player, PlayerID
-from mau.game.player_manager import PlayerManager
+from mau.settings import RoomSettings
 
 RoomID = str
 
@@ -30,12 +30,14 @@ class RoomManager[H: EventHandler]:
     реагировать на события, происходящие во всех комнатах.
     """
 
-    __slots__ = ("_event_handler", "_games", "_players")
+    __slots__ = ("_event_handler", "_games", "_players", "_settings")
 
     def __init__(self, event_handler: H) -> None:
-        self._games: dict[RoomID, MauGame] = {}
-        self._players: dict[str, RoomID] = {}
         self._event_handler = event_handler
+
+        self._games: dict[RoomID, MauGame] = {}
+        self._players: dict[PlayerID, RoomID] = {}
+        self._settings: dict[RoomID, RoomSettings] = {}
 
     # Получение данных
     # ================
@@ -75,17 +77,20 @@ class RoomManager[H: EventHandler]:
 
         return game.pm.get(player_id)
 
+    def settings(self, room_id: RoomID) -> RoomSettings:
+        """Возвращает настройки по ID комнаты."""
+        settings = self._settings.get(room_id)
+        if settings is None:
+            raise ValueError(f"Not found settings for room {room_id!r}")
+
+    def set_settings(self, room_id: RoomID, settings: RoomSettings) -> None:
+        """Обновляет настройки для комнаты."""
+        self._settings[room_id] = settings
+
     # Высокоуровневое управление
     # ==========================
 
-    def create(
-        self,
-        room_id: str,
-        owner_id: PlayerID,
-        owner_name: str,
-        min_players: int = 2,
-        max_players: int = 8,
-    ) -> MauGame:
+    def create(self, room_id: str, owner_id: PlayerID, owner_name: str) -> RoomSettings:
         """Создает новую игру.
 
         Автоматически поставляет менеджер игроков и обработчик событий.
@@ -98,17 +103,25 @@ class RoomManager[H: EventHandler]:
             room_id: к какой комнате будет привязана игра в хранилище.
             owner_id: Идентификатор владельца комнаты, станет первым игроком.
             owner_name: Имя владельца комнаты, станет первым игроком для игры.
-            min_players: Минимальное число игроков для начала игры.
-            max_players: Максимальное число игроков в одной игре.
-                Не рекомендуется изменять, поскольку карт может не хватить
-                на всех игроков.
 
         """
-        logger.info("User {} Create new game session in {}", owner_name, room_id)
-        pm = PlayerManager(min_players, max_players)
-        game = MauGame(pm, self._event_handler, room_id, owner_id, owner_name)
+        logger.info("User {} Create new session in {}", owner_name, room_id)
+        settings = RoomSettings(
+            room_id=room_id, owner_id=owner_id, owner_name=owner_name
+        )
+        self._settings[room_id] = settings
+        return settings
+
+    def start(self, room_id: str) -> MauGame:
+        """Начинает игровую сессию."""
+        logger.info("Start game session for {}", room_id)
+        settings = self._settings.get(room_id)
+        if settings is None:
+            raise ValueError(f"Settings for room {room_id!r} not found")
+
+        game = MauGame(settings, self._event_handler)
         self._games[room_id] = game
-        self._players[owner_id] = room_id
+        self._players[settings.owner_id] = room_id
         game.owner.dispatch(GameEvents.SESSION_START, None)
         return game
 
@@ -125,6 +138,7 @@ class RoomManager[H: EventHandler]:
         for pl in game.pm.iter():
             self._players.pop(pl.id)
         game.owner.dispatch(GameEvents.SESSION_END, None)
+        self._settings.pop(room_id)
 
     def join(self, room_id: RoomID, player_id: PlayerID, name: str) -> Player:
         """Присоединиться к игре.

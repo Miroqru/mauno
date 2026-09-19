@@ -12,7 +12,8 @@ from mau.game.player import Player, PlayerID, PlayerOrID
 from mau.game.player_manager import GameReverse, PlayerManager, ResultType
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
-from mau.rules import GameRules, RuleSet
+from mau.rules import GameRules
+from mau.settings import RoomSettings
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
@@ -24,31 +25,27 @@ class MauGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(
-        self,
-        player_manager: PlayerManager,
-        event_handler: EventHandler,
-        room_id: str,
-        owner_id: PlayerID,
-        owner_name: str,
-    ) -> None:
-        self.room_id = room_id
-        self.rules = RuleSet()
-        self.pm = player_manager
-        self.deck = Deck()
-        self.event_handler: EventHandler = event_handler
+    def __init__(self, settings: RoomSettings, handler: EventHandler) -> None:
+        self._settings = settings
+        self.event_handler: EventHandler = handler
 
-        self._owner_id = owner_id
-        self.pm.add(Player(self, owner_id, owner_name))
+        self.pm = PlayerManager(settings.min_players, settings.max_players)
+        self.deck = Deck()
+        self.shotgun = Shotgun()
+        self.timer = GameTimer()
+
+        self._owner_id = settings.owner_id
+        self.pm.add(Player(self, settings.owner_id, settings.owner_name))
+
+        self.rules = settings.rules
+        self.room_id = settings.room_id
+        self.start_cards = settings.start_cards
+        self.open: bool = settings.open
 
         self.bluff_state: tuple[str, bool] | None = None
         self.started: bool = False
-        self.open: bool = True
         self.take_counter: int = 0
-        self.start_cards = 7
         self.state: GameState = GameState.NEXT
-        self.shotgun = Shotgun()
-        self.timer = GameTimer()
 
     @property
     def player(self) -> Player:
