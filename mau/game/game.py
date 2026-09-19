@@ -4,7 +4,7 @@ from random import choice
 
 from loguru import logger
 
-from mau.deck.card import CardColor, MauCard
+from mau.deck.card import MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import EventHandler, GameEvents
