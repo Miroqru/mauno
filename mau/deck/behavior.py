@@ -20,6 +20,32 @@ if TYPE_CHECKING:
 Callback = Callable[["MauGame", "MauCard"], None]
 
 
+@dataclass(slots=True, frozen=True)
+class CardBehavior:
+    """Описание поведения для карты.
+
+    Поведение это набор уникальных параметров и действия для карты.
+    """
+
+    name: str
+    """Уникальное имя поведения.
+
+    Карты с одинаковым поведением (и значением) могут покрыть друг друга.
+    """
+
+    use: Sequence[Callback]
+    """Действия, которые будут выполняться при использовании карты."""
+
+    cover: Sequence[Callback]
+    """Действия, которые будут выполняться когда карту покроют другой картой."""
+
+    on_counter: bool = False
+    """Можно ли использовать карту при не нулевом счётчике карт.
+
+    Этот флаг нужен для карт типа +2/+4, когда нужно их использовать.
+    """
+
+
 def _auto_select_color(card: "MauCard", game: "MauGame") -> None:
     logger.debug("Auto choose color for card")
     color_index = game.deck.colors.index(game.deck.top.color)
@@ -103,23 +129,3 @@ def set_color(game: "MauGame", card: "MauCard") -> None:
         _auto_select_color(card, game)
     elif not game.rules.status(GameRules.random_color):
         game.set_state(GameState.CHOOSE_COLOR)
-
-
-@dataclass(slots=True, frozen=True)
-class CardBehavior:
-    """Поведение карты.
-
-    Args:
-        name: Название поведения.
-        cost: СТоимость такой карты.
-        use: Действия при использовании карты.
-        cover: Действия при освобождении карты.
-        on_counter: Можно использовать при активном счётчике карт.
-
-    """
-
-    name: str
-    cost: int
-    use: Sequence[Callback]
-    cover: Sequence[Callback]
-    on_counter: bool = False
