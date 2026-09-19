@@ -53,13 +53,20 @@ class Deck:
         "used_cards",
     )
 
-    def __init__(self, cards: list[MauCard] | None = None) -> None:
+    # TODO: Нельзя указывать пустую колоду карт
+    # TODO: указывать дикий цвет прямо в конструкторе
+    def __init__(
+        self,
+        cards: list[MauCard] | None = None,
+        colors: list[CardColor] | None = None,
+        wild_color: CardColor = CardColor.BLACK,
+    ) -> None:
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
 
-        self._colors: list[CardColor] | None = None
-        self._wild_color: CardColor | None = None
+        self._colors: list[CardColor] | None = colors
+        self._wild_color: CardColor = wild_color
         self._active_colors: list[CardColor] | None = None
 
     @property
@@ -76,8 +83,6 @@ class Deck:
     @property
     def wild_color(self) -> CardColor:
         """Получает дикий цвет для колоды."""
-        if self._wild_color is None:
-            raise ValueError("Wild color can`t be None")
         return self._wild_color
 
     # TODO: Можно оповещать о событии для смены дикого цвета

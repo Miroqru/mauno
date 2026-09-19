@@ -127,12 +127,8 @@ class MauGame:
         self.deck = deck
         self.deck.shuffle()
 
-        wild_color = (
-            choice(self.deck.colors)
-            if self.rules.status(GameRules.special_wild)
-            else CardColor.BLACK
-        )
-        self.deck.set_wild(wild_color)
+        if self.rules.status(GameRules.special_wild):
+            self.deck.set_wild(choice(self.deck.colors))
 
         self.pm.start()
         self.timer.start()
