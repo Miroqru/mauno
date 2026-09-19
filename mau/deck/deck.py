@@ -44,22 +44,34 @@ class Deck:
     Предоставляется методы для добавления, удаления и перемещения карт.
     """
 
-    __slots__ = ("_colors", "_top", "_wild_color", "cards", "used_cards")
+    __slots__ = (
+        "_active_colors",
+        "_colors",
+        "_top",
+        "_wild_color",
+        "cards",
+        "used_cards",
+    )
 
     def __init__(self, cards: list[MauCard] | None = None) -> None:
         self.cards: list[MauCard] = cards or []
         self.used_cards: list[MauCard] = []
         self._top: MauCard | None = None
+
         self._colors: list[CardColor] | None = None
         self._wild_color: CardColor | None = None
+        self._active_colors: list[CardColor] | None = None
 
     @property
     def colors(self) -> list[CardColor]:
         """Получает список всех используемых цветов в колоде."""
         if self._colors is None:
             self._colors = deck_colors(self.cards)
-            self._colors.remove(self.wild_color)
-        return self._colors
+
+        if self._active_colors is None:
+            self._active_colors = [c for c in self._colors if c != self._wild_color]
+
+        return self._active_colors
 
     @property
     def wild_color(self) -> CardColor:
@@ -73,6 +85,11 @@ class Deck:
         """Устанавливает цвет дикой карты."""
         logger.info("Set wild color to {}", color)
         self._wild_color = color
+
+        if self._colors is None:
+            self._colors = deck_colors(self.cards)
+
+        self._active_colors = [c for c in self._colors if c != self._wild_color]
 
     @property
     def top(self) -> MauCard:
