@@ -11,10 +11,9 @@ from loguru import logger
 
 from mau.events import EventHandler, EventType, GameEvent
 from mau.game.game import MauGame
-from mau.game.player import Player, PlayerID
+from mau.game.player import Player
 from mau.game.settings import GameSettings
-
-RoomID = str
+from mau.types import PlayerID, RoomID
 
 
 class RoomManager[H: EventHandler]:

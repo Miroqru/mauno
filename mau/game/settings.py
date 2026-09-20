@@ -3,16 +3,17 @@
 from dataclasses import dataclass, field
 
 from mau.rules import RuleSet
+from mau.types import PlayerID, RoomID
 
 
 @dataclass(slots=True)
 class GameSettings:
     """Настройки для создания новой комнаты."""
 
-    room_id: str
+    room_id: RoomID
     """Комната, к которой привязываются настройки."""
 
-    owner_id: str
+    owner_id: PlayerID
     """ID владельца комнаты.
 
     Именно он может изменять настройки комнаты.

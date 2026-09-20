@@ -8,13 +8,13 @@ from mau.deck.card import MauCard
 from mau.deck.deck import Deck
 from mau.enums import GameState
 from mau.events import EventHandler, EventType
-from mau.game.player import Player, PlayerID, PlayerOrID
+from mau.game.player import Player
 from mau.game.player_manager import GameReverse, PlayerManager, ResultType
 from mau.game.settings import GameSettings
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
 from mau.rules import GameRules, RuleSet
-from mau.session import RoomID
+from mau.types import PlayerID, PlayerOrID, RoomID
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
@@ -90,11 +90,11 @@ class MauGame:
     @property
     def owner(self) -> Player:
         """Возвращает владельца текущей игры."""
-        return self.pm.get(self._owner_id)
+        return self.pm.get(self.settings.owner_id)
 
     def is_owner(self, player: Player) -> bool:
         """Проверяет что игрок является владельцем комнаты."""
-        return player.id == self._owner_id
+        return player.id == self.settings.owner_id
 
     def can_play(self, player: PlayerOrID) -> bool:
         """Может ли текущий игрок совершать действия."""
@@ -216,7 +216,7 @@ class MauGame:
 
         # TODO: Почему это выглядит как костыль
         if self.is_owner(player):
-            self._owner_id = self.pm.cur(1).id
+            self.settings.owner_id = self.pm.cur(1).id
 
     # управление состоянием игры
     # ==========================

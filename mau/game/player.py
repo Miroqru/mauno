@@ -9,6 +9,7 @@ from mau.deck.card import CardColor
 from mau.enums import GameState
 from mau.events import EventType, GameEvent
 from mau.rules import GameRules
+from mau.types import PlayerID
 
 if TYPE_CHECKING:
     from mau.deck.card import MauCard
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
 
 
 _E = TypeVar("_E")
-PlayerID = str
 
 
 @dataclass(frozen=True, slots=True)

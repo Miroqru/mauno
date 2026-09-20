@@ -6,6 +6,8 @@
 from dataclasses import dataclass
 from enum import IntEnum
 
+from mau.types import Rule
+
 
 class GameRules(IntEnum):
     """Набор игровых правил."""
@@ -76,9 +78,7 @@ class GameRules(IntEnum):
     """
 
 
-Rule = GameRules | int
-
-
+# TODO: Возможно стоит перенести в настройки
 @dataclass(slots=True)
 class RuleSet:
     """Набор выбранных игровых правил.
