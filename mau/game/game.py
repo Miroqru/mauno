@@ -110,11 +110,12 @@ class MauGame:
         """Проверяет может ли текущая карта покрыть верхнюю из колоды."""
         top = self.deck.top
 
-        if (
-            self.rules.status(GameRules.intervention)
-            and card != top
-            and player != self.player
-        ):
+        # Проверка на подходящего игрока, только если не включено вмешательство
+        if not self.rules.status(GameRules.intervention) and player != self.player:
+            return False
+
+        # Для начала надо понять. можем ли мы покрыть карту
+        if card.color != self.deck.wild_color and not top.can_cover(card):
             return False
 
         # Для режима побочного выброса
@@ -126,6 +127,7 @@ class MauGame:
             return True
 
         # Совмещение нескольких карт
+        # TODO: я не уверен в этом коде
         return (
             (top.behavior.on_counter and self.take_counter > 0)
             and not top.behavior.on_counter

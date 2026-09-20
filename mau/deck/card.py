@@ -44,7 +44,7 @@ class MauCard:
     cost: int
     behavior: CardBehavior
 
-    def can_cover(self, other_card: Self, wild_color: CardColor) -> bool:
+    def can_cover(self, other: Self) -> bool:
         """Проверяет что другая карта может покрыть текущую.
 
         По правилам игры цель каждого игрока - избавить от своих карт.
@@ -52,10 +52,12 @@ class MauCard:
         верхушки одной из своей руки.
         Как только карты кончатся - вы победили.
         """
-        return other_card.color in (wild_color, self.color) or (
-            self.behavior.name == other_card.behavior.name
-            and self.value == other_card.value
-        )
+        # по правилам UNO нужна карта одного цвета
+        if other.color == self.color:
+            return True
+
+        # Или карта одного типа с одинаковым значением
+        return other.behavior.name == self.behavior.name and other.value == self.value
 
     def on_use(self, game: "MauGame") -> None:
         """Выполняет активное действие карты во время её разыгрывания."""

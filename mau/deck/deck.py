@@ -144,7 +144,7 @@ class Deck:
     def count_until_cover(self) -> int:
         """Получает количество кард в колоде до покрывающей верную."""
         for i, card in enumerate(self.cards):
-            if self.top.can_cover(card, self.wild_color):
+            if card.color == self.wild_color or self.top.can_cover(card):
                 return i + 1
         return 1
 
