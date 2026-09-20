@@ -7,7 +7,7 @@ from loguru import logger
 
 from mau.deck.card import CardColor
 from mau.enums import GameState
-from mau.events import Event, GameEvents
+from mau.events import GameEvent, GameEvents
 from mau.rules import GameRules
 
 if TYPE_CHECKING:
@@ -83,13 +83,13 @@ class Player:
         """Считает полную ценность руки пользователя."""
         return sum(c.cost for c in self._hand)
 
-    def dispatch(self, event_type: GameEvents, data: _E) -> Event[_E]:
+    def dispatch(self, event_type: GameEvents, data: _E) -> GameEvent[_E]:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
         Также можно напрямую вызвать метод или через класс игры.
         """
-        e = Event(self._game, self.id, event_type, data)
+        e = GameEvent(self._game, self.id, event_type, data)
         self._game.event_handler.dispatch(e)
         return e
 

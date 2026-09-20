@@ -10,7 +10,7 @@ from typing import Any
 
 from loguru import logger
 
-from mau.events import Event, EventHandler, GameEvents
+from mau.events import GameEvent, EventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import Player, PlayerID
 from mau.settings import RoomSettings
@@ -113,7 +113,7 @@ class RoomManager[H: EventHandler]:
         )
         self._settings[room_id] = settings
         self._event_handler.dispatch(
-            Event(
+            GameEvent(
                 game=None,
                 player_id=owner_id,
                 event_type=GameEvents.SESSION_START,
