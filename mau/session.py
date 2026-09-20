@@ -112,7 +112,7 @@ class RoomManager[H: EventHandler]:
         )
         self._settings[room_id] = settings
         self._event_handler.dispatch(
-            Event(event_type=EventType.SESSION_START, data=None)
+            Event(player_id=owner_id, event_type=EventType.SESSION_START, data=None)
         )
 
         return settings
