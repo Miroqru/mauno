@@ -9,10 +9,10 @@ from collections.abc import Mapping
 
 from loguru import logger
 
-from mau.events import Event, EventHandler, EventType
+from mau.events import EventHandler, EventType, GameEvent
 from mau.game.game import MauGame
 from mau.game.player import Player, PlayerID
-from mau.settings import RoomSettings
+from mau.game.settings import GameSettings
 
 RoomID = str
 
@@ -30,14 +30,13 @@ class RoomManager[H: EventHandler]:
     реагировать на события, происходящие во всех комнатах.
     """
 
-    __slots__ = ("_event_handler", "_games", "_players", "_settings")
+    __slots__ = ("_event_handler", "_games", "_players")
 
     def __init__(self, event_handler: H) -> None:
         self._event_handler = event_handler
 
         self._games: dict[RoomID, MauGame] = {}
         self._players: dict[PlayerID, RoomID] = {}
-        self._settings: dict[RoomID, RoomSettings] = {}
 
     # Получение данных
     # ================
@@ -77,21 +76,10 @@ class RoomManager[H: EventHandler]:
 
         return game.pm.get(player_id)
 
-    def settings(self, room_id: RoomID) -> RoomSettings:
-        """Возвращает настройки по ID комнаты."""
-        settings = self._settings.get(room_id)
-        if settings is None:
-            raise ValueError(f"Not found settings for room {room_id!r}")
-        return settings
-
-    def set_settings(self, room_id: RoomID, settings: RoomSettings) -> None:
-        """Обновляет настройки для комнаты."""
-        self._settings[room_id] = settings
-
     # Высокоуровневое управление
     # ==========================
 
-    def create(self, room_id: str, owner_id: PlayerID, owner_name: str) -> RoomSettings:
+    def create(self, room_id: str, owner_id: PlayerID, owner_name: str) -> MauGame:
         """Создает новую игру.
 
         Автоматически поставляет менеджер игроков и обработчик событий.
@@ -107,34 +95,21 @@ class RoomManager[H: EventHandler]:
 
         """
         logger.info("User {} Create new session in {}", owner_name, room_id)
-        settings = RoomSettings(
+        settings = GameSettings(
             room_id=room_id, owner_id=owner_id, owner_name=owner_name
         )
-        self._settings[room_id] = settings
-        self._event_handler.dispatch(
-            Event(
-                player_id=owner_id,
-                event_type=EventType.SESSION_START,
-                data={
-                    "room_id": room_id,
-                    "owner_id": owner_id,
-                    "owner_name": owner_name,
-                },
-            )
-        )
-
-        return settings
-
-    def start(self, room_id: str) -> MauGame:
-        """Начинает игровую сессию."""
-        logger.info("Start game session for {}", room_id)
-        settings = self._settings.get(room_id)
-        if settings is None:
-            raise ValueError(f"Settings for room {room_id!r} not found")
-
         game = MauGame(settings, self._event_handler)
         self._games[room_id] = game
         self._players[settings.owner_id] = room_id
+        self._event_handler.dispatch(
+            GameEvent(
+                game=game,
+                player_id=owner_id,
+                event_type=EventType.SESSION_START,
+                data=None,
+            )
+        )
+
         return game
 
     def remove(self, room_id: RoomID) -> None:
@@ -150,7 +125,6 @@ class RoomManager[H: EventHandler]:
         for pl in game.pm.iter():
             self._players.pop(pl.id)
         game.owner.dispatch(EventType.SESSION_END, None)
-        self._settings.pop(room_id)
 
     def join(self, room_id: RoomID, player_id: PlayerID, name: str) -> Player:
         """Присоединиться к игре.

@@ -10,10 +10,11 @@ from mau.enums import GameState
 from mau.events import EventHandler, EventType
 from mau.game.player import Player, PlayerID, PlayerOrID
 from mau.game.player_manager import GameReverse, PlayerManager, ResultType
+from mau.game.settings import GameSettings
 from mau.game.shotgun import Shotgun
 from mau.game.timer import GameTimer
-from mau.rules import GameRules
-from mau.settings import RoomSettings
+from mau.rules import GameRules, RuleSet
+from mau.session import RoomID
 
 _MIN_SHOTGUN_TAKE_COUNTER = 3
 
@@ -25,27 +26,58 @@ class MauGame:
     Предоставляет методы для обработки карт и очерёдности ходов.
     """
 
-    def __init__(self, settings: RoomSettings, handler: EventHandler) -> None:
+    def __init__(self, settings: GameSettings, handler: EventHandler) -> None:
         self._settings = settings
         self.event_handler: EventHandler = handler
 
+        # TOOD: Метод смены владельца
         self.pm = PlayerManager(settings.min_players, settings.max_players)
+        self.pm.add(Player(self, settings.owner_id, settings.owner_name))
+
+        # Игровые компоненты
         self.deck = Deck()
         self.shotgun = Shotgun()
         self.timer = GameTimer()
-
-        self._owner_id = settings.owner_id
-        self.pm.add(Player(self, settings.owner_id, settings.owner_name))
-
-        self.rules = settings.rules
-        self.room_id = settings.room_id
-        self.start_cards = settings.start_cards
-        self.open: bool = settings.open
 
         self.bluff_state: tuple[str, bool] | None = None
         self.started: bool = False
         self.take_counter: int = 0
         self.state: GameState = GameState.NEXT
+
+    @property
+    def settings(self) -> GameSettings:
+        """Возвращает настройки для текущей комнаты."""
+        return self._settings
+
+    @property
+    def rules(self) -> RuleSet:
+        """Игровые правила для сессии.
+
+        Сокращение для game.settings.rules.
+        Сделано для обратной совместимости с прошлыми версиями.
+        Правила изменяются также через это свойство.
+        """
+        return self.settings.rules
+
+    @property
+    def room_id(self) -> RoomID:
+        """Возвращает привязанную к комнате игру.
+
+        Сокращение для game.settings.rules.
+        Сделано для обратной совместимости с прошлыми версиями.
+        """
+        return self.settings.room_id
+
+    # TODO: Оповещать об изменениях в настройках
+    def update_settings(self, settings: GameSettings) -> None:
+        """Применяет новые настройки для комнаты."""
+        if self._settings.max_players != settings.max_players:
+            self.pm.max_players = settings.max_players
+
+        if self._settings.min_players != settings.min_players:
+            self.pm.min_players = settings.min_players
+
+        self._settings = settings
 
     @property
     def player(self) -> Player:
@@ -146,7 +178,7 @@ class MauGame:
         if player is not None:
             return player
 
-        if not self.open:
+        if not self.settings.open:
             return None
 
         player = Player(self, player_id, name)
@@ -182,6 +214,7 @@ class MauGame:
             self.end()
             return
 
+        # TODO: Почему это выглядит как костыль
         if self.is_owner(player):
             self._owner_id = self.pm.cur(1).id
 

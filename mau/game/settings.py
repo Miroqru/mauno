@@ -6,7 +6,7 @@ from mau.rules import RuleSet
 
 
 @dataclass(slots=True)
-class RoomSettings:
+class GameSettings:
     """Настройки для создания новой комнаты."""
 
     room_id: str

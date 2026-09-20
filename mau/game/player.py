@@ -153,8 +153,10 @@ class Player:
     def on_join(self) -> None:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
-        self._hand = list(self._game.deck.take(self._game.start_cards))
-        self.dispatch(EventType.PLAYER_TAKE, self._game.start_cards)
+        take_cards = self._game.settings.start_cards
+
+        self._hand = list(self._game.deck.take(take_cards))
+        self.dispatch(EventType.PLAYER_TAKE, take_cards)
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
