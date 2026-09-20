@@ -94,7 +94,7 @@ class EventHandler(Protocol):
     Базовый класс определяет интерфейс взаимодействия с событиями.
     """
 
-    def dispatch(self, event: Event[Any]) -> None:
+    def dispatch(self, event: GameEvent[Any]) -> None:
         """Обрабатывает событие сессии или игровое событие.
 
         Событие обрабатывается на усмотрение клиента.
