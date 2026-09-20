@@ -7,7 +7,7 @@ from loguru import logger
 
 from mau.deck.card import CardColor
 from mau.enums import GameState
-from mau.events import GameEvent, GameEvents
+from mau.events import EventType, GameEvent
 from mau.rules import GameRules
 
 if TYPE_CHECKING:
@@ -83,7 +83,7 @@ class Player:
         """Считает полную ценность руки пользователя."""
         return sum(c.cost for c in self._hand)
 
-    def dispatch(self, event_type: GameEvents, data: _E) -> GameEvent[_E]:
+    def dispatch(self, event_type: EventType, data: _E) -> GameEvent[_E]:
         """Отправляет событие в журнал.
 
         Автоматически подставляет игрока и игру.
@@ -109,7 +109,7 @@ class Player:
         for card in self._game.deck.take(take_counter):
             self._hand.append(card)
         self._game.take_counter = 0
-        self.dispatch(GameEvents.PLAYER_TAKE, take_counter)
+        self.dispatch(EventType.PLAYER_TAKE, take_counter)
         self._game.set_state(GameState.TAKE)
 
         if (
@@ -152,7 +152,7 @@ class Player:
         """Берёт начальный набор карт для игры."""
         logger.debug("{} Draw first hand for player", self._user_name)
         self._hand = list(self._game.deck.take(self._game.start_cards))
-        self.dispatch(GameEvents.PLAYER_TAKE, self._game.start_cards)
+        self.dispatch(EventType.PLAYER_TAKE, self._game.start_cards)
 
     def on_leave(self) -> None:
         """Действия игрока при выходе из игры."""
@@ -167,7 +167,7 @@ class Player:
         player_hand = self._hand.copy()
         self._hand = other_player.hand[:]
         other_player.set_hand(player_hand)
-        self.dispatch(GameEvents.GAME_SELECT_PLAYER, other_player.id)
+        self.dispatch(EventType.GAME_SELECT_PLAYER, other_player.id)
         self.end_turn()
 
     def check_bluff(self) -> None:
@@ -183,13 +183,13 @@ class Player:
         else:
             bluff_player = self._game.pm.get(self._game.bluff_state[0])
             bluff_player.take_cards()
-        self.dispatch(GameEvents.PLAYER_BLUFF, None)
+        self.dispatch(EventType.PLAYER_BLUFF, None)
         self.end_turn()
 
     def end_turn(self) -> None:
         """Игрок завершает текущий ход."""
         if len(self._hand) == 1:
-            self.dispatch(GameEvents.PLAYER_MAU, None)
+            self.dispatch(EventType.PLAYER_MAU, None)
 
         elif len(self._hand) == 0:
             self._game.leave_player(self)
@@ -199,7 +199,7 @@ class Player:
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
         self._game.deck.top.color = color
-        self.dispatch(GameEvents.GAME_SELECT_COLOR, color)
+        self.dispatch(EventType.GAME_SELECT_COLOR, color)
         self.end_turn()
 
     def __str__(self) -> str:

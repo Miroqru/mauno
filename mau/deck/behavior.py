@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from loguru import logger
 
 from mau.enums import GameState
-from mau.events import GameEvents
+from mau.events import EventType
 from mau.rules import GameRules
 
 if TYPE_CHECKING:
@@ -55,7 +55,7 @@ def _auto_select_color(card: "MauCard", game: "MauGame") -> None:
         color_index -= 1
     color_index %= len(game.deck.colors)
     card.color = game.deck.colors[color_index]
-    game.player.dispatch(GameEvents.GAME_SELECT_COLOR, card.color)
+    game.player.dispatch(EventType.GAME_SELECT_COLOR, card.color)
 
 
 def log(game: "MauGame", card: "MauCard") -> None:
@@ -73,7 +73,7 @@ def rotate(game: "MauGame", card: "MauCard") -> None:  # noqa: ARG001
     """Обменивает карты между всеми игроками."""
     if len(game.player.hand) > 1:
         game.pm.rotate_cards()
-        game.player.dispatch(GameEvents.GAME_ROTATE, None)
+        game.player.dispatch(EventType.GAME_ROTATE, None)
 
 
 def turn(game: "MauGame", card: "MauCard") -> None:

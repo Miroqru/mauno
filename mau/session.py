@@ -6,11 +6,10 @@
 """
 
 from collections.abc import Mapping
-from typing import Any
 
 from loguru import logger
 
-from mau.events import GameEvent, EventHandler, GameEvents
+from mau.events import EventHandler, EventType, GameEvent
 from mau.game.game import MauGame
 from mau.game.player import Player, PlayerID
 from mau.settings import RoomSettings
@@ -116,7 +115,7 @@ class RoomManager[H: EventHandler]:
             GameEvent(
                 game=None,
                 player_id=owner_id,
-                event_type=GameEvents.SESSION_START,
+                event_type=EventType.SESSION_START,
                 data=None,
             )
         )
@@ -147,7 +146,7 @@ class RoomManager[H: EventHandler]:
         game = self._games.pop(room_id)
         for pl in game.pm.iter():
             self._players.pop(pl.id)
-        game.owner.dispatch(GameEvents.SESSION_END, None)
+        game.owner.dispatch(EventType.SESSION_END, None)
         self._settings.pop(room_id)
 
     def join(self, room_id: RoomID, player_id: PlayerID, name: str) -> Player:
@@ -172,7 +171,7 @@ class RoomManager[H: EventHandler]:
         if player is None:
             raise ValueError("Failed to join game")
 
-        player.dispatch(GameEvents.SESSION_JOIN, None)
+        player.dispatch(EventType.SESSION_JOIN, None)
         return player
 
     def leave(self, player: Player, room_id: RoomID | None = None) -> None:
@@ -195,4 +194,4 @@ class RoomManager[H: EventHandler]:
             return
 
         game.leave_player(player)
-        player.dispatch(GameEvents.SESSION_LEAVE, None)
+        player.dispatch(EventType.SESSION_LEAVE, None)

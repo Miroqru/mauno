@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from random import shuffle
 
-from mau.events import GameEvents
+from mau.events import EventType
 from mau.game.player import Player, PlayerID
 
 
@@ -151,7 +151,7 @@ class PlayerManager:
         """Устанавливает курсор текущего игрока на переданного."""
         index = self._players.index(player.id)
         self._cp = index
-        player.dispatch(GameEvents.PLAYER_INTERVENED, None)
+        player.dispatch(EventType.PLAYER_INTERVENED, None)
 
     def rotate_cards(self) -> None:
         """Меняет карты в руках для всех игроков."""

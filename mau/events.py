@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from mau.game.player import PlayerID
 
 
-class GameEvents(IntEnum):
+class EventType(IntEnum):
     """Определение игровых событий.
 
     Когда происходит некоторое действие в игре, вызывается событие.
@@ -57,7 +57,7 @@ class Event[T]:
     Событие описывает исчерпывающую информацию о произошедшем:
     """
 
-    event_type: GameEvents
+    event_type: EventType
     """Тип вызванного события."""
 
     data: T
