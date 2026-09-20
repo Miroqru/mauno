@@ -198,7 +198,8 @@ class Player:
         elif len(self._hand) == 0:
             self._game.leave_player(self)
 
-        self._game.next_turn()
+        if self._game.started:
+            self._game.next_turn()
 
     def choose_color(self, color: CardColor) -> None:
         """Устанавливаем цвет для последней карты."""
