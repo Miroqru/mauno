@@ -126,13 +126,16 @@ class MauGame:
         ):
             return True
 
-        # Совмещение нескольких карт
-        # TODO: я не уверен в этом коде
-        return (
-            (top.behavior.on_counter and self.take_counter > 0)
-            and not top.behavior.on_counter
-            and not self.rules.status(GameRules.deferred_take)
-        )
+        # Во время активность счётчика
+        # Если верхняя карта +2/+4, то покрыть её можно такой же картой
+        if (
+            self.take_counter > 0
+            and top.behavior.on_counter
+            and card.behavior.on_counter
+        ) or self.rules.status(GameRules.deferred_take):
+            return True
+
+        return True
 
     def take_cards(self) -> None:
         """Взятие карт игроков.
@@ -261,7 +264,7 @@ class MauGame:
         player.dispatch(EventType.PLAYER_PUT, card)
 
         if self.state == GameState.NEXT and self.rules.status(GameRules.side_effect):
-            self.state = GameState.CONTINUE
+            self.set_state(GameState.CONTINUE)
             return
 
         if self.state not in (GameState.NEXT, GameState.TAKE):
