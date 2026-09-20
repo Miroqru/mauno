@@ -112,6 +112,15 @@ class RoomManager[H: EventHandler]:
             room_id=room_id, owner_id=owner_id, owner_name=owner_name
         )
         self._settings[room_id] = settings
+        self._event_handler.dispatch(
+            Event(
+                game=None,
+                player_id=owner_id,
+                event_type=GameEvents.SESSION_START,
+                data=None,
+            )
+        )
+
         return settings
 
     def start(self, room_id: str) -> MauGame:
@@ -124,7 +133,6 @@ class RoomManager[H: EventHandler]:
         game = MauGame(settings, self._event_handler)
         self._games[room_id] = game
         self._players[settings.owner_id] = room_id
-        game.owner.dispatch(GameEvents.SESSION_START, None)
         return game
 
     def remove(self, room_id: RoomID) -> None:
