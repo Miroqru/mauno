@@ -11,7 +11,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "nox>=2025.2.9",
+    "nox>=2026.8.17",
     "pyright>=1.1.414",
     "ruff>=0.16.0",
 ]
