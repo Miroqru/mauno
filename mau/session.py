@@ -6,10 +6,11 @@
 """
 
 from collections.abc import Mapping
+from typing import Any
 
 from loguru import logger
 
-from mau.events import EventHandler, GameEvents
+from mau.events import Event, EventHandler, GameEvents
 from mau.game.game import MauGame
 from mau.game.player import Player, PlayerID
 from mau.settings import RoomSettings
@@ -82,6 +83,7 @@ class RoomManager[H: EventHandler]:
         settings = self._settings.get(room_id)
         if settings is None:
             raise ValueError(f"Not found settings for room {room_id!r}")
+        return settings
 
     def set_settings(self, room_id: RoomID, settings: RoomSettings) -> None:
         """Обновляет настройки для комнаты."""
