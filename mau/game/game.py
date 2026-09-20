@@ -184,10 +184,10 @@ class MauGame:
             return player
 
         if not self.settings.open:
-            return None
+            raise ValueError("Room closed")
 
         player = Player(self, player_id, name)
-        self.pm.add(player)
+        self.pm.join(player)
         player.dispatch(EventType.GAME_JOIN, None)
         if self.started:
             player.on_join()

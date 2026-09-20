@@ -7,6 +7,7 @@ from enum import IntEnum
 from random import shuffle
 
 from mau.events import EventType
+from mau.game import player
 from mau.game.player import Player
 from mau.types import PlayerID
 
@@ -66,7 +67,9 @@ class PlayerManager:
         """ПОлучает игрока по курсору со сдвигом."""
         if len(self._players) == 0:
             raise ValueError("Game not started to get players")
-        return self.get(self._players[(self._cp + offset) % len(self._players)])
+
+        cur = (self._cp + offset) % len(self._players)
+        return self.get(self._players[cur])
 
     def get(self, player_id: PlayerID) -> Player:
         """Возвращает игрока из хранилища по его ID."""
@@ -97,15 +100,22 @@ class PlayerManager:
 
         Вернёт исключение, если не получилось добавить игрока.
         """
-        if len(self._players) >= self.max_players:
-            raise ValueError("Too man players in game")
-
         self._storage[player.id] = player
         self._players.append(player.id)
 
     def remove(self, player_id: PlayerID) -> Player:
         """Удаляет игрока из хранилища."""
         return self._storage.pop(player_id)
+
+    def join(self, player: Player) -> None:
+        """Позволяет игроку зайти в сессию."""
+        if len(self._players) >= self.max_players:
+            raise ValueError("Too man players in game")
+
+        if player.id in self.results:
+            raise ValueError("Player double join")
+
+        self.add(player)
 
     def leave(self, player: Player, result: ResultType) -> None:
         """Игрок покидает игру при выигрыше или поражении."""
@@ -145,6 +155,7 @@ class PlayerManager:
         """Перемещает курсор игрока дальше."""
         if self.reverse == GameReverse.NEXT:
             self._cp = (self._cp + n) % len(self._players)
+
         elif self.reverse == GameReverse.BACK:
             self._cp = (self._cp - n) % len(self._players)
 
