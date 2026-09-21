@@ -108,15 +108,21 @@ class Player:
         take_counter = self._game.take_counter or 1
         logger.debug("{} Draw {} cards", self._user_name, take_counter)
 
+        can_cover = False
         for card in self._game.deck.take(take_counter):
             self._hand.append(card)
+
+            card_can_cover = self._game.can_cover(self, card)
+            if card_can_cover:
+                can_cover = card_can_cover
+
         self._game.take_counter = 0
         self.dispatch(EventType.PLAYER_TAKE, take_counter)
         self._game.set_state(GameState.TAKE)
 
-        if (
-            self._game.rules.status(GameRules.auto_skip)
-            and len(self.cover_cards().cover) == 0
+        # Если игрок берёт больше одной карты, то он всегда пропускает игру
+        if (self._game.rules.status(GameRules.auto_skip) and not can_cover) or (
+            take_counter > 1 and not self._game.rules.status(GameRules.take_until_cover)
         ):
             self._game.next_turn()
 
