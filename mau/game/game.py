@@ -126,14 +126,16 @@ class MauGame:
         ):
             return True
 
-        # Во время активность счётчика
+        defer_take = self.rules.status(GameRules.deferred_take)
+
+        # TODO: Добавить режим отражение/наложение, чтобы регулировать это
         # Если верхняя карта +2/+4, то покрыть её можно такой же картой
-        if (
-            self.take_counter > 0
-            and top.behavior.on_counter
-            and card.behavior.on_counter
-        ) or self.rules.status(GameRules.deferred_take):
-            return True
+        if self.take_counter > 0 and top.behavior.on_counter:
+            return card.behavior.on_counter or defer_take
+
+        # Во время активность счётчика при других условиях
+        if self.take_counter > 0:
+            return defer_take
 
         return True
 
