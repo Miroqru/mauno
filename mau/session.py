@@ -6,6 +6,7 @@
 """
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 
 from loguru import logger
 
@@ -14,6 +15,20 @@ from mau.game.game import MauGame
 from mau.game.player import Player
 from mau.game.settings import GameSettings
 from mau.types import PlayerID, RoomID
+
+
+@dataclass(frozen=True, slots=True)
+class RoomStats:
+    """Общая статистика комнат.
+
+    Может использоваться в том числе и для отладки.
+    """
+
+    rooms: int
+    """число активных комнат."""
+
+    players: int
+    """число активных игроков."""
 
 
 class RoomManager[H: EventHandler]:
@@ -49,6 +64,10 @@ class RoomManager[H: EventHandler]:
     def rooms(self) -> Mapping[RoomID, MauGame]:
         """Возвращает словарь всех активных игр с привязкой к комнатам."""
         return self._games
+
+    def status(self) -> RoomStats:
+        """Возвращает статус менеджера комнат."""
+        return RoomStats(rooms=len(self._games), players=len(self._players))
 
     def room(self, room_id: RoomID) -> MauGame | None:
         """Возвращает экземпляр игры по ID комнаты из хранилища."""
