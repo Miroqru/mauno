@@ -7,7 +7,6 @@ from enum import IntEnum
 from random import shuffle
 
 from mau.events import EventType
-from mau.game import player
 from mau.game.player import Player
 from mau.types import PlayerID
 

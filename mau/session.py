@@ -73,7 +73,7 @@ class RoomManager[H: EventHandler]:
             self._players.pop(player_id)
             return None
 
-        return game.pm.get(player_id)
+        return game.pm.get_or_none(player_id)
 
     # Высокоуровневое управление
     # ==========================
@@ -121,8 +121,8 @@ class RoomManager[H: EventHandler]:
         """
         logger.info("End session in room {}", room_id)
         game = self._games.pop(room_id)
-        for pl in game.pm.iter():
-            self._players.pop(pl.id)
+        for player_id in game.pm.results:
+            self._players.pop(player_id)
         game.owner.dispatch(EventType.SESSION_END, None)
 
     def join(self, room_id: RoomID, player_id: PlayerID, name: str) -> Player:
