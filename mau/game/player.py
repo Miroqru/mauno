@@ -120,9 +120,13 @@ class Player:
         self.dispatch(EventType.PLAYER_TAKE, take_counter)
         self._game.set_state(GameState.TAKE)
 
+        # Очищает состояние блефа, если оно не было очищено
+        # В случае когда игрок решил просто взять карты
         if self._game.bluff_state is not None:
             self._game.bluff_state = None
-            self.dispatch(EventType.PLAYER_BLUFF, None)
+
+            # TODO: Сообщение об очистке блефа
+            # self.dispatch(EventType.PLAYER_BLUFF, None)
 
         # Если игрок берёт больше одной карты, то он всегда пропускает игру
         if (self._game.rules.status(GameRules.auto_skip) and not can_cover) or (
@@ -184,21 +188,26 @@ class Player:
         self.dispatch(EventType.GAME_SELECT_PLAYER, other_player.id)
         self.end_turn()
 
-    def check_bluff(self) -> None:
+    def check_bluff(self) -> tuple[PlayerID, bool] | None:
         """Проверка предыдущего игрока на блеф.
 
         По правилам, если прошлый игрок блефовал, то он берёт 4 карты.
         Если же игрок не блефовал, текущий игрок берёт уже 6 карт.
         """
         logger.info("{} call bluff {}", self, self._game.bluff_state)
+        state = self.game.bluff_state
+        self.dispatch(EventType.PLAYER_BLUFF, state)
+
+        # Ложный вызов
         if self._game.bluff_state is None or not self._game.bluff_state[1]:
             self._game.take_counter += 2
             self.take_cards()
+
         else:
             bluff_player = self._game.pm.get(self._game.bluff_state[0])
             bluff_player.take_cards()
-        self.dispatch(EventType.PLAYER_BLUFF, None)
-        self.end_turn()
+
+        return state
 
     def end_turn(self) -> None:
         """Игрок завершает текущий ход."""
