@@ -120,6 +120,10 @@ class Player:
         self.dispatch(EventType.PLAYER_TAKE, take_counter)
         self._game.set_state(GameState.TAKE)
 
+        if self._game.bluff_state is not None:
+            self._game.bluff_state = None
+            self.dispatch(EventType.PLAYER_BLUFF, None)
+
         # Если игрок берёт больше одной карты, то он всегда пропускает игру
         if (self._game.rules.status(GameRules.auto_skip) and not can_cover) or (
             take_counter > 1 and not self._game.rules.status(GameRules.take_until_cover)
