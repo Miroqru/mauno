@@ -14,5 +14,5 @@
 - storage: Интерфейс хранилища для игр и игроков.
 """
 
-__version__ = "v3.3.0"
+__version__ = "v3.4.0"
 __author__ = "Milinuri Nirvalen"
